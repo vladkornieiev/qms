@@ -1,0 +1,149 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.5.7'
+    id 'io.spring.dependency-management' version '1.1.7'
+    id 'org.openapi.generator' version '7.17.0'
+    id 'org.owasp.dependencycheck' version '12.1.9'
+}
+
+group = 'com.kfdlabs'
+version = '1.0.0'
+description = 'asap'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // spring
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-mail'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+    developmentOnly 'org.springframework.boot:spring-boot-docker-compose'
+
+    // shedlock
+    implementation 'net.javacrumbs.shedlock:shedlock-spring:6.3.1'
+    implementation 'net.javacrumbs.shedlock:shedlock-provider-jdbc-template:6.3.1'
+
+    // lombok
+    // ORDER IS IMPORTANT! lombok must be before mapstruct
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+
+    // mapper
+    implementation 'org.mapstruct:mapstruct:1.6.3'
+    annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
+
+    // logging - loki
+    implementation 'com.github.loki4j:loki-logback-appender:2.0.2'
+    implementation 'org.codehaus.janino:janino:3.1.12'
+
+    // jwt
+    implementation 'io.jsonwebtoken:jjwt-api:0.12.3'
+    implementation 'io.jsonwebtoken:jjwt-impl:0.12.3'
+    implementation 'io.jsonwebtoken:jjwt-jackson:0.12.3'
+
+    // db
+    runtimeOnly 'org.postgresql:postgresql'
+    implementation('org.liquibase:liquibase-core:5.0.1') {
+        exclude group: 'org.apache.commons', module: 'commons-lang3'
+    }
+    implementation("org.apache.commons:commons-lang3:3.20.0")
+    implementation 'org.locationtech.jts:jts-core:1.19.0'
+    implementation 'org.hibernate.orm:hibernate-spatial'
+    implementation 'net.postgis:postgis-jdbc:2.5.1'
+
+    // open api
+    implementation 'org.openapitools:jackson-databind-nullable:0.2.6'
+    implementation 'io.swagger.parser.v3:swagger-parser:2.1.22'
+
+    // rate limiting
+    implementation 'com.bucket4j:bucket4j_jdk17-postgresql:8.15.0'
+
+    // s3
+    implementation 'software.amazon.awssdk:s3:2.32.12'
+
+    // oauth2
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+
+    // metrics
+    runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
+
+    // testing
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.security:spring-security-test'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+openApiGenerate {
+    generatorName = "spring"
+    inputSpec = "$rootDir/../openapi.yml"
+    outputDir = "$buildDir/generated"
+    apiPackage = "${group}.asap.api"
+    modelPackage = "${group}.asap.dto"
+    configOptions = [
+            openApiNullable     : "true",
+            library             : "spring-boot",
+            interfaceOnly       : "true",
+            useTags             : "true",
+            serializationLibrary: "jackson",
+            useBeanValidation   : "true",
+            useJakartaEe        : "true",
+            skipDefaultInterface: "true",
+            apiSuffix           : "Api"
+    ]
+    typeMappings = [
+            OffsetDateTime: "java.time.LocalDateTime"
+    ]
+    generateModelTests = false
+    generateApiTests = false
+}
+
+compileJava.dependsOn tasks.openApiGenerate
+
+sourceSets {
+    main {
+        java {
+            srcDir "$buildDir/generated/src/main/java"
+        }
+    }
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+jar {
+    enabled = false
+}
+
+tasks.named('processResources') {
+    from('../') {
+        include 'openapi.yml'
+        into 'contract'
+    }
+}
+
+dependencyCheck {
+    nvd.apiKey = '73E71AE6-BAC4-F011-8365-0EBF96DE670D'
+}

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <springProperty name="ENV" source="ENV" defaultValue="local"/>
+    <springProperty name="APP_NAME" source="spring.application.name" defaultValue="vaporsafe"/>
+    <springProperty name="LOKI_HOST" source="LOKI_HOST" defaultValue="localhost:3100"/>
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>[vaporsafe] %d{HH:mm:ss.SSS} [%thread] %-5level %logger - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="LOKI" class="com.github.loki4j.logback.Loki4jAppender">
+        <batch>
+            <timeoutMs>10000</timeoutMs>
+        </batch>
+        <http>
+            <url>http://${LOKI_HOST}/loki/api/v1/push</url>
+        </http>
+        <labels>
+            app=${APP_NAME}
+            env=${ENV}
+            host=${HOSTNAME}
+        </labels>
+        <message class="com.github.loki4j.logback.JsonLayout">
+            <mdc>
+                <enabled>true</enabled>
+                <prefix></prefix>
+            </mdc>
+        </message>
+    </appender>
+
+    <root level="info">
+        <appender-ref ref="STDOUT"/>
+    </root>
+
+    <if condition='!property("ENV").equalsIgnoreCase("local")'>
+        <then>
+            <root level="info">
+                <appender-ref ref="LOKI"/>
+            </root>
+        </then>
+    </if>
+</configuration>

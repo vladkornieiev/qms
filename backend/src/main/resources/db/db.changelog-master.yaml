@@ -1,0 +1,9 @@
+databaseChangeLog:
+  - changeSet:
+      id: 001-init
+      author: asap
+      changes:
+        - sqlFile:
+            path: db/changelog/001-init.sql
+            relativeToChangelogFile: false
+            splitStatements: false

@@ -1,0 +1,15 @@
+/* Public pages custom styles */
+
+@keyframes pulse-line {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.animate-pulse-slow {
+  animation: pulse-line 3s infinite ease-in-out;
+}

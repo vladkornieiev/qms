@@ -1,0 +1,122 @@
+spring:
+  application:
+    name: ${APP_NAME:asap}
+  profiles:
+    default: local
+  security:
+    user:
+      password: disabled
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+            scope:
+              - openid
+              - email
+              - profile
+            redirect-uri: ${GOOGLE_REDIRECT_URI:${app.base-api-url}/api/login/oauth2/code/google}
+  datasource:
+    hikari:
+      maximum-pool-size: ${DB_MAX_POOL_SIZE:50}
+      minimum-idle: ${DB_MIN_IDLE:10}
+      idle-timeout: ${DB_IDLE_TIMEOUT:300000} # 5 minutes
+      connection-timeout: ${DB_CONNECTION_TIMEOUT:20000} # 20 seconds
+      connection-init-sql: SET TIME ZONE 'UTC'
+    url: jdbc:postgresql://${DB_HOST}:${DB_PORT:5432}/${DB_NAME}
+    driver-class-name: org.postgresql.Driver
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: ${JPA_SHOW_SQL:false}
+    properties:
+      hibernate:
+        format_sql: false
+        jdbc:
+          time_zone: UTC
+    open-in-view: false
+  liquibase:
+    enabled: ${LIQUIBASE_ENABLED:true}
+    change-log: classpath:db/db.changelog-master.yaml
+  mail:
+    host: ${SMTP_HOST}
+    port: ${SMTP_PORT:587}
+    username: ${SMTP_USERNAME}
+    password: ${SMTP_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          connectiontimeout: 5000
+          timeout: 3000
+          writetimeout: 5000
+  servlet:
+    multipart:
+      max-file-size: ${FILE_UPLOAD_MAX_SIZE:10MB}
+  task:
+    scheduling:
+      pool:
+        size: 2
+
+# JWT Configuration
+jwt:
+  secret: ${JWT_SECRET}
+  access-token-validity: ${JWT_ACCESS_TOKEN_VALIDITY:86400000} # 1 day in milliseconds
+  refresh-token-validity: ${JWT_REFRESH_TOKEN_VALIDITY:2592000000} # 1 month in milliseconds
+
+api-key:
+  secret: ${API_KEYS_SECRET}
+
+# Application Configuration
+app:
+  base-api-url: ${APP_BASE_API_URL}
+  base-ui-url: ${APP_BASE_UI_URL}
+  security:
+    oauth:
+      success-callback-url: ${APP_OAUTH_SUCCESS_CALLBACK_URL:${app.base-ui-url}/auth/success}
+      failure-callback-url: ${APP_OAUTH_FAILURE_CALLBACK_URL:${app.base-ui-url}/auth/failure}
+  mail:
+    name: ${APP_MAIL_NAME}
+    from: ${APP_MAIL_FROM}
+    link-expiration-minutes: ${APP_LINK_EXPIRATION_MINUTES:60} # 60 minutes
+    attachments:
+      expiration-days: ${APP_ATTACHMENT_EXPIRATION_DAYS:7} # 7 days
+  rate-limit:
+    enabled: ${APP_RATE_LIMIT_ENABLED:true}
+    rps: ${APP_RATE_LIMIT_RPS:15}
+    redis-key: ${APP_RATE_LIMIT_KEY:${spring.application.name}:rate-limit:${ENV:local}}
+aws:
+  access-key: ${AWS_ACCESS_KEY}
+  secret-key: ${AWS_SECRET_KEY}
+  region: ${AWS_REGION:us-east-1}
+  endpoint: ${AWS_ENDPOINT:}
+  s3:
+    bucket: ${AWS_S3_BUCKET}
+    presigned-url-expiration-minutes: ${AWS_S3_PRESIGNED_URL_EXPIRATION_MINUTES:60} # 60 minutes
+    presigned-url-endpoint: ${AWS_S3_PRESIGNED_URL_ENDPOINT:} # Public endpoint for presigned URLs (e.g., http://localhost:9000 for browser access)
+
+server:
+  port: ${SERVER_PORT:8080}
+
+management:
+  elastic:
+    metrics:
+      export:
+        enabled: ${ELASTIC_METRICS_ENABLED:false}
+        host: ${ELASTIC_METRICS_HOST:localhost:9200}
+        index: ${ELASTIC_METRICS_INDEX:${spring.application.name}-${ENV:local}-metrics}
+        step: ${ELASTIC_METRICS_STEP:60s}
+  endpoint:
+    health:
+      show-details: "WHEN_AUTHORIZED"
+  endpoints:
+    web:
+      path-mapping:
+        health: status
+      base-path: /api

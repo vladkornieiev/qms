@@ -1,0 +1,57 @@
+spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+  docker:
+    compose:
+      enabled: ${DOCKER_COMPOSE_ENABLED:true}
+      file: backend/docker-compose.yml
+  mail:
+    host: smtp.purelymail.com
+    username: vaporsafe@kfdlabs.com
+    password: hockiv-kujkA3-bennoj
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:asap}
+    username: ${DB_USERNAME:asap}
+    password: ${DB_PASSWORD:asap}
+
+
+jwt:
+  secret: ${JWT_SECRET:mySecretKeyThatShouldBeAtLeast256BitsLongForHS256Algorithm}
+
+api-key:
+  secret: ${API_KEYS_SECRET:LocalApiKeySecretForDev123456789}
+
+app:
+  base-api-url: ${APP_BASE_API_URL:http://localhost:8080}
+  base-ui-url: ${APP_BASE_UI_URL:http://localhost:3000}
+  mail:
+    name: ${APP_MAIL_NAME:ASAP}
+    from: ${APP_MAIL_FROM:asap@kfdlabs.com}
+  rate-limit:
+    enabled: ${APP_RATE_LIMIT_ENABLED:true}
+    rps: ${APP_RATE_LIMIT_RPS:15}
+  security:
+    oauth:
+      success-callback-url: ${APP_OAUTH_SUCCESS_CALLBACK_URL:${app.base-ui-url}/auth/success}
+      failure-callback-url: ${APP_OAUTH_FAILURE_CALLBACK_URL:${app.base-ui-url}/auth/failure}
+
+aws:
+  access-key: ${AWS_ACCESS_KEY}
+  secret-key: ${AWS_SECRET_KEY}
+  region: ${AWS_REGION:auto}
+  endpoint: ${AWS_ENDPOINT:https://a9ff3ffd4d27f5f48212a6f13a6dc163.r2.cloudflarestorage.com}
+  s3:
+    bucket: ${AWS_S3_BUCKET:asap}
+    presigned-url-endpoint: ${AWS_S3_PRESIGNED_URL_ENDPOINT:} # un dPublic endpoint for presigned URLs (optional, defaults to endpoint if not set)
