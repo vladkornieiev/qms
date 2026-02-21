@@ -8,10 +8,16 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Repository
 public interface NotificationRepository extends JpaRepository<Notification, UUID> {
+
+    @Modifying
+    @Query("DELETE FROM Notification n WHERE n.isRead = true AND n.readAt < :before")
+    int deleteOldReadNotifications(LocalDateTime before);
+
 
     @Query("SELECT n FROM Notification n WHERE n.user.id = :userId ORDER BY n.createdAt DESC")
     Page<Notification> findByUser(UUID userId, Pageable pageable);

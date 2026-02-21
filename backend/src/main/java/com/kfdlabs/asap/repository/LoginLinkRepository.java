@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Repository
@@ -15,4 +16,8 @@ public interface LoginLinkRepository extends JpaRepository<LoginLink, Long> {
     @Modifying
     @Query("DELETE FROM LoginLink l WHERE l.email = :email")
     void deleteByEmail(String email);
+
+    @Modifying
+    @Query("DELETE FROM LoginLink l WHERE l.expiresAt < :now")
+    int deleteExpired(LocalDateTime now);
 } 

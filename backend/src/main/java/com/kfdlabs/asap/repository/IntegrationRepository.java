@@ -17,4 +17,7 @@ public interface IntegrationRepository extends JpaRepository<Integration, UUID> 
 
     @Query("SELECT i FROM Integration i WHERE i.organization.id = :orgId AND i.provider = :provider")
     Optional<Integration> findByProvider(UUID orgId, String provider);
+
+    @Query("SELECT i FROM Integration i WHERE i.status = 'connected'")
+    List<Integration> findAllConnected();
 }

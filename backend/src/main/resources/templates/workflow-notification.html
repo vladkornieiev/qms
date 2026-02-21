@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>[[${subject}]]</title>
+    <style>
+        body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.5; color: #1f2937; background-color: #ffffff; }
+        .container { max-width: 480px; margin: 60px auto 0; padding: 0 24px; }
+        .logo { text-align: center; margin-bottom: 48px; }
+        .logo h1 { font-size: 32px; font-weight: 700; color: #111827; margin: 0; letter-spacing: -0.02em; }
+        .content { margin-bottom: 64px; }
+        .header { text-align: center; margin-bottom: 32px; }
+        .header h2 { font-size: 24px; font-weight: 600; color: #111827; margin: 0 0 8px 0; }
+        .body-text { font-size: 16px; color: #374151; line-height: 1.6; margin-bottom: 24px; }
+        .footer { margin-top: 64px; padding-top: 32px; border-top: 1px solid #f3f4f6; text-align: center; margin-bottom: 48px; }
+        .footer p { margin: 0; font-size: 14px; color: #9ca3af; line-height: 1.5; }
+        .footer a { color: #6b7280; text-decoration: none; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="logo"><h1>[[${appName}]]</h1></div>
+    <div class="content">
+        <div class="header">
+            <h2>[[${subject}]]</h2>
+        </div>
+        <p class="body-text">[[${body}]]</p>
+    </div>
+    <div class="footer">
+        <p>This notification was triggered by a workflow rule.</p>
+        <p style="margin-top: 8px;">If you have questions, contact us at <a th:href="'mailto:' + ${supportEmail}" th:text="${supportEmail}"></a>.</p>
+        <p style="margin-top: 8px;">&copy; [[${currentYear}]] [[${appName}]]</p>
+    </div>
+</div>
+</body>
+</html>

@@ -7,12 +7,14 @@ import com.kfdlabs.asap.entity.Organization;
 import com.kfdlabs.asap.entity.Payment;
 import com.kfdlabs.asap.entity.Quote;
 import com.kfdlabs.asap.entity.QuoteLineItem;
+import com.kfdlabs.asap.event.EntityEvent;
 import com.kfdlabs.asap.mapper.InvoiceMapper;
 import com.kfdlabs.asap.repository.*;
 import com.kfdlabs.asap.security.SecurityUtils;
 import com.kfdlabs.asap.util.PaginationUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -43,6 +45,7 @@ public class InvoiceService {
     private final CategoryRepository categoryRepository;
     private final UserRepository userRepository;
     private final InvoiceMapper invoiceMapper;
+    private final ApplicationEventPublisher eventPublisher;
 
     private Organization getCurrentOrg() {
         return organizationRepository.findById(SecurityUtils.getCurrentOrganizationId())
@@ -305,6 +308,7 @@ public class InvoiceService {
         payment = paymentRepository.save(payment);
 
         // Update invoice payment totals
+        String oldStatus = invoice.getStatus();
         invoice.setAmountPaid(invoice.getAmountPaid().add(request.getAmount()));
         invoice.setBalanceDue(invoice.getTotal().subtract(invoice.getAmountPaid()));
         if (invoice.getAmountPaid().compareTo(invoice.getTotal()) >= 0) {
@@ -314,6 +318,10 @@ public class InvoiceService {
             invoice.setStatus("partially_paid");
         }
         invoiceRepository.save(invoice);
+
+        eventPublisher.publishEvent(new EntityEvent(
+                this, "invoice", "payment_received", invoice.getId(),
+                invoice.getOrganization().getId(), oldStatus, invoice.getStatus(), invoice));
 
         return payment;
     }
