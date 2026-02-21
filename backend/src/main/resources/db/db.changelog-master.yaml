@@ -7,3 +7,11 @@ databaseChangeLog:
             path: db/changelog/001-init.sql
             relativeToChangelogFile: false
             splitStatements: false
+  - changeSet:
+      id: 002-tags-lookups-fields-categories
+      author: asap
+      changes:
+        - sqlFile:
+            path: db/changelog/002-tags-lookups-fields-categories.sql
+            relativeToChangelogFile: false
+            splitStatements: false

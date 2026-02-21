@@ -1637,6 +1637,692 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  # ========= Phase 2: Tags =========
+
+  /api/tag-groups:
+    get:
+      summary: List tag groups
+      operationId: listTagGroups
+      tags:
+        - tag-groups
+      responses:
+        "200":
+          description: List of tag groups
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TagGroupResponse"
+    post:
+      summary: Create tag group
+      operationId: createTagGroup
+      tags:
+        - tag-groups
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTagGroupRequest"
+      responses:
+        "201":
+          description: Tag group created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TagGroupResponse"
+
+  /api/tag-groups/{id}:
+    get:
+      summary: Get tag group
+      operationId: getTagGroup
+      tags:
+        - tag-groups
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Tag group details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TagGroupResponse"
+    patch:
+      summary: Update tag group
+      operationId: updateTagGroup
+      tags:
+        - tag-groups
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateTagGroupRequest"
+      responses:
+        "200":
+          description: Tag group updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TagGroupResponse"
+    delete:
+      summary: Delete tag group
+      operationId: deleteTagGroup
+      tags:
+        - tag-groups
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Tag group deleted
+
+  /api/tags:
+    get:
+      summary: List tags
+      operationId: listTags
+      tags:
+        - tags
+      parameters:
+        - name: groupId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of tags
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TagResponse"
+    post:
+      summary: Create tag
+      operationId: createTag
+      tags:
+        - tags
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTagRequest"
+      responses:
+        "201":
+          description: Tag created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TagResponse"
+
+  /api/tags/{id}:
+    get:
+      summary: Get tag
+      operationId: getTag
+      tags:
+        - tags
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Tag details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TagResponse"
+    patch:
+      summary: Update tag
+      operationId: updateTag
+      tags:
+        - tags
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateTagRequest"
+      responses:
+        "200":
+          description: Tag updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TagResponse"
+    delete:
+      summary: Delete tag
+      operationId: deleteTag
+      tags:
+        - tags
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Tag deleted
+
+  /api/tags/entity/{entityType}/{entityId}:
+    get:
+      summary: Get tags for entity
+      operationId: getEntityTags
+      tags:
+        - tags
+      parameters:
+        - name: entityType
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: entityId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Tags for entity
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TagResponse"
+    post:
+      summary: Apply tag to entity
+      operationId: applyTagToEntity
+      tags:
+        - tags
+      parameters:
+        - name: entityType
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: entityId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ApplyTagRequest"
+      responses:
+        "201":
+          description: Tag applied
+    delete:
+      summary: Remove tag from entity
+      operationId: removeTagFromEntity
+      tags:
+        - tags
+      parameters:
+        - name: entityType
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: entityId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: tagId
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Tag removed
+
+  # ========= Phase 2: Lookup Lists =========
+
+  /api/lookup-lists:
+    get:
+      summary: List lookup lists
+      operationId: listLookupLists
+      tags:
+        - lookup-lists
+      responses:
+        "200":
+          description: List of lookup lists
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/LookupListResponse"
+    post:
+      summary: Create lookup list
+      operationId: createLookupList
+      tags:
+        - lookup-lists
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateLookupListRequest"
+      responses:
+        "201":
+          description: Lookup list created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LookupListResponse"
+
+  /api/lookup-lists/{id}:
+    get:
+      summary: Get lookup list with items
+      operationId: getLookupList
+      tags:
+        - lookup-lists
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Lookup list details with items
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LookupListDetailResponse"
+    patch:
+      summary: Update lookup list
+      operationId: updateLookupList
+      tags:
+        - lookup-lists
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateLookupListRequest"
+      responses:
+        "200":
+          description: Lookup list updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LookupListResponse"
+    delete:
+      summary: Delete lookup list
+      operationId: deleteLookupList
+      tags:
+        - lookup-lists
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Lookup list deleted
+
+  /api/lookup-lists/{id}/items:
+    get:
+      summary: List lookup list items
+      operationId: listLookupListItems
+      tags:
+        - lookup-lists
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: List of items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/LookupListItemResponse"
+    post:
+      summary: Create lookup list item
+      operationId: createLookupListItem
+      tags:
+        - lookup-lists
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateLookupListItemRequest"
+      responses:
+        "201":
+          description: Item created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LookupListItemResponse"
+
+  /api/lookup-lists/{id}/items/{itemId}:
+    patch:
+      summary: Update lookup list item
+      operationId: updateLookupListItem
+      tags:
+        - lookup-lists
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: itemId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateLookupListItemRequest"
+      responses:
+        "200":
+          description: Item updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LookupListItemResponse"
+    delete:
+      summary: Delete lookup list item
+      operationId: deleteLookupListItem
+      tags:
+        - lookup-lists
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: itemId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Item deleted
+
+  # ========= Phase 2: Custom Fields =========
+
+  /api/custom-fields/{entityType}:
+    get:
+      summary: List custom field definitions
+      operationId: listCustomFieldDefinitions
+      tags:
+        - custom-fields
+      parameters:
+        - name: entityType
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of custom field definitions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CustomFieldDefinitionResponse"
+    post:
+      summary: Create custom field definition
+      operationId: createCustomFieldDefinition
+      tags:
+        - custom-fields
+      parameters:
+        - name: entityType
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCustomFieldDefinitionRequest"
+      responses:
+        "201":
+          description: Custom field definition created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CustomFieldDefinitionResponse"
+
+  /api/custom-fields/{entityType}/{id}:
+    patch:
+      summary: Update custom field definition
+      operationId: updateCustomFieldDefinition
+      tags:
+        - custom-fields
+      parameters:
+        - name: entityType
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateCustomFieldDefinitionRequest"
+      responses:
+        "200":
+          description: Custom field definition updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CustomFieldDefinitionResponse"
+    delete:
+      summary: Delete custom field definition
+      operationId: deleteCustomFieldDefinition
+      tags:
+        - custom-fields
+      parameters:
+        - name: entityType
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Custom field definition deleted
+
+  # ========= Phase 2: Categories =========
+
+  /api/categories:
+    get:
+      summary: List categories (tree)
+      operationId: listCategories
+      tags:
+        - categories
+      parameters:
+        - name: type
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Category tree
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CategoryResponse"
+    post:
+      summary: Create category
+      operationId: createCategory
+      tags:
+        - categories
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCategoryRequest"
+      responses:
+        "201":
+          description: Category created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CategoryResponse"
+
+  /api/categories/{id}:
+    get:
+      summary: Get category
+      operationId: getCategory
+      tags:
+        - categories
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Category details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CategoryResponse"
+    patch:
+      summary: Update category
+      operationId: updateCategory
+      tags:
+        - categories
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateCategoryRequest"
+      responses:
+        "200":
+          description: Category updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CategoryResponse"
+    delete:
+      summary: Delete category
+      operationId: deleteCategory
+      tags:
+        - categories
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Category deleted
+
 components:
   securitySchemes:
     bearerAuth:
@@ -2212,3 +2898,450 @@ components:
               items:
                 $ref: "#/components/schemas/OrganizationMember"
               description: List of organization members
+
+    # ========= Phase 2: Tag Schemas =========
+
+    TagGroupResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        color:
+          type: string
+        description:
+          type: string
+        createdAt:
+          $ref: "#/components/schemas/Timestamp"
+
+    CreateTagGroupRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        color:
+          type: string
+        description:
+          type: string
+
+    UpdateTagGroupRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          nullable: true
+        color:
+          type: string
+          nullable: true
+        description:
+          type: string
+          nullable: true
+
+    TagResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        color:
+          type: string
+        tagGroupId:
+          type: string
+          format: uuid
+        tagGroupName:
+          type: string
+        createdAt:
+          $ref: "#/components/schemas/Timestamp"
+
+    CreateTagRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        color:
+          type: string
+        tagGroupId:
+          type: string
+          format: uuid
+
+    UpdateTagRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          nullable: true
+        color:
+          type: string
+          nullable: true
+        tagGroupId:
+          type: string
+          format: uuid
+          nullable: true
+
+    ApplyTagRequest:
+      type: object
+      required:
+        - tagId
+      properties:
+        tagId:
+          type: string
+          format: uuid
+
+    # ========= Phase 2: Lookup List Schemas =========
+
+    LookupListResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        slug:
+          type: string
+        description:
+          type: string
+        isSystem:
+          type: boolean
+        isActive:
+          type: boolean
+        createdAt:
+          $ref: "#/components/schemas/Timestamp"
+
+    LookupListDetailResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        slug:
+          type: string
+        description:
+          type: string
+        isSystem:
+          type: boolean
+        isActive:
+          type: boolean
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/LookupListItemResponse"
+        createdAt:
+          $ref: "#/components/schemas/Timestamp"
+
+    CreateLookupListRequest:
+      type: object
+      required:
+        - name
+        - slug
+      properties:
+        name:
+          type: string
+        slug:
+          type: string
+        description:
+          type: string
+
+    UpdateLookupListRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        isActive:
+          type: boolean
+          nullable: true
+
+    LookupListItemResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        value:
+          type: string
+        label:
+          type: string
+        color:
+          type: string
+        icon:
+          type: string
+        metadata:
+          type: object
+          additionalProperties: true
+        parentId:
+          type: string
+          format: uuid
+        isActive:
+          type: boolean
+        displayOrder:
+          type: integer
+
+    CreateLookupListItemRequest:
+      type: object
+      required:
+        - value
+        - label
+      properties:
+        value:
+          type: string
+        label:
+          type: string
+        color:
+          type: string
+        icon:
+          type: string
+        metadata:
+          type: object
+          additionalProperties: true
+        parentId:
+          type: string
+          format: uuid
+        displayOrder:
+          type: integer
+
+    UpdateLookupListItemRequest:
+      type: object
+      properties:
+        label:
+          type: string
+          nullable: true
+        color:
+          type: string
+          nullable: true
+        icon:
+          type: string
+          nullable: true
+        metadata:
+          type: object
+          additionalProperties: true
+          nullable: true
+        isActive:
+          type: boolean
+          nullable: true
+        displayOrder:
+          type: integer
+          nullable: true
+
+    # ========= Phase 2: Custom Field Schemas =========
+
+    CustomFieldDefinitionResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        entityType:
+          type: string
+        fieldKey:
+          type: string
+        fieldLabel:
+          type: string
+        fieldType:
+          type: string
+        options:
+          type: array
+          items:
+            type: object
+        lookupListId:
+          type: string
+          format: uuid
+        collectionSchema:
+          type: array
+          items:
+            type: object
+        minEntries:
+          type: integer
+        maxEntries:
+          type: integer
+        isRequired:
+          type: boolean
+        defaultValue:
+          type: string
+        isFilterable:
+          type: boolean
+        displayOrder:
+          type: integer
+        section:
+          type: string
+        showOnForm:
+          type: boolean
+        showOnCard:
+          type: boolean
+        dependsOnFieldId:
+          type: string
+          format: uuid
+        dependsOnValue:
+          type: string
+        createdAt:
+          $ref: "#/components/schemas/Timestamp"
+
+    CreateCustomFieldDefinitionRequest:
+      type: object
+      required:
+        - fieldKey
+        - fieldLabel
+        - fieldType
+      properties:
+        fieldKey:
+          type: string
+        fieldLabel:
+          type: string
+        fieldType:
+          type: string
+        options:
+          type: array
+          items:
+            type: object
+        lookupListId:
+          type: string
+          format: uuid
+        collectionSchema:
+          type: array
+          items:
+            type: object
+        minEntries:
+          type: integer
+        maxEntries:
+          type: integer
+        isRequired:
+          type: boolean
+        defaultValue:
+          type: string
+        isFilterable:
+          type: boolean
+        displayOrder:
+          type: integer
+        section:
+          type: string
+        showOnForm:
+          type: boolean
+        showOnCard:
+          type: boolean
+        dependsOnFieldId:
+          type: string
+          format: uuid
+        dependsOnValue:
+          type: string
+
+    UpdateCustomFieldDefinitionRequest:
+      type: object
+      properties:
+        fieldLabel:
+          type: string
+          nullable: true
+        options:
+          type: array
+          items:
+            type: object
+          nullable: true
+        isRequired:
+          type: boolean
+          nullable: true
+        defaultValue:
+          type: string
+          nullable: true
+        isFilterable:
+          type: boolean
+          nullable: true
+        displayOrder:
+          type: integer
+          nullable: true
+        section:
+          type: string
+          nullable: true
+        showOnForm:
+          type: boolean
+          nullable: true
+        showOnCard:
+          type: boolean
+          nullable: true
+
+    # ========= Phase 2: Category Schemas =========
+
+    CategoryResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        code:
+          type: string
+        type:
+          type: string
+        description:
+          type: string
+        parentId:
+          type: string
+          format: uuid
+        isActive:
+          type: boolean
+        displayOrder:
+          type: integer
+        children:
+          type: array
+          items:
+            $ref: "#/components/schemas/CategoryResponse"
+        createdAt:
+          $ref: "#/components/schemas/Timestamp"
+
+    CreateCategoryRequest:
+      type: object
+      required:
+        - name
+        - type
+      properties:
+        name:
+          type: string
+        code:
+          type: string
+        type:
+          type: string
+        description:
+          type: string
+        parentId:
+          type: string
+          format: uuid
+        displayOrder:
+          type: integer
+
+    UpdateCategoryRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          nullable: true
+        code:
+          type: string
+          nullable: true
+        type:
+          type: string
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        parentId:
+          type: string
+          format: uuid
+          nullable: true
+        isActive:
+          type: boolean
+          nullable: true
+        displayOrder:
+          type: integer
+          nullable: true
