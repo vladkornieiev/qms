@@ -15,3 +15,11 @@ databaseChangeLog:
             path: db/changelog/002-tags-lookups-fields-categories.sql
             relativeToChangelogFile: false
             splitStatements: false
+  - changeSet:
+      id: 003-crm-clients-vendors
+      author: asap
+      changes:
+        - sqlFile:
+            path: db/changelog/003-crm-clients-vendors.sql
+            relativeToChangelogFile: false
+            splitStatements: false

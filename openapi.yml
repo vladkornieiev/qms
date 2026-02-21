@@ -2323,6 +2323,930 @@ paths:
         "204":
           description: Category deleted
 
+  # ========= Phase 3: Clients =========
+
+  /api/clients:
+    get:
+      summary: List clients
+      operationId: listClients
+      tags:
+        - clients
+      security:
+        - bearerAuth: []
+      description: List all clients with pagination and filtering
+      parameters:
+        - name: query
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Search query
+        - name: type
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter by client type
+        - name: isActive
+          in: query
+          required: false
+          schema:
+            type: boolean
+          description: Filter by active status
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+          description: Page number (starts from 0)
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+          description: Number of items per page
+        - name: sortBy
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Field to sort by
+        - name: order
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [asc, desc]
+          description: Sort order
+      responses:
+        "200":
+          description: Clients response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedClientResponse"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    post:
+      summary: Create client
+      operationId: createClient
+      tags:
+        - clients
+      security:
+        - bearerAuth: []
+      description: Create a new client
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateClientRequest"
+      responses:
+        "201":
+          description: Client created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClientResponse"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/clients/{id}:
+    get:
+      summary: Get client by ID
+      operationId: getClientById
+      tags:
+        - clients
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Client ID
+      responses:
+        "200":
+          description: Client details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClientResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Client not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    patch:
+      summary: Update client
+      operationId: updateClient
+      tags:
+        - clients
+      security:
+        - bearerAuth: []
+      description: Update an existing client
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Client ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateClientRequest"
+      responses:
+        "200":
+          description: Client updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClientResponse"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Client not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    delete:
+      summary: Delete client
+      operationId: deleteClient
+      tags:
+        - clients
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Client ID
+      responses:
+        "204":
+          description: Client deleted successfully
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Client not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/clients/{id}/contacts:
+    get:
+      summary: List client contacts
+      operationId: listClientContacts
+      tags:
+        - clients
+      security:
+        - bearerAuth: []
+      description: List all contacts for a client
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Client ID
+      responses:
+        "200":
+          description: Client contacts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ClientContactResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Client not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    post:
+      summary: Create client contact
+      operationId: createClientContact
+      tags:
+        - clients
+      security:
+        - bearerAuth: []
+      description: Add a new contact to a client
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Client ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateClientContactRequest"
+      responses:
+        "201":
+          description: Contact created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClientContactResponse"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Client not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/clients/{id}/contacts/{contactId}:
+    patch:
+      summary: Update client contact
+      operationId: updateClientContact
+      tags:
+        - clients
+      security:
+        - bearerAuth: []
+      description: Update an existing client contact
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Client ID
+        - name: contactId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Contact ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateClientContactRequest"
+      responses:
+        "200":
+          description: Contact updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClientContactResponse"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Client or contact not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    delete:
+      summary: Delete client contact
+      operationId: deleteClientContact
+      tags:
+        - clients
+      security:
+        - bearerAuth: []
+      description: Remove a contact from a client
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Client ID
+        - name: contactId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Contact ID
+      responses:
+        "204":
+          description: Contact deleted successfully
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Client or contact not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  # ========= Phase 3: Vendors =========
+
+  /api/vendors:
+    get:
+      summary: List vendors
+      operationId: listVendors
+      tags:
+        - vendors
+      security:
+        - bearerAuth: []
+      description: List all vendors with pagination and filtering
+      parameters:
+        - name: query
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Search query
+        - name: type
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter by vendor type
+        - name: isActive
+          in: query
+          required: false
+          schema:
+            type: boolean
+          description: Filter by active status
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+          description: Page number (starts from 0)
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+          description: Number of items per page
+        - name: sortBy
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Field to sort by
+        - name: order
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [asc, desc]
+          description: Sort order
+      responses:
+        "200":
+          description: Vendors response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedVendorResponse"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    post:
+      summary: Create vendor
+      operationId: createVendor
+      tags:
+        - vendors
+      security:
+        - bearerAuth: []
+      description: Create a new vendor
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateVendorRequest"
+      responses:
+        "201":
+          description: Vendor created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VendorResponse"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/vendors/{id}:
+    get:
+      summary: Get vendor by ID
+      operationId: getVendorById
+      tags:
+        - vendors
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Vendor ID
+      responses:
+        "200":
+          description: Vendor details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VendorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Vendor not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    patch:
+      summary: Update vendor
+      operationId: updateVendor
+      tags:
+        - vendors
+      security:
+        - bearerAuth: []
+      description: Update an existing vendor
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Vendor ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateVendorRequest"
+      responses:
+        "200":
+          description: Vendor updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VendorResponse"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Vendor not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    delete:
+      summary: Delete vendor
+      operationId: deleteVendor
+      tags:
+        - vendors
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Vendor ID
+      responses:
+        "204":
+          description: Vendor deleted successfully
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Vendor not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/vendors/{id}/contacts:
+    get:
+      summary: List vendor contacts
+      operationId: listVendorContacts
+      tags:
+        - vendors
+      security:
+        - bearerAuth: []
+      description: List all contacts for a vendor
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Vendor ID
+      responses:
+        "200":
+          description: Vendor contacts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/VendorContactResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Vendor not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    post:
+      summary: Create vendor contact
+      operationId: createVendorContact
+      tags:
+        - vendors
+      security:
+        - bearerAuth: []
+      description: Add a new contact to a vendor
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Vendor ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateVendorContactRequest"
+      responses:
+        "201":
+          description: Contact created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VendorContactResponse"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Vendor not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/vendors/{id}/contacts/{contactId}:
+    patch:
+      summary: Update vendor contact
+      operationId: updateVendorContact
+      tags:
+        - vendors
+      security:
+        - bearerAuth: []
+      description: Update an existing vendor contact
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Vendor ID
+        - name: contactId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Contact ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateVendorContactRequest"
+      responses:
+        "200":
+          description: Contact updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VendorContactResponse"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Vendor or contact not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    delete:
+      summary: Delete vendor contact
+      operationId: deleteVendorContact
+      tags:
+        - vendors
+      security:
+        - bearerAuth: []
+      description: Remove a contact from a vendor
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Vendor ID
+        - name: contactId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Contact ID
+      responses:
+        "204":
+          description: Contact deleted successfully
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Vendor or contact not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
 components:
   securitySchemes:
     bearerAuth:
@@ -3344,4 +4268,345 @@ components:
           nullable: true
         displayOrder:
           type: integer
+          nullable: true
+
+    # ========= Phase 3: Client Schemas =========
+
+    ClientResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        type:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        website:
+          type: string
+        billingAddress:
+          type: object
+          additionalProperties: true
+        shippingAddress:
+          type: object
+          additionalProperties: true
+        notes:
+          type: string
+        externalAccountingId:
+          type: string
+        pricingTier:
+          type: string
+        customFields:
+          type: object
+          additionalProperties: true
+        isActive:
+          type: boolean
+        createdAt:
+          $ref: "#/components/schemas/Timestamp"
+        updatedAt:
+          $ref: "#/components/schemas/Timestamp"
+
+    CreateClientRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        website:
+          type: string
+        billingAddress:
+          type: object
+          additionalProperties: true
+        shippingAddress:
+          type: object
+          additionalProperties: true
+        notes:
+          type: string
+        pricingTier:
+          type: string
+        customFields:
+          type: object
+          additionalProperties: true
+
+    UpdateClientRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          nullable: true
+        type:
+          type: string
+          nullable: true
+        email:
+          type: string
+          nullable: true
+        phone:
+          type: string
+          nullable: true
+        website:
+          type: string
+          nullable: true
+        notes:
+          type: string
+          nullable: true
+        isActive:
+          type: boolean
+          nullable: true
+        pricingTier:
+          type: string
+          nullable: true
+
+    PaginatedClientResponse:
+      allOf:
+        - $ref: "#/components/schemas/PaginatedResponse"
+        - type: object
+          properties:
+            items:
+              type: array
+              items:
+                $ref: "#/components/schemas/ClientResponse"
+              description: List of clients
+
+    ClientContactResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        clientId:
+          type: string
+          format: uuid
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        role:
+          type: string
+        isPrimary:
+          type: boolean
+        notes:
+          type: string
+        createdAt:
+          $ref: "#/components/schemas/Timestamp"
+
+    CreateClientContactRequest:
+      type: object
+      required:
+        - firstName
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        role:
+          type: string
+        isPrimary:
+          type: boolean
+
+    UpdateClientContactRequest:
+      type: object
+      properties:
+        firstName:
+          type: string
+          nullable: true
+        lastName:
+          type: string
+          nullable: true
+        email:
+          type: string
+          nullable: true
+        phone:
+          type: string
+          nullable: true
+        role:
+          type: string
+          nullable: true
+        isPrimary:
+          type: boolean
+          nullable: true
+
+    # ========= Phase 3: Vendor Schemas =========
+
+    VendorResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        type:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        website:
+          type: string
+        billingAddress:
+          type: object
+          additionalProperties: true
+        notes:
+          type: string
+        externalAccountingId:
+          type: string
+        paymentInfo:
+          type: object
+          additionalProperties: true
+        customFields:
+          type: object
+          additionalProperties: true
+        isActive:
+          type: boolean
+        createdAt:
+          $ref: "#/components/schemas/Timestamp"
+        updatedAt:
+          $ref: "#/components/schemas/Timestamp"
+
+    CreateVendorRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        website:
+          type: string
+        billingAddress:
+          type: object
+          additionalProperties: true
+        notes:
+          type: string
+        paymentInfo:
+          type: object
+          additionalProperties: true
+        customFields:
+          type: object
+          additionalProperties: true
+
+    UpdateVendorRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          nullable: true
+        type:
+          type: string
+          nullable: true
+        email:
+          type: string
+          nullable: true
+        phone:
+          type: string
+          nullable: true
+        website:
+          type: string
+          nullable: true
+        notes:
+          type: string
+          nullable: true
+        isActive:
+          type: boolean
+          nullable: true
+
+    PaginatedVendorResponse:
+      allOf:
+        - $ref: "#/components/schemas/PaginatedResponse"
+        - type: object
+          properties:
+            items:
+              type: array
+              items:
+                $ref: "#/components/schemas/VendorResponse"
+              description: List of vendors
+
+    VendorContactResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        vendorId:
+          type: string
+          format: uuid
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        role:
+          type: string
+        isPrimary:
+          type: boolean
+        notes:
+          type: string
+        createdAt:
+          $ref: "#/components/schemas/Timestamp"
+
+    CreateVendorContactRequest:
+      type: object
+      required:
+        - firstName
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        role:
+          type: string
+        isPrimary:
+          type: boolean
+
+    UpdateVendorContactRequest:
+      type: object
+      properties:
+        firstName:
+          type: string
+          nullable: true
+        lastName:
+          type: string
+          nullable: true
+        email:
+          type: string
+          nullable: true
+        phone:
+          type: string
+          nullable: true
+        role:
+          type: string
+          nullable: true
+        isPrimary:
+          type: boolean
           nullable: true
