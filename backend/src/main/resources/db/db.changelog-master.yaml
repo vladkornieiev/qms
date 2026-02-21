@@ -47,3 +47,11 @@ databaseChangeLog:
             path: db/changelog/006-projects.sql
             relativeToChangelogFile: false
             splitStatements: false
+  - changeSet:
+      id: 007-pipeline-quotes
+      author: asap
+      changes:
+        - sqlFile:
+            path: db/changelog/007-pipeline-quotes.sql
+            relativeToChangelogFile: false
+            splitStatements: false

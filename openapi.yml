@@ -5260,6 +5260,604 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  # ========= Inbound Request Endpoints =========
+
+  /api/inbound-requests:
+    get:
+      summary: List inbound requests
+      operationId: listInboundRequests
+      tags:
+        - inbound-requests
+      parameters:
+        - name: query
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 25
+      responses:
+        "200":
+          description: Paginated list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedInboundRequestResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    post:
+      summary: Create inbound request
+      operationId: createInboundRequest
+      tags:
+        - inbound-requests
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateInboundRequestRequest"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InboundRequestResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/inbound-requests/{id}:
+    get:
+      summary: Get inbound request
+      operationId: getInboundRequestById
+      tags:
+        - inbound-requests
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Request detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InboundRequestResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    patch:
+      summary: Update inbound request
+      operationId: updateInboundRequest
+      tags:
+        - inbound-requests
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateInboundRequestRequest"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InboundRequestResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      summary: Delete inbound request
+      operationId: deleteInboundRequest
+      tags:
+        - inbound-requests
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Deleted
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/inbound-requests/{id}/review:
+    post:
+      summary: Review inbound request
+      operationId: reviewInboundRequest
+      tags:
+        - inbound-requests
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReviewInboundRequestRequest"
+      responses:
+        "200":
+          description: Reviewed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InboundRequestResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/inbound-requests/{id}/convert:
+    post:
+      summary: Convert inbound request to project
+      operationId: convertInboundRequest
+      tags:
+        - inbound-requests
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Converted to project
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InboundRequestResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  # ========= Quote Endpoints =========
+
+  /api/quotes:
+    get:
+      summary: List quotes
+      operationId: listQuotes
+      tags:
+        - quotes
+      parameters:
+        - name: query
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: clientId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: projectId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 25
+      responses:
+        "200":
+          description: Paginated list of quotes
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedQuoteResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    post:
+      summary: Create quote
+      operationId: createQuote
+      tags:
+        - quotes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateQuoteRequest"
+      responses:
+        "201":
+          description: Quote created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QuoteResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/quotes/{id}:
+    get:
+      summary: Get quote with line items
+      operationId: getQuoteById
+      tags:
+        - quotes
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Quote detail with line items
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QuoteDetailResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    patch:
+      summary: Update quote
+      operationId: updateQuote
+      tags:
+        - quotes
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateQuoteRequest"
+      responses:
+        "200":
+          description: Quote updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QuoteResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      summary: Delete quote
+      operationId: deleteQuote
+      tags:
+        - quotes
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Quote deleted
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/quotes/{id}/line-items:
+    get:
+      summary: List quote line items
+      operationId: listQuoteLineItems
+      tags:
+        - quotes
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Line items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/QuoteLineItemResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    post:
+      summary: Add quote line item
+      operationId: createQuoteLineItem
+      tags:
+        - quotes
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateQuoteLineItemRequest"
+      responses:
+        "201":
+          description: Line item created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QuoteLineItemResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/quotes/{id}/line-items/{lineId}:
+    patch:
+      summary: Update quote line item
+      operationId: updateQuoteLineItem
+      tags:
+        - quotes
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: lineId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateQuoteLineItemRequest"
+      responses:
+        "200":
+          description: Line item updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QuoteLineItemResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      summary: Delete quote line item
+      operationId: deleteQuoteLineItem
+      tags:
+        - quotes
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: lineId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Line item deleted
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/quotes/{id}/send:
+    post:
+      summary: Send quote to client
+      operationId: sendQuote
+      tags:
+        - quotes
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Quote sent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QuoteResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/quotes/{id}/new-version:
+    post:
+      summary: Create new version of quote
+      operationId: createNewQuoteVersion
+      tags:
+        - quotes
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "201":
+          description: New version created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QuoteResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/quotes/{id}/recalculate:
+    post:
+      summary: Recalculate quote totals
+      operationId: recalculateQuote
+      tags:
+        - quotes
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Totals recalculated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QuoteResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/quotes/{id}/approve:
+    post:
+      summary: Approve quote (client action)
+      operationId: approveQuote
+      tags:
+        - quotes
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QuoteApprovalRequest"
+      responses:
+        "200":
+          description: Quote approved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QuoteResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
 components:
   securitySchemes:
     bearerAuth:
@@ -7929,4 +8527,504 @@ components:
           type: string
           format: date
         label:
+          type: string
+
+    # ========= Inbound Request Schemas =========
+
+    InboundRequestResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        submitterName:
+          type: string
+        submitterEmail:
+          type: string
+        submitterPhone:
+          type: string
+        submitterCompany:
+          type: string
+        clientId:
+          type: string
+          format: uuid
+        templateId:
+          type: string
+          format: uuid
+        formData:
+          type: object
+          additionalProperties: true
+        status:
+          type: string
+        reviewedById:
+          type: string
+          format: uuid
+        reviewedAt:
+          type: string
+          format: date-time
+        denialReason:
+          type: string
+        projectId:
+          type: string
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    PaginatedInboundRequestResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/InboundRequestResponse"
+        page:
+          type: integer
+        size:
+          type: integer
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+
+    CreateInboundRequestRequest:
+      type: object
+      properties:
+        submitterName:
+          type: string
+        submitterEmail:
+          type: string
+        submitterPhone:
+          type: string
+        submitterCompany:
+          type: string
+        clientId:
+          type: string
+          format: uuid
+        templateId:
+          type: string
+          format: uuid
+        formData:
+          type: object
+          additionalProperties: true
+
+    UpdateInboundRequestRequest:
+      type: object
+      properties:
+        submitterName:
+          type: string
+          nullable: true
+        submitterEmail:
+          type: string
+          nullable: true
+        submitterPhone:
+          type: string
+          nullable: true
+        submitterCompany:
+          type: string
+          nullable: true
+        clientId:
+          type: string
+          format: uuid
+          nullable: true
+        formData:
+          type: object
+          additionalProperties: true
+          nullable: true
+
+    ReviewInboundRequestRequest:
+      type: object
+      required:
+        - decision
+      properties:
+        decision:
+          type: string
+          description: "approved or denied"
+        denialReason:
+          type: string
+
+    # ========= Quote Schemas =========
+
+    QuoteResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        projectId:
+          type: string
+          format: uuid
+        clientId:
+          type: string
+          format: uuid
+        clientName:
+          type: string
+        quoteNumber:
+          type: string
+        version:
+          type: integer
+        title:
+          type: string
+        status:
+          type: string
+        issuedDate:
+          type: string
+          format: date
+        validUntil:
+          type: string
+          format: date
+        approvedAt:
+          type: string
+          format: date-time
+        subtotal:
+          type: number
+        discountAmount:
+          type: number
+        taxAmount:
+          type: number
+        total:
+          type: number
+        currency:
+          type: string
+        notes:
+          type: string
+        internalNotes:
+          type: string
+        terms:
+          type: string
+        externalAccountingId:
+          type: string
+        approvedByName:
+          type: string
+        approvedByEmail:
+          type: string
+        customFields:
+          type: object
+          additionalProperties: true
+        createdById:
+          type: string
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    QuoteDetailResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        projectId:
+          type: string
+          format: uuid
+        clientId:
+          type: string
+          format: uuid
+        clientName:
+          type: string
+        quoteNumber:
+          type: string
+        version:
+          type: integer
+        title:
+          type: string
+        status:
+          type: string
+        issuedDate:
+          type: string
+          format: date
+        validUntil:
+          type: string
+          format: date
+        approvedAt:
+          type: string
+          format: date-time
+        subtotal:
+          type: number
+        discountAmount:
+          type: number
+        taxAmount:
+          type: number
+        total:
+          type: number
+        currency:
+          type: string
+        notes:
+          type: string
+        internalNotes:
+          type: string
+        terms:
+          type: string
+        externalAccountingId:
+          type: string
+        approvedByName:
+          type: string
+        approvedByEmail:
+          type: string
+        customFields:
+          type: object
+          additionalProperties: true
+        createdById:
+          type: string
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        lineItems:
+          type: array
+          items:
+            $ref: "#/components/schemas/QuoteLineItemResponse"
+
+    PaginatedQuoteResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/QuoteResponse"
+        page:
+          type: integer
+        size:
+          type: integer
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+
+    CreateQuoteRequest:
+      type: object
+      required:
+        - clientId
+      properties:
+        clientId:
+          type: string
+          format: uuid
+        projectId:
+          type: string
+          format: uuid
+        title:
+          type: string
+        issuedDate:
+          type: string
+          format: date
+        validUntil:
+          type: string
+          format: date
+        currency:
+          type: string
+        notes:
+          type: string
+        internalNotes:
+          type: string
+        terms:
+          type: string
+        customFields:
+          type: object
+          additionalProperties: true
+
+    UpdateQuoteRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          nullable: true
+        status:
+          type: string
+          nullable: true
+        issuedDate:
+          type: string
+          format: date
+          nullable: true
+        validUntil:
+          type: string
+          format: date
+          nullable: true
+        currency:
+          type: string
+          nullable: true
+        notes:
+          type: string
+          nullable: true
+        internalNotes:
+          type: string
+          nullable: true
+        terms:
+          type: string
+          nullable: true
+        externalAccountingId:
+          type: string
+          nullable: true
+        customFields:
+          type: object
+          additionalProperties: true
+          nullable: true
+
+    QuoteLineItemResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        quoteId:
+          type: string
+          format: uuid
+        productId:
+          type: string
+          format: uuid
+        resourceId:
+          type: string
+          format: uuid
+        categoryId:
+          type: string
+          format: uuid
+        description:
+          type: string
+        dateStart:
+          type: string
+          format: date
+        dateEnd:
+          type: string
+          format: date
+        quantity:
+          type: number
+        unitPrice:
+          type: number
+        unit:
+          type: string
+        discountPercent:
+          type: number
+        discountAmount:
+          type: number
+        taxRate:
+          type: number
+        lineTotal:
+          type: number
+        costPerUnit:
+          type: number
+        costTotal:
+          type: number
+        section:
+          type: string
+        displayOrder:
+          type: integer
+        isVisible:
+          type: boolean
+        notes:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    CreateQuoteLineItemRequest:
+      type: object
+      required:
+        - description
+      properties:
+        productId:
+          type: string
+          format: uuid
+        resourceId:
+          type: string
+          format: uuid
+        categoryId:
+          type: string
+          format: uuid
+        description:
+          type: string
+        dateStart:
+          type: string
+          format: date
+        dateEnd:
+          type: string
+          format: date
+        quantity:
+          type: number
+        unitPrice:
+          type: number
+        unit:
+          type: string
+        discountPercent:
+          type: number
+        discountAmount:
+          type: number
+        taxRate:
+          type: number
+        costPerUnit:
+          type: number
+        section:
+          type: string
+        displayOrder:
+          type: integer
+        isVisible:
+          type: boolean
+        notes:
+          type: string
+
+    UpdateQuoteLineItemRequest:
+      type: object
+      properties:
+        description:
+          type: string
+          nullable: true
+        dateStart:
+          type: string
+          format: date
+          nullable: true
+        dateEnd:
+          type: string
+          format: date
+          nullable: true
+        quantity:
+          type: number
+          nullable: true
+        unitPrice:
+          type: number
+          nullable: true
+        unit:
+          type: string
+          nullable: true
+        discountPercent:
+          type: number
+          nullable: true
+        discountAmount:
+          type: number
+          nullable: true
+        taxRate:
+          type: number
+          nullable: true
+        costPerUnit:
+          type: number
+          nullable: true
+        section:
+          type: string
+          nullable: true
+        displayOrder:
+          type: integer
+          nullable: true
+        isVisible:
+          type: boolean
+          nullable: true
+        notes:
+          type: string
+          nullable: true
+
+    QuoteApprovalRequest:
+      type: object
+      properties:
+        approvedByName:
+          type: string
+        approvedByEmail:
+          type: string
+        signatureUrl:
           type: string
