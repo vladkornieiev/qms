@@ -157,7 +157,7 @@ public class TemplateService {
                 Quote quote = new Quote();
                 quote.setOrganization(org);
                 Integer maxQNum = quoteRepository.findMaxQuoteNumber(org.getId());
-                quote.setQuoteNumber(String.format("QTE-%05d", (maxQNum != null ? maxQNum : 0) + 1));
+                quote.setQuoteNumber(String.format("Q-%05d", (maxQNum != null ? maxQNum : 0) + 1));
                 quote.setTitle(request.getTitle() != null ? request.getTitle() : template.getName());
                 quote.setClient(client);
                 if (request.getProjectId() != null) {

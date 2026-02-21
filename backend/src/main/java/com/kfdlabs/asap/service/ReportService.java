@@ -91,8 +91,20 @@ public class ReportService {
             row.setStatus((String) r[3]);
             row.setTotal(r[4] != null ? ((Number) r[4]).doubleValue() : 0);
             row.setBalanceDue(r[5] != null ? ((Number) r[5]).doubleValue() : 0);
-            if (r[6] != null) row.setIssuedDate(((java.sql.Date) r[6]).toLocalDate());
-            if (r[7] != null) row.setDueDate(((java.sql.Date) r[7]).toLocalDate());
+            if (r[6] != null) {
+                if (r[6] instanceof LocalDate ld) {
+                    row.setIssuedDate(ld);
+                } else if (r[6] instanceof java.sql.Date sd) {
+                    row.setIssuedDate(sd.toLocalDate());
+                }
+            }
+            if (r[7] != null) {
+                if (r[7] instanceof LocalDate ld) {
+                    row.setDueDate(ld);
+                } else if (r[7] instanceof java.sql.Date sd) {
+                    row.setDueDate(sd.toLocalDate());
+                }
+            }
             row.setDaysOverdue(r[8] != null ? ((Number) r[8]).intValue() : 0);
             result.add(row);
         }

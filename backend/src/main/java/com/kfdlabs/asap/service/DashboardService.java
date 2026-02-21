@@ -169,9 +169,9 @@ public class DashboardService {
         Query query = entityManager.createNativeQuery(
             "SELECT client_id, client_name, total_projects::int, total_invoiced, total_paid, total_outstanding " +
             "FROM v_client_analytics WHERE organization_id = :orgId " +
-            "ORDER BY total_invoiced DESC LIMIT :limit");
+            "ORDER BY total_invoiced DESC");
         query.setParameter("orgId", orgId);
-        query.setParameter("limit", limit);
+        query.setMaxResults(limit);
 
         List<Object[]> rows = query.getResultList();
         List<TopClientResponse> result = new ArrayList<>();
