@@ -53,6 +53,7 @@ public class AuthController implements AuthApi {
         return ResponseEntity.ok(authService.resetPassword(resetPasswordRequest));
     }
 
+    @PreAuthorize("permitAll()")
     @PostMapping("/api/auth/exchange-oauth-code")
     public ResponseEntity<AuthResponse> exchangeOAuthCode(@RequestParam String code) {
         return ResponseEntity.ok(authService.exchangeOAuthCode(code));

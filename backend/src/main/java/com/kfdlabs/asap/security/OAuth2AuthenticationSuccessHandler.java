@@ -1,6 +1,5 @@
 package com.kfdlabs.asap.security;
 
-import com.kfdlabs.asap.dto.AuthResponse;
 import com.kfdlabs.asap.service.AuthService;
 import com.kfdlabs.asap.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -16,8 +15,6 @@ import org.springframework.security.web.authentication.SimpleUrlAuthenticationSu
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 @Slf4j
 @Component

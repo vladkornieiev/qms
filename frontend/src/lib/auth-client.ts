@@ -337,6 +337,15 @@ class AuthClient {
     return `${API_BASE_URL}/api/oauth2/authorization/google`;
   }
 
+  async exchangeOAuthCode(code: string): Promise<AuthResponse> {
+    const response = await this.apiRequest<AuthResponse>(
+      `/api/auth/exchange-oauth-code?code=${encodeURIComponent(code)}`,
+      { method: "POST" }
+    );
+    this.setTokens(response);
+    return response;
+  }
+
   // 2FA methods
   async setup2FA(): Promise<{ secret: string; qrCode: string; uri: string }> {
     return this.apiRequest("/api/auth/2fa/setup");
