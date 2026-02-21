@@ -13,8 +13,8 @@ import java.util.UUID;
 public interface QuoteRepository extends JpaRepository<Quote, UUID> {
 
     @Query("SELECT q FROM Quote q WHERE q.organization.id = :orgId " +
-           "AND (:query IS NULL OR LOWER(q.title) LIKE LOWER(CONCAT('%', :query, '%')) " +
-           "OR LOWER(q.quoteNumber) LIKE LOWER(CONCAT('%', :query, '%'))) " +
+           "AND (:query IS NULL OR (LOWER(q.title) LIKE LOWER(CONCAT('%', :query, '%')) " +
+           "OR LOWER(q.quoteNumber) LIKE LOWER(CONCAT('%', :query, '%')))) " +
            "AND (:status IS NULL OR q.status = :status) " +
            "AND (:clientId IS NULL OR q.client.id = :clientId) " +
            "AND (:projectId IS NULL OR q.project.id = :projectId)")

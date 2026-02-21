@@ -14,8 +14,8 @@ import java.util.UUID;
 public interface InventoryItemRepository extends JpaRepository<InventoryItem, UUID> {
 
     @Query("SELECT i FROM InventoryItem i WHERE i.organization.id = :orgId " +
-           "AND (:query IS NULL OR LOWER(i.serialNumber) LIKE LOWER(CONCAT('%', :query, '%')) " +
-           "OR LOWER(i.barcode) LIKE LOWER(CONCAT('%', :query, '%'))) " +
+           "AND (:query IS NULL OR (LOWER(i.serialNumber) LIKE LOWER(CONCAT('%', :query, '%')) " +
+           "OR LOWER(i.barcode) LIKE LOWER(CONCAT('%', :query, '%')))) " +
            "AND (:status IS NULL OR i.status = :status) " +
            "AND (:productId IS NULL OR i.product.id = :productId)")
     Page<InventoryItem> findAll(UUID orgId, String query, String status, UUID productId, Pageable pageable);

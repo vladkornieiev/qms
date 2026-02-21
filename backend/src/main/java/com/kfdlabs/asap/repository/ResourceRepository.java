@@ -13,9 +13,9 @@ import java.util.UUID;
 public interface ResourceRepository extends JpaRepository<Resource, UUID> {
 
     @Query("SELECT r FROM Resource r WHERE r.organization.id = :orgId " +
-           "AND (:query IS NULL OR LOWER(r.firstName) LIKE LOWER(CONCAT('%', :query, '%')) " +
+           "AND (:query IS NULL OR (LOWER(r.firstName) LIKE LOWER(CONCAT('%', :query, '%')) " +
            "OR LOWER(r.lastName) LIKE LOWER(CONCAT('%', :query, '%')) " +
-           "OR LOWER(r.email) LIKE LOWER(CONCAT('%', :query, '%'))) " +
+           "OR LOWER(r.email) LIKE LOWER(CONCAT('%', :query, '%')))) " +
            "AND (:type IS NULL OR r.type = :type) " +
            "AND (:isActive IS NULL OR r.isActive = :isActive)")
     Page<Resource> findAll(UUID orgId, String query, String type, Boolean isActive, Pageable pageable);

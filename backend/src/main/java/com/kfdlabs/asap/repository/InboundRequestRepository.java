@@ -14,8 +14,8 @@ public interface InboundRequestRepository extends JpaRepository<InboundRequest, 
 
     @Query("SELECT r FROM InboundRequest r WHERE r.organization.id = :orgId " +
            "AND (:status IS NULL OR r.status = :status) " +
-           "AND (:query IS NULL OR LOWER(r.submitterName) LIKE LOWER(CONCAT('%', :query, '%')) " +
+           "AND (:query IS NULL OR (LOWER(r.submitterName) LIKE LOWER(CONCAT('%', :query, '%')) " +
            "OR LOWER(r.submitterEmail) LIKE LOWER(CONCAT('%', :query, '%')) " +
-           "OR LOWER(r.submitterCompany) LIKE LOWER(CONCAT('%', :query, '%')))")
+           "OR LOWER(r.submitterCompany) LIKE LOWER(CONCAT('%', :query, '%'))))")
     Page<InboundRequest> findAll(UUID orgId, String query, String status, Pageable pageable);
 }

@@ -13,8 +13,8 @@ import java.util.UUID;
 public interface ClientRepository extends JpaRepository<Client, UUID> {
 
     @Query("SELECT c FROM Client c WHERE c.organization.id = :orgId " +
-           "AND (:query IS NULL OR LOWER(c.name) LIKE LOWER(CONCAT('%', :query, '%')) " +
-           "OR LOWER(c.email) LIKE LOWER(CONCAT('%', :query, '%'))) " +
+           "AND (:query IS NULL OR (LOWER(c.name) LIKE LOWER(CONCAT('%', :query, '%')) " +
+           "OR LOWER(c.email) LIKE LOWER(CONCAT('%', :query, '%')))) " +
            "AND (:type IS NULL OR c.type = :type) " +
            "AND (:isActive IS NULL OR c.isActive = :isActive)")
     Page<Client> findAll(UUID orgId, String query, String type, Boolean isActive, Pageable pageable);

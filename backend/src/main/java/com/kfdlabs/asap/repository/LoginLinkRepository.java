@@ -8,9 +8,10 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
-public interface LoginLinkRepository extends JpaRepository<LoginLink, Long> {
+public interface LoginLinkRepository extends JpaRepository<LoginLink, UUID> {
     Optional<LoginLink> findByToken(String token);
 
     @Modifying
@@ -20,4 +21,4 @@ public interface LoginLinkRepository extends JpaRepository<LoginLink, Long> {
     @Modifying
     @Query("DELETE FROM LoginLink l WHERE l.expiresAt < :now")
     int deleteExpired(LocalDateTime now);
-} 
+}

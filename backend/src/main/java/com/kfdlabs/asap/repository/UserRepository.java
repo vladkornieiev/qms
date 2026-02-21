@@ -23,9 +23,9 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     @Query("""
             SELECT u FROM User u
             WHERE u.isActive = true
-            AND (:query = '' OR LOWER(u.email) LIKE LOWER(CONCAT('%', :query, '%'))
+            AND (:query = '' OR (LOWER(u.email) LIKE LOWER(CONCAT('%', :query, '%'))
                              OR LOWER(u.firstName) LIKE LOWER(CONCAT('%', :query, '%'))
-                             OR LOWER(u.lastName) LIKE LOWER(CONCAT('%', :query, '%')))
+                             OR LOWER(u.lastName) LIKE LOWER(CONCAT('%', :query, '%'))))
             """)
     Page<User> findAllUsers(@Param("query") String query, Pageable pageable);
 
@@ -35,10 +35,21 @@ public interface UserRepository extends JpaRepository<User, UUID> {
             WHERE om.organization_id = :organizationId
             AND om.is_active = true
             AND u.is_active = true
-            AND (:query = '' OR LOWER(u.email) LIKE LOWER(CONCAT('%', :query, '%'))
+            AND (:query = '' OR (LOWER(u.email) LIKE LOWER(CONCAT('%', :query, '%'))
                              OR LOWER(u.first_name) LIKE LOWER(CONCAT('%', :query, '%'))
-                             OR LOWER(u.last_name) LIKE LOWER(CONCAT('%', :query, '%')))
-            """, nativeQuery = true)
+                             OR LOWER(u.last_name) LIKE LOWER(CONCAT('%', :query, '%'))))
+            """,
+            countQuery = """
+            SELECT COUNT(*) FROM users u
+            JOIN organization_members om ON om.user_id = u.id
+            WHERE om.organization_id = :organizationId
+            AND om.is_active = true
+            AND u.is_active = true
+            AND (:query = '' OR (LOWER(u.email) LIKE LOWER(CONCAT('%', :query, '%'))
+                             OR LOWER(u.first_name) LIKE LOWER(CONCAT('%', :query, '%'))
+                             OR LOWER(u.last_name) LIKE LOWER(CONCAT('%', :query, '%'))))
+            """,
+            nativeQuery = true)
     Page<User> findUsersByOrganization(@Param("organizationId") UUID organizationId,
                                        @Param("query") String query,
                                        Pageable pageable);

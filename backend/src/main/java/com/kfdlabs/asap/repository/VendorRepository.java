@@ -13,8 +13,8 @@ import java.util.UUID;
 public interface VendorRepository extends JpaRepository<Vendor, UUID> {
 
     @Query("SELECT v FROM Vendor v WHERE v.organization.id = :orgId " +
-           "AND (:query IS NULL OR LOWER(v.name) LIKE LOWER(CONCAT('%', :query, '%')) " +
-           "OR LOWER(v.email) LIKE LOWER(CONCAT('%', :query, '%'))) " +
+           "AND (:query IS NULL OR (LOWER(v.name) LIKE LOWER(CONCAT('%', :query, '%')) " +
+           "OR LOWER(v.email) LIKE LOWER(CONCAT('%', :query, '%')))) " +
            "AND (:type IS NULL OR v.type = :type) " +
            "AND (:isActive IS NULL OR v.isActive = :isActive)")
     Page<Vendor> findAll(UUID orgId, String query, String type, Boolean isActive, Pageable pageable);

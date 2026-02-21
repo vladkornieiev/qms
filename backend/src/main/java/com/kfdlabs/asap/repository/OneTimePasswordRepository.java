@@ -9,9 +9,10 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
-public interface OneTimePasswordRepository extends JpaRepository<OneTimePassword, String> {
+public interface OneTimePasswordRepository extends JpaRepository<OneTimePassword, UUID> {
 
     Optional<OneTimePassword> findByCode(String code);
 

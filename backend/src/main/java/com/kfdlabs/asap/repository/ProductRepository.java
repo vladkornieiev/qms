@@ -14,8 +14,8 @@ import java.util.UUID;
 public interface ProductRepository extends JpaRepository<Product, UUID> {
 
     @Query("SELECT p FROM Product p WHERE p.organization.id = :orgId " +
-           "AND (:query IS NULL OR LOWER(p.name) LIKE LOWER(CONCAT('%', :query, '%')) " +
-           "OR LOWER(p.sku) LIKE LOWER(CONCAT('%', :query, '%'))) " +
+           "AND (:query IS NULL OR (LOWER(p.name) LIKE LOWER(CONCAT('%', :query, '%')) " +
+           "OR LOWER(p.sku) LIKE LOWER(CONCAT('%', :query, '%')))) " +
            "AND (:productType IS NULL OR p.productType = :productType) " +
            "AND (:trackingType IS NULL OR p.trackingType = :trackingType) " +
            "AND (:isActive IS NULL OR p.isActive = :isActive)")
