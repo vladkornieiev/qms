@@ -62,10 +62,10 @@ services:
       - REDIS_HOST=redis-standalone
       - REDIS_PORT=6379
       - DOCKER_COMPOSE_ENABLED=false
-      - SMTP_HOST=smtp.purelymail.com
-      - SMTP_PORT=587
-      - SMTP_USERNAME=asap@kfdlabs.com
-      - SMTP_PASSWORD=hockiv-kujkA3-bennoj
+      - SMTP_HOST=${SMTP_HOST:-smtp.example.com}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_USERNAME=${SMTP_USERNAME:-}
+      - SMTP_PASSWORD=${SMTP_PASSWORD:-}
       - GOOGLE_CLIENT_ID=
       - GOOGLE_CLIENT_SECRET=
       - SPRING_PROFILES_ACTIVE=standalone
@@ -80,11 +80,11 @@ services:
       - JPA_SHOW_SQL=false
       - LIQUIBASE_ENABLED=true
       - FILE_UPLOAD_MAX_SIZE=10MB
-      - JWT_SECRET=mySecretKeyThatShouldBeAtLeast256BitsLongForHS256Algorithm
+      - JWT_SECRET=${JWT_SECRET:-changeme-generate-a-256bit-secret}
       - JWT_ACCESS_TOKEN_VALIDITY=3600000
       - JWT_REFRESH_TOKEN_VALIDITY=86400000
       - ELASTIC_METRICS_ENABLED=false
-      - API_KEYS_SECRET=LocalApiKeySecretForDev123456789
+      - API_KEYS_SECRET=${API_KEYS_SECRET:-changeme-generate-api-key-secret}
     depends_on:
       postgres-standalone:
         condition: service_healthy

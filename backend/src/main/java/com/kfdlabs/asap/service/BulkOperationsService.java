@@ -10,6 +10,7 @@ import com.kfdlabs.asap.repository.QuoteRepository;
 import com.kfdlabs.asap.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +22,9 @@ import java.util.*;
 @RequiredArgsConstructor
 @Transactional
 public class BulkOperationsService {
+
+    @Value("${app.base-ui-url}")
+    private String baseUiUrl;
 
     private final InvoiceRepository invoiceRepository;
     private final QuoteRepository quoteRepository;
@@ -57,7 +61,7 @@ public class BulkOperationsService {
                             invoice.getTotal().toPlainString(),
                             invoice.getCurrency(),
                             invoice.getDueDate() != null ? invoice.getDueDate().toString() : "N/A",
-                            ""
+                            baseUiUrl + "/invoices/" + invoice.getId()
                     );
                 }
 
@@ -99,7 +103,7 @@ public class BulkOperationsService {
                                 invoice.getCurrency(),
                                 invoice.getBalanceDue().toPlainString(),
                                 invoice.getDueDate() != null ? invoice.getDueDate().toString() : "N/A"),
-                        ""
+                        baseUiUrl + "/invoices/" + invoice.getId()
                 );
                 success++;
             } catch (Exception e) {
@@ -138,7 +142,7 @@ public class BulkOperationsService {
                             quote.getTotal().toPlainString(),
                             quote.getCurrency(),
                             quote.getValidUntil() != null ? quote.getValidUntil().toString() : "N/A",
-                            ""
+                            baseUiUrl + "/quotes/" + quote.getId()
                     );
                 }
 

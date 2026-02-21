@@ -44,15 +44,19 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         log.info("OAuth2 login successful for email: {}", email);
 
         try {
-            AuthResponse authResponse = authService.authenticateWithGoogle(email);
+            // Pre-authenticate to ensure user exists (creates if needed via Google flow)
+            authService.authenticateWithGoogle(email);
+
+            // Generate a short-lived, single-use OAuth exchange code instead of passing tokens in URL
+            String code = authService.createOAuthExchangeCode(email);
             boolean isMultiOrgUser = userService.isMultiOrganizationUser(email);
 
-            String redirectUrl = getRedirectUrl(authResponse, isMultiOrgUser);
+            String redirectUrl = getRedirectUrl(code, isMultiOrgUser);
 
             getRedirectStrategy().sendRedirect(request, response, redirectUrl);
         } catch (Exception e) {
             log.error("Error during OAuth2 authentication", e);
-            String errorRedirectUrl = String.format("%s?error=%s", failureCallbackUrl, e.getMessage());
+            String errorRedirectUrl = String.format("%s?error=%s", failureCallbackUrl, "authentication_failed");
             try {
                 getRedirectStrategy().sendRedirect(request, response, errorRedirectUrl);
             } catch (IOException ex) {
@@ -61,22 +65,11 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         }
     }
 
-    private String getRedirectUrl(AuthResponse authResponse, boolean isMultiOrgUser) {
+    private String getRedirectUrl(String code, boolean isMultiOrgUser) {
         StringBuilder redirectUrl = new StringBuilder(successCallbackUrl);
-        Map<String, String> params = new LinkedHashMap<>();
-        if (authResponse.getAccessToken() != null) {
-            params.put("accessToken", authResponse.getAccessToken());
-        }
-        if (authResponse.getRefreshToken() != null) {
-            params.put("refreshToken", authResponse.getRefreshToken());
-        }
+        redirectUrl.append("?code=").append(code);
         if (isMultiOrgUser) {
-            params.put("isMultiOrgUser", "true");
-        }
-        if (!params.isEmpty()) {
-            redirectUrl.append("?");
-            params.forEach((key, value) -> redirectUrl.append(key).append("=").append(value).append("&"));
-            redirectUrl.setLength(redirectUrl.length() - 1);
+            redirectUrl.append("&isMultiOrgUser=true");
         }
         return redirectUrl.toString();
     }

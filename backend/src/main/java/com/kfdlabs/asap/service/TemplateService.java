@@ -156,7 +156,8 @@ public class TemplateService {
             case "quote" -> {
                 Quote quote = new Quote();
                 quote.setOrganization(org);
-                quote.setQuoteNumber(String.format("QTE-%05d", quoteRepository.findMaxQuoteNumber(org.getId()) + 1));
+                Integer maxQNum = quoteRepository.findMaxQuoteNumber(org.getId());
+                quote.setQuoteNumber(String.format("QTE-%05d", (maxQNum != null ? maxQNum : 0) + 1));
                 quote.setTitle(request.getTitle() != null ? request.getTitle() : template.getName());
                 quote.setClient(client);
                 if (request.getProjectId() != null) {
@@ -187,7 +188,8 @@ public class TemplateService {
             case "project" -> {
                 Project project = new Project();
                 project.setOrganization(org);
-                project.setProjectNumber(String.format("PRJ-%05d", projectRepository.count() + 1));
+                long projCount = projectRepository.countByOrganizationId(org.getId());
+                project.setProjectNumber(String.format("PRJ-%05d", projCount + 1));
                 project.setTitle(request.getTitle() != null ? request.getTitle() : template.getName());
                 project.setClient(client);
                 project.setSource("template");

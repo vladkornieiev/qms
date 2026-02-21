@@ -14,6 +14,7 @@ import com.kfdlabs.asap.security.SecurityUtils;
 import com.kfdlabs.asap.util.PaginationUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -32,6 +33,9 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Transactional
 public class InvoiceService {
+
+    @Value("${app.base-ui-url}")
+    private String baseUiUrl;
 
     private final InvoiceRepository invoiceRepository;
     private final InvoiceLineItemRepository lineItemRepository;
@@ -211,7 +215,7 @@ public class InvoiceService {
                         saved.getTotal() != null ? saved.getTotal().toPlainString() : "0",
                         saved.getCurrency(),
                         saved.getDueDate() != null ? saved.getDueDate().toString() : "N/A",
-                        null);
+                        baseUiUrl + "/invoices/" + saved.getId());
                 communicationLogService.logCommunication("invoice", saved.getId(),
                         "email", "outbound", saved.getClient().getName(),
                         saved.getClient().getEmail(), "Invoice " + saved.getInvoiceNumber(),
@@ -298,7 +302,9 @@ public class InvoiceService {
         BigDecimal tax = afterDiscount.multiply(item.getTaxRate()).divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
         item.setLineTotal(afterDiscount.add(tax));
 
-        return lineItemRepository.save(item);
+        InvoiceLineItem saved = lineItemRepository.save(item);
+        recalculate(invoiceId);
+        return saved;
     }
 
     public InvoiceLineItem updateLineItem(UUID invoiceId, UUID lineId, UpdateInvoiceLineItemRequest request) {
@@ -324,12 +330,15 @@ public class InvoiceService {
         BigDecimal tax = afterDiscount.multiply(item.getTaxRate()).divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
         item.setLineTotal(afterDiscount.add(tax));
 
-        return lineItemRepository.save(item);
+        InvoiceLineItem saved = lineItemRepository.save(item);
+        recalculate(invoiceId);
+        return saved;
     }
 
     public void deleteLineItem(UUID invoiceId, UUID lineId) {
         get(invoiceId);
         lineItemRepository.deleteById(lineId);
+        recalculate(invoiceId);
     }
 
     // Payments
@@ -354,6 +363,12 @@ public class InvoiceService {
 
     public Payment recordPayment(UUID invoiceId, CreatePaymentRequest request) {
         Invoice invoice = get(invoiceId);
+        // Only allow payments on invoices that are in a payable status
+        List<String> payableStatuses = List.of("sent", "viewed", "partially_paid", "overdue");
+        if (!payableStatuses.contains(invoice.getStatus())) {
+            throw new HttpClientErrorException(HttpStatus.BAD_REQUEST,
+                    "Cannot record payment on invoice with status '" + invoice.getStatus() + "'");
+        }
         Payment payment = new Payment();
         payment.setOrganization(invoice.getOrganization());
         payment.setInvoice(invoice);

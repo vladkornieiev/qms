@@ -98,6 +98,9 @@ public class ResourcePayoutService {
     }
 
     public ResourcePayout approvePayout(UUID id) {
+        if (!SecurityUtils.isAdmin()) {
+            throw new HttpClientErrorException(HttpStatus.FORBIDDEN, "Only admins or owners can approve payouts");
+        }
         ResourcePayout payout = getPayout(id);
         statusValidator.validateResourcePayoutTransition(payout.getStatus(), "approved");
         payout.setStatus("approved");

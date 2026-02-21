@@ -11,6 +11,7 @@ import com.kfdlabs.asap.security.SecurityUtils;
 import com.kfdlabs.asap.util.PaginationUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -29,6 +30,9 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Transactional
 public class QuoteService {
+
+    @Value("${app.base-ui-url}")
+    private String baseUiUrl;
 
     private final QuoteRepository quoteRepository;
     private final QuoteLineItemRepository lineItemRepository;
@@ -158,7 +162,7 @@ public class QuoteService {
                         saved.getTotal() != null ? saved.getTotal().toPlainString() : "0",
                         saved.getCurrency(),
                         saved.getValidUntil() != null ? saved.getValidUntil().toString() : "N/A",
-                        null);
+                        baseUiUrl + "/quotes/" + saved.getId());
                 communicationLogService.logCommunication("quote", saved.getId(),
                         "email", "outbound", saved.getClient().getName(),
                         saved.getClient().getEmail(), "Quote " + saved.getQuoteNumber(),
@@ -304,7 +308,9 @@ public class QuoteService {
             item.setCostTotal(item.getCostPerUnit().multiply(item.getQuantity()));
         }
 
-        return lineItemRepository.save(item);
+        QuoteLineItem saved = lineItemRepository.save(item);
+        recalculate(quoteId);
+        return saved;
     }
 
     public QuoteLineItem updateLineItem(UUID quoteId, UUID lineId, UpdateQuoteLineItemRequest request) {
@@ -336,11 +342,14 @@ public class QuoteService {
             item.setCostTotal(item.getCostPerUnit().multiply(item.getQuantity()));
         }
 
-        return lineItemRepository.save(item);
+        QuoteLineItem saved = lineItemRepository.save(item);
+        recalculate(quoteId);
+        return saved;
     }
 
     public void deleteLineItem(UUID quoteId, UUID lineId) {
         get(quoteId);
         lineItemRepository.deleteById(lineId);
+        recalculate(quoteId);
     }
 }

@@ -18,4 +18,7 @@ public interface ProjectRepository extends JpaRepository<Project, UUID> {
            "AND (:status IS NULL OR p.status = :status) " +
            "AND (:clientId IS NULL OR p.client.id = :clientId)")
     Page<Project> findAll(UUID orgId, String query, String status, UUID clientId, Pageable pageable);
+
+    @Query("SELECT COUNT(p) FROM Project p WHERE p.organization.id = :orgId")
+    long countByOrganizationId(UUID orgId);
 }

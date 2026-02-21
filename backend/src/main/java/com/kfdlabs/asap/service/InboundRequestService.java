@@ -116,7 +116,8 @@ public class InboundRequestService {
         Project project = new Project();
         project.setOrganization(req.getOrganization());
         project.setTitle(req.getSubmitterCompany() != null ? req.getSubmitterCompany() + " Project" : "New Project");
-        project.setProjectNumber(String.format("PRJ-%05d", projectRepository.count() + 1));
+        long count = projectRepository.countByOrganizationId(req.getOrganization().getId());
+        project.setProjectNumber(String.format("PRJ-%05d", count + 1));
         project.setClient(req.getClient());
         project.setSource("inbound_request");
         project.setCreatedBy(userRepository.findById(SecurityUtils.getCurrentUserId()).orElse(null));

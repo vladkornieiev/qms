@@ -202,6 +202,37 @@ public class AuthService {
         return buildAuthResponse(accessToken, refreshToken);
     }
 
+    /**
+     * Creates a short-lived, single-use OAuth exchange code.
+     * Used to avoid passing JWT tokens directly in redirect URLs.
+     */
+    @Transactional
+    public String createOAuthExchangeCode(String email) {
+        // Reuse LoginLink entity as a short-lived exchange code (30 seconds)
+        loginLinkRepository.deleteByEmail(email);
+        LoginLink link = new LoginLink();
+        link.setEmail(email);
+        link.setToken(UUID.randomUUID().toString());
+        link.setExpiresAt(LocalDateTime.now().plusSeconds(30));
+        loginLinkRepository.save(link);
+        return link.getToken();
+    }
+
+    /**
+     * Exchanges a short-lived OAuth code for JWT tokens.
+     */
+    @Transactional
+    public AuthResponse exchangeOAuthCode(String code) {
+        LoginLink link = loginLinkRepository.findByToken(code)
+                .orElseThrow(() -> new HttpClientErrorException(BAD_REQUEST, "error.oauth.code.invalid"));
+        if (link.getExpiresAt().isBefore(LocalDateTime.now())) {
+            loginLinkRepository.delete(link);
+            throw new HttpClientErrorException(BAD_REQUEST, "error.oauth.code.expired");
+        }
+        loginLinkRepository.delete(link);
+        return authenticateWithGoogle(link.getEmail());
+    }
+
     @Transactional
     public AuthMultiResponse loginUser(LoginRequest request) {
         log.info("Authenticating user with email: {}", request.getEmail());

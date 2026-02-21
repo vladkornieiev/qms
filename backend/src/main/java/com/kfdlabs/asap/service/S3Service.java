@@ -1,7 +1,6 @@
 package com.kfdlabs.asap.service;
 
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -30,45 +29,56 @@ public class S3Service {
     @Value("${aws.s3.presigned-url-expiration-minutes}")
     private int presignedUrlExpirationMinutes;
 
-    @SneakyThrows
     public URI getPresignedUrl(String path) {
         return getPresignedUrl(path, Duration.ofMinutes(presignedUrlExpirationMinutes));
     }
 
-    @SneakyThrows
     public URI getPresignedUrl(String path, Duration duration) {
-        GetObjectRequest objectRequest = GetObjectRequest.builder()
-                .bucket(bucketName)
-                .key(path)
-                .build();
+        try {
+            GetObjectRequest objectRequest = GetObjectRequest.builder()
+                    .bucket(bucketName)
+                    .key(path)
+                    .build();
 
-        GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
-                .signatureDuration(duration)
-                .getObjectRequest(objectRequest)
-                .build();
+            GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
+                    .signatureDuration(duration)
+                    .getObjectRequest(objectRequest)
+                    .build();
 
-        PresignedGetObjectRequest presignedRequest = s3Presigner.presignGetObject(presignRequest);
+            PresignedGetObjectRequest presignedRequest = s3Presigner.presignGetObject(presignRequest);
 
-        return presignedRequest.url().toURI();
+            return presignedRequest.url().toURI();
+        } catch (Exception e) {
+            log.error("Failed to generate presigned URL for path: {}", path, e);
+            throw new RuntimeException("Failed to generate presigned URL", e);
+        }
     }
 
-    @SneakyThrows
     public void saveFileToS3(byte[] content, String path) {
-        s3Client.putObject(
-                builder -> builder.key(path).bucket(bucketName)
-                        .serverSideEncryption(ServerSideEncryption.AES256),
-                RequestBody.fromBytes(content)
-        );
+        try {
+            s3Client.putObject(
+                    builder -> builder.key(path).bucket(bucketName)
+                            .serverSideEncryption(ServerSideEncryption.AES256),
+                    RequestBody.fromBytes(content)
+            );
+        } catch (Exception e) {
+            log.error("Failed to upload file to S3 at path: {}", path, e);
+            throw new RuntimeException("Failed to upload file to S3", e);
+        }
     }
 
-    @SneakyThrows
     public void saveFileToS3(byte[] content, String path, String contentType) {
-        s3Client.putObject(
-                builder -> builder.key(path).bucket(bucketName)
-                        .contentType(contentType)
-                        .serverSideEncryption(ServerSideEncryption.AES256),
-                RequestBody.fromBytes(content)
-        );
+        try {
+            s3Client.putObject(
+                    builder -> builder.key(path).bucket(bucketName)
+                            .contentType(contentType)
+                            .serverSideEncryption(ServerSideEncryption.AES256),
+                    RequestBody.fromBytes(content)
+            );
+        } catch (Exception e) {
+            log.error("Failed to upload file to S3 at path: {} with contentType: {}", path, contentType, e);
+            throw new RuntimeException("Failed to upload file to S3", e);
+        }
     }
 
     public void deleteFileFromS3(String path) {

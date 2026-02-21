@@ -58,8 +58,8 @@ public class ProjectService {
                 .orElseThrow(() -> new HttpClientErrorException(HttpStatus.NOT_FOUND, "Organization not found"));
     }
 
-    private String generateProjectNumber(Organization org) {
-        long count = projectRepository.count();
+    public String generateProjectNumber(Organization org) {
+        long count = projectRepository.countByOrganizationId(org.getId());
         return String.format("PRJ-%05d", count + 1);
     }
 
@@ -176,6 +176,10 @@ public class ProjectService {
 
     public ProjectDateRange createDateRange(UUID projectId, CreateProjectDateRangeRequest request) {
         Project project = getProject(projectId);
+        if (request.getDateEnd() != null && request.getDateStart() != null
+                && request.getDateEnd().isBefore(request.getDateStart())) {
+            throw new HttpClientErrorException(HttpStatus.BAD_REQUEST, "Date end cannot be before date start");
+        }
         ProjectDateRange dr = new ProjectDateRange();
         dr.setOrganization(project.getOrganization());
         dr.setProject(project);
@@ -194,6 +198,9 @@ public class ProjectService {
                 .orElseThrow(() -> new HttpClientErrorException(HttpStatus.NOT_FOUND, "Date range not found"));
         if (request.getDateStart() != null) dr.setDateStart(request.getDateStart().orElse(dr.getDateStart()));
         if (request.getDateEnd() != null) dr.setDateEnd(request.getDateEnd().orElse(dr.getDateEnd()));
+        if (dr.getDateEnd() != null && dr.getDateStart() != null && dr.getDateEnd().isBefore(dr.getDateStart())) {
+            throw new HttpClientErrorException(HttpStatus.BAD_REQUEST, "Date end cannot be before date start");
+        }
         if (request.getLabel() != null) dr.setLabel(request.getLabel().orElse(dr.getLabel()));
         if (request.getRateMultiplier() != null) dr.setRateMultiplier(request.getRateMultiplier().orElse(dr.getRateMultiplier()));
         if (request.getNotes() != null) dr.setNotes(request.getNotes().orElse(dr.getNotes()));

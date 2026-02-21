@@ -104,12 +104,6 @@ public class OrganizationService {
         List<UUID> orgIds = memberships.stream().map(m -> m.getOrganization().getId()).toList();
 
         Pageable pageable = PaginationUtils.getPageable(page, size, order, sortBy);
-        return organizationRepository.findAllById(orgIds).stream()
-                .filter(org -> org.getIsActive())
-                .filter(org -> name == null || name.isEmpty() || org.getName().toLowerCase().contains(name.toLowerCase()))
-                .collect(java.util.stream.Collectors.collectingAndThen(
-                        java.util.stream.Collectors.toList(),
-                        list -> new org.springframework.data.domain.PageImpl<>(list, pageable, list.size())
-                ));
+        return organizationRepository.findByIdInAndIsActive(orgIds, name, pageable);
     }
 }

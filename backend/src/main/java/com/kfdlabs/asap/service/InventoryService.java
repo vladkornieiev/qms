@@ -179,7 +179,12 @@ public class InventoryService {
     }
 
     public StockLevel consumeStock(UUID stockLevelId, ConsumeStockRequest request) {
-        StockLevel sl = getStockLevel(stockLevelId);
+        // Use pessimistic lock to prevent concurrent consumption causing negative stock
+        StockLevel sl = stockLevelRepository.findByIdForUpdate(stockLevelId)
+                .orElseThrow(() -> new HttpClientErrorException(HttpStatus.NOT_FOUND, "Stock level not found"));
+        if (!sl.getOrganization().getId().equals(SecurityUtils.getCurrentOrganizationId())) {
+            throw new HttpClientErrorException(HttpStatus.FORBIDDEN, "Access denied");
+        }
         BigDecimal qty = request.getQuantity();
         if (sl.getQuantityOnHand().compareTo(qty) < 0) {
             throw new HttpClientErrorException(HttpStatus.BAD_REQUEST, "Insufficient stock");
@@ -220,7 +225,12 @@ public class InventoryService {
     }
 
     public StockLevel transferStock(UUID stockLevelId, TransferStockRequest request) {
-        StockLevel source = getStockLevel(stockLevelId);
+        // Use pessimistic lock to prevent concurrent transfers
+        StockLevel source = stockLevelRepository.findByIdForUpdate(stockLevelId)
+                .orElseThrow(() -> new HttpClientErrorException(HttpStatus.NOT_FOUND, "Stock level not found"));
+        if (!source.getOrganization().getId().equals(SecurityUtils.getCurrentOrganizationId())) {
+            throw new HttpClientErrorException(HttpStatus.FORBIDDEN, "Access denied");
+        }
         BigDecimal qty = request.getQuantity();
         if (source.getQuantityOnHand().compareTo(qty) < 0) {
             throw new HttpClientErrorException(HttpStatus.BAD_REQUEST, "Insufficient stock for transfer");
