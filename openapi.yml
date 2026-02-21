@@ -7051,6 +7051,202 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  # ===== Activity =====
+  /api/activity/{entityType}/{entityId}:
+    get:
+      summary: Get activity for entity
+      operationId: getActivityForEntity
+      tags:
+        - activity
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: entityType
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: entityId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: size
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Paginated activity log
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedActivityLogResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/activity/user/{userId}:
+    get:
+      summary: Get activity by user
+      operationId: getActivityByUser
+      tags:
+        - activity
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: size
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Paginated activity log
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedActivityLogResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  # ===== Notifications =====
+  /api/notifications:
+    get:
+      summary: Get notifications for current user
+      operationId: getNotifications
+      tags:
+        - notifications
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: size
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Notification list with unread count
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotificationListResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/notifications/read-all:
+    post:
+      summary: Mark all notifications as read
+      operationId: markAllNotificationsAsRead
+      tags:
+        - notifications
+      security:
+        - bearerAuth: []
+      responses:
+        "204":
+          description: All notifications marked as read
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/notifications/{id}/read:
+    post:
+      summary: Mark notification as read
+      operationId: markNotificationAsRead
+      tags:
+        - notifications
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Notification marked as read
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotificationResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  # ===== Communications =====
+  /api/communications/{entityType}/{entityId}:
+    get:
+      summary: Get communications for entity
+      operationId: getCommunicationsForEntity
+      tags:
+        - communications
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: entityType
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: entityId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: List of communication logs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CommunicationLogResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
 components:
   securitySchemes:
     bearerAuth:
@@ -11097,3 +11293,130 @@ components:
           format: binary
         category:
           type: string
+
+    # ========= Phase 10: Activity & Notification Schemas =========
+
+    ActivityLogResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        entityType:
+          type: string
+        entityId:
+          type: string
+          format: uuid
+        action:
+          type: string
+        changes:
+          type: object
+        metadata:
+          type: object
+        createdAt:
+          type: string
+          format: date-time
+
+    PaginatedActivityLogResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/ActivityLogResponse"
+        page:
+          type: integer
+        size:
+          type: integer
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+
+    NotificationResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        title:
+          type: string
+        body:
+          type: string
+        entityType:
+          type: string
+        entityId:
+          type: string
+          format: uuid
+        isRead:
+          type: boolean
+        readAt:
+          type: string
+          format: date-time
+        channel:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    NotificationListResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/NotificationResponse"
+        unreadCount:
+          type: integer
+        page:
+          type: integer
+        size:
+          type: integer
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+
+    CommunicationLogResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        entityType:
+          type: string
+        entityId:
+          type: string
+          format: uuid
+        channel:
+          type: string
+        direction:
+          type: string
+        recipientName:
+          type: string
+        recipientEmail:
+          type: string
+        recipientPhone:
+          type: string
+        subject:
+          type: string
+        bodyPreview:
+          type: string
+        status:
+          type: string
+        externalMessageId:
+          type: string
+        sentAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time

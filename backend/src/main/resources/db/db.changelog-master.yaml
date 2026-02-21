@@ -71,3 +71,11 @@ databaseChangeLog:
             path: db/changelog/009-contracts-templates-files.sql
             relativeToChangelogFile: false
             splitStatements: false
+  - changeSet:
+      id: 010-activity-notifications
+      author: asap
+      changes:
+        - sqlFile:
+            path: db/changelog/010-activity-notifications.sql
+            relativeToChangelogFile: false
+            splitStatements: false
