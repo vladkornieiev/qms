@@ -10,8 +10,6 @@ import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { usersApi } from "@/lib/api-client";
 import type { User } from "@/lib/auth-client";
 import { ProtectedRoute } from "@/components/auth/protected-route";
-import { Navbar } from "@/components/layout/navbar";
-import { PageWrapper } from "@/components/layout/page-wrapper";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,24 +26,21 @@ export default function UsersPage() {
     return (
       <ProtectedRoute>
         <div className="min-h-screen bg-gray-50">
-          <Navbar />
-          <PageWrapper>
-            <div className="container mx-auto px-8 py-8">
-              <Card className="max-w-md mx-auto">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-red-600">
-                    <AlertCircle className="h-5 w-5" />
-                    Access Denied
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-600">
-                    You don&apos;t have permission to manage users.
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
-          </PageWrapper>
+          <div className="container mx-auto px-8 py-8">
+            <Card className="max-w-md mx-auto">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-red-600">
+                  <AlertCircle className="h-5 w-5" />
+                  Access Denied
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600">
+                  You don&apos;t have permission to manage users.
+                </p>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </ProtectedRoute>
     );
@@ -54,12 +49,9 @@ export default function UsersPage() {
   return (
     <ProtectedRoute>
       <div className="min-h-screen bg-gray-50">
-        <Navbar />
-        <PageWrapper>
-          <div className="container mx-auto px-8 py-8">
-            <UsersContent />
-          </div>
-        </PageWrapper>
+        <div className="container mx-auto px-8 py-8">
+          <UsersContent />
+        </div>
         <Toaster richColors position="top-right" />
       </div>
     </ProtectedRoute>

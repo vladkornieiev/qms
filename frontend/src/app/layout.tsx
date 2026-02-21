@@ -5,6 +5,7 @@ import { ReactQueryProvider } from "@/providers/query-client-provider";
 import { AuthProvider } from "@/components/auth/auth-provider";
 import { SidebarProvider } from "@/components/layout/sidebar-provider";
 import { SidebarErrorBoundary } from "@/components/layout/sidebar-error-boundary";
+import { AppShell } from "@/components/layout/app-shell";
 import { HotkeysProvider } from "@/contexts/hotkeys-context";
 import { HotkeyCheatSheet } from "@/components/hotkeys/hotkey-cheat-sheet";
 import { UserPreferencesProvider } from "@/contexts/user-preferences-context";
@@ -44,7 +45,7 @@ export default function RootLayout({
                 <PreferencesDialogProvider>
                   <SidebarErrorBoundary>
                     <SidebarProvider>
-                      {children}
+                      <AppShell>{children}</AppShell>
                       <HotkeyCheatSheet />
                       <UserPreferencesDialogFromContext />
                       <Toaster richColors position="top-right" />
