@@ -5858,6 +5858,531 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  /api/invoices:
+    get:
+      summary: List invoices
+      operationId: listInvoices
+      tags:
+        - invoices
+      parameters:
+        - name: query
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: clientId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: projectId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 25
+      responses:
+        "200":
+          description: Paginated list of invoices
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedInvoiceResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    post:
+      summary: Create invoice
+      operationId: createInvoice
+      tags:
+        - invoices
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateInvoiceRequest"
+      responses:
+        "201":
+          description: Invoice created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InvoiceResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/invoices/from-quote/{quoteId}:
+    post:
+      summary: Generate invoice from quote
+      operationId: createInvoiceFromQuote
+      tags:
+        - invoices
+      parameters:
+        - name: quoteId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "201":
+          description: Invoice created from quote
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InvoiceResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/invoices/{id}:
+    get:
+      summary: Get invoice with line items and payments
+      operationId: getInvoiceById
+      tags:
+        - invoices
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Invoice detail with line items and payments
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InvoiceDetailResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    patch:
+      summary: Update invoice
+      operationId: updateInvoice
+      tags:
+        - invoices
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateInvoiceRequest"
+      responses:
+        "200":
+          description: Invoice updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InvoiceResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      summary: Delete invoice
+      operationId: deleteInvoice
+      tags:
+        - invoices
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Invoice deleted
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/invoices/{id}/line-items:
+    get:
+      summary: List invoice line items
+      operationId: listInvoiceLineItems
+      tags:
+        - invoices
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Line items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/InvoiceLineItemResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    post:
+      summary: Add invoice line item
+      operationId: createInvoiceLineItem
+      tags:
+        - invoices
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateInvoiceLineItemRequest"
+      responses:
+        "201":
+          description: Line item created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InvoiceLineItemResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/invoices/{id}/line-items/{lineId}:
+    patch:
+      summary: Update invoice line item
+      operationId: updateInvoiceLineItem
+      tags:
+        - invoices
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: lineId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateInvoiceLineItemRequest"
+      responses:
+        "200":
+          description: Line item updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InvoiceLineItemResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      summary: Delete invoice line item
+      operationId: deleteInvoiceLineItem
+      tags:
+        - invoices
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: lineId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Line item deleted
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/invoices/{id}/payments:
+    get:
+      summary: List payments for invoice
+      operationId: listInvoicePayments
+      tags:
+        - invoices
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Payments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PaymentResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    post:
+      summary: Record payment for invoice
+      operationId: createInvoicePayment
+      tags:
+        - invoices
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreatePaymentRequest"
+      responses:
+        "201":
+          description: Payment recorded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaymentResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/invoices/{id}/send:
+    post:
+      summary: Send invoice to client
+      operationId: sendInvoice
+      tags:
+        - invoices
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Invoice sent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InvoiceResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/invoices/{id}/void:
+    post:
+      summary: Void invoice
+      operationId: voidInvoice
+      tags:
+        - invoices
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Invoice voided
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InvoiceResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/invoices/{id}/recalculate:
+    post:
+      summary: Recalculate invoice totals
+      operationId: recalculateInvoice
+      tags:
+        - invoices
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Totals recalculated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InvoiceResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/payments:
+    get:
+      summary: List payments
+      operationId: listPayments
+      tags:
+        - payments
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 25
+      responses:
+        "200":
+          description: Paginated list of payments
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedPaymentResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/payments/{id}:
+    get:
+      summary: Get payment
+      operationId: getPaymentById
+      tags:
+        - payments
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Payment details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaymentResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      summary: Delete payment
+      operationId: deletePayment
+      tags:
+        - payments
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Payment deleted
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
 components:
   securitySchemes:
     bearerAuth:
@@ -9027,4 +9552,420 @@ components:
         approvedByEmail:
           type: string
         signatureUrl:
+          type: string
+
+    InvoiceResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        quoteId:
+          type: string
+          format: uuid
+        projectId:
+          type: string
+          format: uuid
+        clientId:
+          type: string
+          format: uuid
+        clientName:
+          type: string
+        invoiceNumber:
+          type: string
+        status:
+          type: string
+        issuedDate:
+          type: string
+          format: date
+        dueDate:
+          type: string
+          format: date
+        paidAt:
+          type: string
+          format: date-time
+        subtotal:
+          type: number
+        discountAmount:
+          type: number
+        taxAmount:
+          type: number
+        total:
+          type: number
+        amountPaid:
+          type: number
+        balanceDue:
+          type: number
+        currency:
+          type: string
+        externalAccountingId:
+          type: string
+        notes:
+          type: string
+        internalNotes:
+          type: string
+        terms:
+          type: string
+        customFields:
+          type: object
+          additionalProperties: true
+        createdById:
+          type: string
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    InvoiceDetailResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        quoteId:
+          type: string
+          format: uuid
+        projectId:
+          type: string
+          format: uuid
+        clientId:
+          type: string
+          format: uuid
+        clientName:
+          type: string
+        invoiceNumber:
+          type: string
+        status:
+          type: string
+        issuedDate:
+          type: string
+          format: date
+        dueDate:
+          type: string
+          format: date
+        paidAt:
+          type: string
+          format: date-time
+        subtotal:
+          type: number
+        discountAmount:
+          type: number
+        taxAmount:
+          type: number
+        total:
+          type: number
+        amountPaid:
+          type: number
+        balanceDue:
+          type: number
+        currency:
+          type: string
+        externalAccountingId:
+          type: string
+        notes:
+          type: string
+        internalNotes:
+          type: string
+        terms:
+          type: string
+        customFields:
+          type: object
+          additionalProperties: true
+        createdById:
+          type: string
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        lineItems:
+          type: array
+          items:
+            $ref: "#/components/schemas/InvoiceLineItemResponse"
+        payments:
+          type: array
+          items:
+            $ref: "#/components/schemas/PaymentResponse"
+
+    PaginatedInvoiceResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/InvoiceResponse"
+        page:
+          type: integer
+        size:
+          type: integer
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+
+    CreateInvoiceRequest:
+      type: object
+      required:
+        - clientId
+      properties:
+        clientId:
+          type: string
+          format: uuid
+        projectId:
+          type: string
+          format: uuid
+        quoteId:
+          type: string
+          format: uuid
+        issuedDate:
+          type: string
+          format: date
+        dueDate:
+          type: string
+          format: date
+        currency:
+          type: string
+        notes:
+          type: string
+        internalNotes:
+          type: string
+        terms:
+          type: string
+        customFields:
+          type: object
+          additionalProperties: true
+
+    UpdateInvoiceRequest:
+      type: object
+      properties:
+        status:
+          type: string
+          nullable: true
+        issuedDate:
+          type: string
+          format: date
+          nullable: true
+        dueDate:
+          type: string
+          format: date
+          nullable: true
+        currency:
+          type: string
+          nullable: true
+        notes:
+          type: string
+          nullable: true
+        internalNotes:
+          type: string
+          nullable: true
+        terms:
+          type: string
+          nullable: true
+        externalAccountingId:
+          type: string
+          nullable: true
+        customFields:
+          type: object
+          additionalProperties: true
+          nullable: true
+
+    InvoiceLineItemResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        invoiceId:
+          type: string
+          format: uuid
+        quoteLineItemId:
+          type: string
+          format: uuid
+        productId:
+          type: string
+          format: uuid
+        categoryId:
+          type: string
+          format: uuid
+        description:
+          type: string
+        dateStart:
+          type: string
+          format: date
+        dateEnd:
+          type: string
+          format: date
+        quantity:
+          type: number
+        unitPrice:
+          type: number
+        unit:
+          type: string
+        discountPercent:
+          type: number
+        discountAmount:
+          type: number
+        taxRate:
+          type: number
+        lineTotal:
+          type: number
+        section:
+          type: string
+        displayOrder:
+          type: integer
+        notes:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    CreateInvoiceLineItemRequest:
+      type: object
+      required:
+        - description
+      properties:
+        productId:
+          type: string
+          format: uuid
+        categoryId:
+          type: string
+          format: uuid
+        description:
+          type: string
+        dateStart:
+          type: string
+          format: date
+        dateEnd:
+          type: string
+          format: date
+        quantity:
+          type: number
+        unitPrice:
+          type: number
+        unit:
+          type: string
+        discountPercent:
+          type: number
+        discountAmount:
+          type: number
+        taxRate:
+          type: number
+        section:
+          type: string
+        displayOrder:
+          type: integer
+        notes:
+          type: string
+
+    UpdateInvoiceLineItemRequest:
+      type: object
+      properties:
+        description:
+          type: string
+          nullable: true
+        dateStart:
+          type: string
+          format: date
+          nullable: true
+        dateEnd:
+          type: string
+          format: date
+          nullable: true
+        quantity:
+          type: number
+          nullable: true
+        unitPrice:
+          type: number
+          nullable: true
+        unit:
+          type: string
+          nullable: true
+        discountPercent:
+          type: number
+          nullable: true
+        discountAmount:
+          type: number
+          nullable: true
+        taxRate:
+          type: number
+          nullable: true
+        section:
+          type: string
+          nullable: true
+        displayOrder:
+          type: integer
+          nullable: true
+        notes:
+          type: string
+          nullable: true
+
+    PaymentResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        invoiceId:
+          type: string
+          format: uuid
+        amount:
+          type: number
+        currency:
+          type: string
+        paymentMethod:
+          type: string
+        paymentReference:
+          type: string
+        paymentDate:
+          type: string
+          format: date
+        notes:
+          type: string
+        externalPaymentId:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    PaginatedPaymentResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/PaymentResponse"
+        page:
+          type: integer
+        size:
+          type: integer
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+
+    CreatePaymentRequest:
+      type: object
+      required:
+        - amount
+        - paymentDate
+      properties:
+        amount:
+          type: number
+        paymentDate:
+          type: string
+          format: date
+        paymentMethod:
+          type: string
+        paymentReference:
+          type: string
+        currency:
+          type: string
+        notes:
           type: string

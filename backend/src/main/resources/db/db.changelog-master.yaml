@@ -55,3 +55,11 @@ databaseChangeLog:
             path: db/changelog/007-pipeline-quotes.sql
             relativeToChangelogFile: false
             splitStatements: false
+  - changeSet:
+      id: 008-invoices-payments
+      author: asap
+      changes:
+        - sqlFile:
+            path: db/changelog/008-invoices-payments.sql
+            relativeToChangelogFile: false
+            splitStatements: false
