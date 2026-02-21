@@ -20,6 +20,6 @@ public interface QuoteRepository extends JpaRepository<Quote, UUID> {
            "AND (:projectId IS NULL OR q.project.id = :projectId)")
     Page<Quote> findAll(UUID orgId, String query, String status, UUID clientId, UUID projectId, Pageable pageable);
 
-    @Query("SELECT MAX(CAST(SUBSTRING(q.quoteNumber, 3) AS int)) FROM Quote q WHERE q.organization.id = :orgId AND q.quoteNumber LIKE 'Q-%'")
+    @Query(value = "SELECT MAX(CAST(SUBSTRING(quote_number, 3) AS int)) FROM quotes WHERE organization_id = :orgId AND quote_number ~ '^Q-[0-9]+$'", nativeQuery = true)
     Integer findMaxQuoteNumber(UUID orgId);
 }

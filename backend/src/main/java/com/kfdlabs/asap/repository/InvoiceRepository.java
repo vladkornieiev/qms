@@ -25,6 +25,6 @@ public interface InvoiceRepository extends JpaRepository<Invoice, UUID> {
            "AND (:projectId IS NULL OR i.project.id = :projectId)")
     Page<Invoice> findAll(UUID orgId, String query, String status, UUID clientId, UUID projectId, Pageable pageable);
 
-    @Query("SELECT MAX(CAST(SUBSTRING(i.invoiceNumber, 5) AS int)) FROM Invoice i WHERE i.organization.id = :orgId AND i.invoiceNumber LIKE 'INV-%'")
+    @Query(value = "SELECT MAX(CAST(SUBSTRING(invoice_number, 5) AS int)) FROM invoices WHERE organization_id = :orgId AND invoice_number ~ '^INV-[0-9]+$'", nativeQuery = true)
     Integer findMaxInvoiceNumber(UUID orgId);
 }
