@@ -3971,6 +3971,564 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  # ===== Resources =====
+  /api/resources:
+    get:
+      summary: List resources
+      operationId: listResources
+      tags:
+        - resources
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: query
+          in: query
+          schema:
+            type: string
+        - name: type
+          in: query
+          schema:
+            type: string
+        - name: isActive
+          in: query
+          schema:
+            type: boolean
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: size
+          in: query
+          schema:
+            type: integer
+        - name: sortBy
+          in: query
+          schema:
+            type: string
+        - name: order
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Paginated list of resources
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedResourceResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    post:
+      summary: Create resource
+      operationId: createResource
+      tags:
+        - resources
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateResourceRequest"
+      responses:
+        "201":
+          description: Resource created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResourceResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/resources/{id}:
+    get:
+      summary: Get resource by ID
+      operationId: getResourceById
+      tags:
+        - resources
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Resource details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResourceResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    patch:
+      summary: Update resource
+      operationId: updateResource
+      tags:
+        - resources
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateResourceRequest"
+      responses:
+        "200":
+          description: Resource updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResourceResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      summary: Delete resource (soft)
+      operationId: deleteResource
+      tags:
+        - resources
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Resource deleted
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/resources/{id}/availability:
+    get:
+      summary: List resource availability
+      operationId: listResourceAvailability
+      tags:
+        - resources
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Availability blocks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ResourceAvailabilityResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    post:
+      summary: Create availability block
+      operationId: createResourceAvailability
+      tags:
+        - resources
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateResourceAvailabilityRequest"
+      responses:
+        "201":
+          description: Availability created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResourceAvailabilityResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/resources/{id}/availability/{availId}:
+    patch:
+      summary: Update availability block
+      operationId: updateResourceAvailability
+      tags:
+        - resources
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: availId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateResourceAvailabilityRequest"
+      responses:
+        "200":
+          description: Availability updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResourceAvailabilityResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      summary: Delete availability block
+      operationId: deleteResourceAvailability
+      tags:
+        - resources
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: availId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Availability deleted
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/resources/{id}/payouts:
+    get:
+      summary: List payouts for resource
+      operationId: listResourcePayouts
+      tags:
+        - resources
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Payouts for resource
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ResourcePayoutResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  # ===== Resource Payouts =====
+  /api/resource-payouts:
+    get:
+      summary: List all payouts
+      operationId: listAllPayouts
+      tags:
+        - resource-payouts
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: resourceId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: size
+          in: query
+          schema:
+            type: integer
+        - name: sortBy
+          in: query
+          schema:
+            type: string
+        - name: order
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Paginated payouts
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedResourcePayoutResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    post:
+      summary: Create payout
+      operationId: createPayout
+      tags:
+        - resource-payouts
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateResourcePayoutRequest"
+      responses:
+        "201":
+          description: Payout created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResourcePayoutResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/resource-payouts/{id}:
+    get:
+      summary: Get payout by ID
+      operationId: getPayoutById
+      tags:
+        - resource-payouts
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Payout details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResourcePayoutResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    patch:
+      summary: Update payout
+      operationId: updatePayout
+      tags:
+        - resource-payouts
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateResourcePayoutRequest"
+      responses:
+        "200":
+          description: Payout updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResourcePayoutResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      summary: Delete payout
+      operationId: deletePayout
+      tags:
+        - resource-payouts
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Payout deleted
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/resource-payouts/{id}/approve:
+    post:
+      summary: Approve payout
+      operationId: approvePayout
+      tags:
+        - resource-payouts
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Payout approved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResourcePayoutResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/resource-payouts/{id}/mark-paid:
+    post:
+      summary: Mark payout as paid
+      operationId: markPayoutPaid
+      tags:
+        - resource-payouts
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MarkPayoutPaidRequest"
+      responses:
+        "200":
+          description: Payout marked as paid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResourcePayoutResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
 components:
   securitySchemes:
     bearerAuth:
@@ -5794,3 +6352,346 @@ components:
           format: int64
         totalPages:
           type: integer
+
+    # ========= Resource Schemas =========
+    ResourceResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        type:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        avatarUrl:
+          type: string
+        locationCity:
+          type: string
+        locationState:
+          type: string
+        locationCountry:
+          type: string
+        defaultDayRate:
+          type: number
+        defaultHourRate:
+          type: number
+        currency:
+          type: string
+        customFields:
+          type: object
+          additionalProperties: true
+        isActive:
+          type: boolean
+        createdAt:
+          $ref: "#/components/schemas/Timestamp"
+        updatedAt:
+          $ref: "#/components/schemas/Timestamp"
+
+    PaginatedResourceResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/ResourceResponse"
+        page:
+          type: integer
+        size:
+          type: integer
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+
+    CreateResourceRequest:
+      type: object
+      required:
+        - firstName
+        - lastName
+      properties:
+        userId:
+          type: string
+          format: uuid
+        type:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        avatarUrl:
+          type: string
+        locationCity:
+          type: string
+        locationState:
+          type: string
+        locationCountry:
+          type: string
+        defaultDayRate:
+          type: number
+        defaultHourRate:
+          type: number
+        currency:
+          type: string
+        customFields:
+          type: object
+          additionalProperties: true
+
+    UpdateResourceRequest:
+      type: object
+      properties:
+        type:
+          type: string
+          nullable: true
+        firstName:
+          type: string
+          nullable: true
+        lastName:
+          type: string
+          nullable: true
+        email:
+          type: string
+          nullable: true
+        phone:
+          type: string
+          nullable: true
+        avatarUrl:
+          type: string
+          nullable: true
+        locationCity:
+          type: string
+          nullable: true
+        locationState:
+          type: string
+          nullable: true
+        locationCountry:
+          type: string
+          nullable: true
+        defaultDayRate:
+          type: number
+          nullable: true
+        defaultHourRate:
+          type: number
+          nullable: true
+        currency:
+          type: string
+          nullable: true
+        customFields:
+          type: object
+          additionalProperties: true
+          nullable: true
+        isActive:
+          type: boolean
+          nullable: true
+
+    ResourceAvailabilityResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        resourceId:
+          type: string
+          format: uuid
+        dateStart:
+          type: string
+          format: date
+        dateEnd:
+          type: string
+          format: date
+        status:
+          type: string
+        reason:
+          type: string
+        projectId:
+          type: string
+          format: uuid
+        createdAt:
+          $ref: "#/components/schemas/Timestamp"
+
+    CreateResourceAvailabilityRequest:
+      type: object
+      required:
+        - dateStart
+        - dateEnd
+      properties:
+        dateStart:
+          type: string
+          format: date
+        dateEnd:
+          type: string
+          format: date
+        status:
+          type: string
+        reason:
+          type: string
+        projectId:
+          type: string
+          format: uuid
+
+    UpdateResourceAvailabilityRequest:
+      type: object
+      properties:
+        dateStart:
+          type: string
+          format: date
+          nullable: true
+        dateEnd:
+          type: string
+          format: date
+          nullable: true
+        status:
+          type: string
+          nullable: true
+        reason:
+          type: string
+          nullable: true
+        projectId:
+          type: string
+          format: uuid
+          nullable: true
+
+    ResourcePayoutResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        resourceId:
+          type: string
+          format: uuid
+        resourceName:
+          type: string
+        projectId:
+          type: string
+          format: uuid
+        description:
+          type: string
+        amount:
+          type: number
+        currency:
+          type: string
+        status:
+          type: string
+        approvedAt:
+          $ref: "#/components/schemas/Timestamp"
+        approvedById:
+          type: string
+          format: uuid
+        paymentMethod:
+          type: string
+        paymentReference:
+          type: string
+        paidAt:
+          $ref: "#/components/schemas/Timestamp"
+        periodStart:
+          type: string
+          format: date
+        periodEnd:
+          type: string
+          format: date
+        notes:
+          type: string
+        createdAt:
+          $ref: "#/components/schemas/Timestamp"
+        updatedAt:
+          $ref: "#/components/schemas/Timestamp"
+
+    PaginatedResourcePayoutResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/ResourcePayoutResponse"
+        page:
+          type: integer
+        size:
+          type: integer
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+
+    CreateResourcePayoutRequest:
+      type: object
+      required:
+        - resourceId
+        - amount
+      properties:
+        resourceId:
+          type: string
+          format: uuid
+        projectId:
+          type: string
+          format: uuid
+        description:
+          type: string
+        amount:
+          type: number
+        currency:
+          type: string
+        periodStart:
+          type: string
+          format: date
+        periodEnd:
+          type: string
+          format: date
+        notes:
+          type: string
+
+    UpdateResourcePayoutRequest:
+      type: object
+      properties:
+        description:
+          type: string
+          nullable: true
+        amount:
+          type: number
+          nullable: true
+        currency:
+          type: string
+          nullable: true
+        status:
+          type: string
+          nullable: true
+        paymentMethod:
+          type: string
+          nullable: true
+        paymentReference:
+          type: string
+          nullable: true
+        periodStart:
+          type: string
+          format: date
+          nullable: true
+        periodEnd:
+          type: string
+          format: date
+          nullable: true
+        notes:
+          type: string
+          nullable: true
+
+    MarkPayoutPaidRequest:
+      type: object
+      properties:
+        paymentMethod:
+          type: string
+        paymentReference:
+          type: string
