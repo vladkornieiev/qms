@@ -90,12 +90,27 @@ public class CategoryService {
                 if (parentId.equals(id)) {
                     throw new HttpClientErrorException(HttpStatus.BAD_REQUEST, "Category cannot be its own parent");
                 }
+                validateNoCircularReference(id, parentId);
                 cat.setParent(getCategory(parentId));
             } else {
                 cat.setParent(null);
             }
         }
         return categoryRepository.save(cat);
+    }
+
+    private void validateNoCircularReference(UUID categoryId, UUID parentId) {
+        UUID current = parentId;
+        int depth = 0;
+        while (current != null && depth < 20) {
+            if (current.equals(categoryId)) {
+                throw new HttpClientErrorException(HttpStatus.BAD_REQUEST,
+                        "Setting this parent would create a circular reference");
+            }
+            Category parent = categoryRepository.findById(current).orElse(null);
+            current = parent != null && parent.getParent() != null ? parent.getParent().getId() : null;
+            depth++;
+        }
     }
 
     public void deleteCategory(UUID id) {

@@ -46,6 +46,9 @@ public class InvoiceService {
     private final UserRepository userRepository;
     private final InvoiceMapper invoiceMapper;
     private final ApplicationEventPublisher eventPublisher;
+    private final StatusTransitionValidator statusValidator;
+    private final EmailService emailService;
+    private final CommunicationLogService communicationLogService;
 
     private Organization getCurrentOrg() {
         return organizationRepository.findById(SecurityUtils.getCurrentOrganizationId())
@@ -96,12 +99,20 @@ public class InvoiceService {
         if (request.getTerms() != null) invoice.setTerms(request.getTerms());
         if (request.getCustomFields() != null) invoice.setCustomFields(request.getCustomFields());
         invoice.setCreatedBy(userRepository.findById(SecurityUtils.getCurrentUserId()).orElse(null));
-        return invoiceRepository.save(invoice);
+        Invoice saved = invoiceRepository.save(invoice);
+        eventPublisher.publishEvent(new EntityEvent(
+                this, "invoice", "created", saved.getId(),
+                saved.getOrganization().getId(), null, null, saved));
+        return saved;
     }
 
     public Invoice createFromQuote(UUID quoteId) {
         Quote quote = quoteRepository.findById(quoteId)
                 .orElseThrow(() -> new HttpClientErrorException(HttpStatus.NOT_FOUND, "Quote not found"));
+        if (!"approved".equals(quote.getStatus())) {
+            throw new HttpClientErrorException(HttpStatus.BAD_REQUEST,
+                    "Only approved quotes can be converted to invoices. Current status: " + quote.getStatus());
+        }
         Organization org = getCurrentOrg();
 
         Invoice invoice = new Invoice();
@@ -148,7 +159,17 @@ public class InvoiceService {
 
     public Invoice update(UUID id, UpdateInvoiceRequest request) {
         Invoice invoice = get(id);
-        if (request.getStatus() != null) invoice.setStatus(request.getStatus().orElse(invoice.getStatus()));
+        if (request.getStatus() != null) {
+            String newStatus = request.getStatus().orElse(invoice.getStatus());
+            statusValidator.validateInvoiceTransition(invoice.getStatus(), newStatus);
+            String oldStatus = invoice.getStatus();
+            invoice.setStatus(newStatus);
+            if (!oldStatus.equals(newStatus)) {
+                eventPublisher.publishEvent(new EntityEvent(
+                        this, "invoice", "status_changed", invoice.getId(),
+                        invoice.getOrganization().getId(), oldStatus, newStatus, invoice));
+            }
+        }
         if (request.getIssuedDate() != null) invoice.setIssuedDate(request.getIssuedDate().orElse(invoice.getIssuedDate()));
         if (request.getDueDate() != null) invoice.setDueDate(request.getDueDate().orElse(invoice.getDueDate()));
         if (request.getCurrency() != null) invoice.setCurrency(request.getCurrency().orElse(invoice.getCurrency()));
@@ -162,19 +183,56 @@ public class InvoiceService {
 
     public void delete(UUID id) {
         Invoice invoice = get(id);
+        if ("paid".equals(invoice.getStatus()) || "partially_paid".equals(invoice.getStatus())) {
+            throw new HttpClientErrorException(HttpStatus.BAD_REQUEST,
+                    "Cannot delete an invoice with status '" + invoice.getStatus() + "'");
+        }
+        lineItemRepository.deleteAll(lineItemRepository.findByInvoiceIdOrderByDisplayOrderAsc(id));
+        paymentRepository.deleteAll(paymentRepository.findByInvoiceIdOrderByPaymentDateDesc(id));
         invoiceRepository.delete(invoice);
     }
 
     public Invoice send(UUID id) {
         Invoice invoice = get(id);
+        statusValidator.validateInvoiceTransition(invoice.getStatus(), "sent");
+        String oldStatus = invoice.getStatus();
         invoice.setStatus("sent");
-        return invoiceRepository.save(invoice);
+        Invoice saved = invoiceRepository.save(invoice);
+        eventPublisher.publishEvent(new EntityEvent(
+                this, "invoice", "status_changed", invoice.getId(),
+                invoice.getOrganization().getId(), oldStatus, "sent", saved));
+        // Send email to client if they have an email
+        if (saved.getClient() != null && saved.getClient().getEmail() != null) {
+            try {
+                emailService.sendInvoiceEmail(
+                        saved.getClient().getEmail(),
+                        saved.getInvoiceNumber(),
+                        saved.getClient().getName(),
+                        saved.getTotal() != null ? saved.getTotal().toPlainString() : "0",
+                        saved.getCurrency(),
+                        saved.getDueDate() != null ? saved.getDueDate().toString() : "N/A",
+                        null);
+                communicationLogService.logCommunication("invoice", saved.getId(),
+                        "email", "outbound", saved.getClient().getName(),
+                        saved.getClient().getEmail(), "Invoice " + saved.getInvoiceNumber(),
+                        null, "sent");
+            } catch (Exception e) {
+                log.warn("Failed to send invoice email for invoice {}: {}", saved.getInvoiceNumber(), e.getMessage());
+            }
+        }
+        return saved;
     }
 
     public Invoice voidInvoice(UUID id) {
         Invoice invoice = get(id);
+        statusValidator.validateInvoiceTransition(invoice.getStatus(), "void");
+        String oldStatus = invoice.getStatus();
         invoice.setStatus("void");
-        return invoiceRepository.save(invoice);
+        Invoice saved = invoiceRepository.save(invoice);
+        eventPublisher.publishEvent(new EntityEvent(
+                this, "invoice", "status_changed", invoice.getId(),
+                invoice.getOrganization().getId(), oldStatus, "void", saved));
+        return saved;
     }
 
     public Invoice recalculate(UUID id) {

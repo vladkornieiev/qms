@@ -27,12 +27,27 @@ public class DashboardService {
 
         RevenueSummaryResponse response = new RevenueSummaryResponse();
 
+        // Calculate date range based on period
+        LocalDate now = LocalDate.now();
+        LocalDate startDate = switch (period != null ? period : "all") {
+            case "week" -> now.minusWeeks(1);
+            case "month" -> now.minusMonths(1);
+            case "quarter" -> now.minusMonths(3);
+            case "year" -> now.minusYears(1);
+            default -> null;
+        };
+
+        String dateFilter = startDate != null ? " AND created_at >= :startDate" : "";
+
         // Total invoiced (non-void, non-draft)
         Query totalQuery = entityManager.createNativeQuery(
             "SELECT COALESCE(SUM(total), 0), COALESCE(SUM(amount_paid), 0), COALESCE(SUM(balance_due), 0), " +
             "COUNT(*), COUNT(*) FILTER (WHERE status = 'paid'), COUNT(*) FILTER (WHERE status = 'overdue') " +
-            "FROM invoices WHERE organization_id = :orgId AND status NOT IN ('void', 'draft')");
+            "FROM invoices WHERE organization_id = :orgId AND status NOT IN ('void', 'draft')" + dateFilter);
         totalQuery.setParameter("orgId", orgId);
+        if (startDate != null) {
+            totalQuery.setParameter("startDate", startDate.atStartOfDay());
+        }
         Object[] row = (Object[]) totalQuery.getSingleResult();
 
         response.setTotalInvoiced(((Number) row[0]).doubleValue());

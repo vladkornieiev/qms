@@ -32,6 +32,7 @@ public class ResourcePayoutService {
     private final ResourceRepository resourceRepository;
     private final OrganizationRepository organizationRepository;
     private final UserRepository userRepository;
+    private final StatusTransitionValidator statusValidator;
 
     private Organization getCurrentOrg() {
         return organizationRepository.findById(SecurityUtils.getCurrentOrganizationId())
@@ -78,7 +79,11 @@ public class ResourcePayoutService {
         if (request.getDescription() != null) payout.setDescription(request.getDescription().orElse(payout.getDescription()));
         if (request.getAmount() != null) payout.setAmount(request.getAmount().orElse(payout.getAmount()));
         if (request.getCurrency() != null) payout.setCurrency(request.getCurrency().orElse(payout.getCurrency()));
-        if (request.getStatus() != null) payout.setStatus(request.getStatus().orElse(payout.getStatus()));
+        if (request.getStatus() != null) {
+            String newStatus = request.getStatus().orElse(payout.getStatus());
+            statusValidator.validateResourcePayoutTransition(payout.getStatus(), newStatus);
+            payout.setStatus(newStatus);
+        }
         if (request.getPaymentMethod() != null) payout.setPaymentMethod(request.getPaymentMethod().orElse(payout.getPaymentMethod()));
         if (request.getPaymentReference() != null) payout.setPaymentReference(request.getPaymentReference().orElse(payout.getPaymentReference()));
         if (request.getPeriodStart() != null) payout.setPeriodStart(request.getPeriodStart().orElse(payout.getPeriodStart()));
@@ -94,6 +99,7 @@ public class ResourcePayoutService {
 
     public ResourcePayout approvePayout(UUID id) {
         ResourcePayout payout = getPayout(id);
+        statusValidator.validateResourcePayoutTransition(payout.getStatus(), "approved");
         payout.setStatus("approved");
         payout.setApprovedAt(LocalDateTime.now());
         payout.setApprovedBy(userRepository.findById(SecurityUtils.getCurrentUserId()).orElse(null));
@@ -102,6 +108,7 @@ public class ResourcePayoutService {
 
     public ResourcePayout markPaid(UUID id, MarkPayoutPaidRequest request) {
         ResourcePayout payout = getPayout(id);
+        statusValidator.validateResourcePayoutTransition(payout.getStatus(), "paid");
         payout.setStatus("paid");
         payout.setPaidAt(LocalDateTime.now());
         if (request.getPaymentMethod() != null) payout.setPaymentMethod(request.getPaymentMethod());

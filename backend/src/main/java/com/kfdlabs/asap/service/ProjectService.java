@@ -11,12 +11,14 @@ import com.kfdlabs.asap.entity.ProjectProduct;
 import com.kfdlabs.asap.entity.ProjectResource;
 import com.kfdlabs.asap.entity.Resource;
 import com.kfdlabs.asap.entity.Vendor;
+import com.kfdlabs.asap.event.EntityEvent;
 import com.kfdlabs.asap.mapper.ProjectMapper;
 import com.kfdlabs.asap.repository.*;
 import com.kfdlabs.asap.security.SecurityUtils;
 import com.kfdlabs.asap.util.PaginationUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -48,6 +50,8 @@ public class ProjectService {
     private final VendorRepository vendorRepository;
     private final UserRepository userRepository;
     private final ProjectMapper projectMapper;
+    private final StatusTransitionValidator statusValidator;
+    private final ApplicationEventPublisher eventPublisher;
 
     private Organization getCurrentOrg() {
         return organizationRepository.findById(SecurityUtils.getCurrentOrganizationId())
@@ -111,7 +115,11 @@ public class ProjectService {
         if (request.getSource() != null) project.setSource(request.getSource());
         if (request.getCustomFields() != null) project.setCustomFields(request.getCustomFields());
         project.setCreatedBy(userRepository.findById(SecurityUtils.getCurrentUserId()).orElse(null));
-        return projectRepository.save(project);
+        Project saved = projectRepository.save(project);
+        eventPublisher.publishEvent(new EntityEvent(
+                this, "project", "created", saved.getId(),
+                saved.getOrganization().getId(), null, null, saved));
+        return saved;
     }
 
     public Project updateProject(UUID id, UpdateProjectRequest request) {
@@ -138,12 +146,24 @@ public class ProjectService {
 
     public Project updateStatus(UUID id, ProjectStatusTransition transition) {
         Project project = getProject(id);
+        statusValidator.validateProjectTransition(project.getStatus(), transition.getStatus());
+        String oldStatus = project.getStatus();
         project.setStatus(transition.getStatus());
-        return projectRepository.save(project);
+        Project saved = projectRepository.save(project);
+        eventPublisher.publishEvent(new EntityEvent(
+                this, "project", "status_changed", project.getId(),
+                project.getOrganization().getId(), oldStatus, transition.getStatus(), saved));
+        return saved;
     }
 
     public void deleteProject(UUID id) {
         Project project = getProject(id);
+        if ("completed".equals(project.getStatus())) {
+            throw new HttpClientErrorException(HttpStatus.BAD_REQUEST, "Cannot delete a completed project");
+        }
+        dateRangeRepository.deleteAll(dateRangeRepository.findByProjectIdOrderByDisplayOrderAsc(id));
+        projectResourceRepository.deleteAll(projectResourceRepository.findByProjectId(id));
+        projectProductRepository.deleteAll(projectProductRepository.findByProjectId(id));
         projectRepository.delete(project);
     }
 
@@ -208,7 +228,9 @@ public class ProjectService {
         if (request.getPerDiem() != null) pr.setPerDiem(request.getPerDiem());
         if (request.getDateRangeIds() != null) pr.setDateRangeIds(request.getDateRangeIds());
         if (request.getNotes() != null) pr.setNotes(request.getNotes());
-        return projectResourceRepository.save(pr);
+        ProjectResource saved = projectResourceRepository.save(pr);
+        recalculateTotals(projectId);
+        return saved;
     }
 
     public ProjectResource updateProjectResource(UUID projectId, UUID prId, UpdateProjectResourceRequest request) {
@@ -222,7 +244,9 @@ public class ProjectService {
         if (request.getPerDiem() != null) pr.setPerDiem(request.getPerDiem().orElse(pr.getPerDiem()));
         if (request.getDateRangeIds() != null) pr.setDateRangeIds(request.getDateRangeIds().orElse(pr.getDateRangeIds()));
         if (request.getNotes() != null) pr.setNotes(request.getNotes().orElse(pr.getNotes()));
-        return projectResourceRepository.save(pr);
+        ProjectResource saved = projectResourceRepository.save(pr);
+        recalculateTotals(projectId);
+        return saved;
     }
 
     public ProjectResource confirmResource(UUID projectId, UUID prId) {
@@ -237,6 +261,7 @@ public class ProjectService {
     public void removeResource(UUID projectId, UUID prId) {
         getProject(projectId);
         projectResourceRepository.deleteById(prId);
+        recalculateTotals(projectId);
     }
 
     // ========= Products =========
@@ -265,7 +290,9 @@ public class ProjectService {
         if (request.getCostRate() != null) pp.setCostRate(request.getCostRate());
         if (request.getRateUnit() != null) pp.setRateUnit(request.getRateUnit());
         if (request.getNotes() != null) pp.setNotes(request.getNotes());
-        return projectProductRepository.save(pp);
+        ProjectProduct saved = projectProductRepository.save(pp);
+        recalculateTotals(projectId);
+        return saved;
     }
 
     public ProjectProduct updateProjectProduct(UUID projectId, UUID ppId, UpdateProjectProductRequest request) {
@@ -285,7 +312,9 @@ public class ProjectService {
         if (request.getCostRate() != null) pp.setCostRate(request.getCostRate().orElse(pp.getCostRate()));
         if (request.getRateUnit() != null) pp.setRateUnit(request.getRateUnit().orElse(pp.getRateUnit()));
         if (request.getNotes() != null) pp.setNotes(request.getNotes().orElse(pp.getNotes()));
-        return projectProductRepository.save(pp);
+        ProjectProduct saved = projectProductRepository.save(pp);
+        recalculateTotals(projectId);
+        return saved;
     }
 
     public ProjectProduct checkOutProduct(UUID projectId, UUID ppId) {
@@ -319,6 +348,7 @@ public class ProjectService {
     public void removeProduct(UUID projectId, UUID ppId) {
         getProject(projectId);
         projectProductRepository.deleteById(ppId);
+        recalculateTotals(projectId);
     }
 
     // ========= Recalculate =========

@@ -103,3 +103,11 @@ databaseChangeLog:
             path: db/changelog/013-fix-fk-constraints.sql
             relativeToChangelogFile: false
             splitStatements: false
+  - changeSet:
+      id: 014-add-performance-indexes
+      author: asap
+      changes:
+        - sqlFile:
+            path: db/changelog/014-add-performance-indexes.sql
+            relativeToChangelogFile: false
+            splitStatements: false

@@ -4,12 +4,14 @@ import com.kfdlabs.asap.dto.*;
 import com.kfdlabs.asap.entity.Organization;
 import com.kfdlabs.asap.entity.Quote;
 import com.kfdlabs.asap.entity.QuoteLineItem;
+import com.kfdlabs.asap.event.EntityEvent;
 import com.kfdlabs.asap.mapper.QuoteMapper;
 import com.kfdlabs.asap.repository.*;
 import com.kfdlabs.asap.security.SecurityUtils;
 import com.kfdlabs.asap.util.PaginationUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -38,6 +40,10 @@ public class QuoteService {
     private final CategoryRepository categoryRepository;
     private final UserRepository userRepository;
     private final QuoteMapper quoteMapper;
+    private final StatusTransitionValidator statusValidator;
+    private final ApplicationEventPublisher eventPublisher;
+    private final EmailService emailService;
+    private final CommunicationLogService communicationLogService;
 
     private Organization getCurrentOrg() {
         return organizationRepository.findById(SecurityUtils.getCurrentOrganizationId())
@@ -91,13 +97,27 @@ public class QuoteService {
         if (request.getTerms() != null) quote.setTerms(request.getTerms());
         if (request.getCustomFields() != null) quote.setCustomFields(request.getCustomFields());
         quote.setCreatedBy(userRepository.findById(SecurityUtils.getCurrentUserId()).orElse(null));
-        return quoteRepository.save(quote);
+        Quote saved = quoteRepository.save(quote);
+        eventPublisher.publishEvent(new EntityEvent(
+                this, "quote", "created", saved.getId(),
+                saved.getOrganization().getId(), null, null, saved));
+        return saved;
     }
 
     public Quote update(UUID id, UpdateQuoteRequest request) {
         Quote quote = get(id);
+        if (request.getStatus() != null) {
+            String newStatus = request.getStatus().orElse(quote.getStatus());
+            statusValidator.validateQuoteTransition(quote.getStatus(), newStatus);
+            String oldStatus = quote.getStatus();
+            quote.setStatus(newStatus);
+            if (!oldStatus.equals(newStatus)) {
+                eventPublisher.publishEvent(new EntityEvent(
+                        this, "quote", "status_changed", quote.getId(),
+                        quote.getOrganization().getId(), oldStatus, newStatus, quote));
+            }
+        }
         if (request.getTitle() != null) quote.setTitle(request.getTitle().orElse(quote.getTitle()));
-        if (request.getStatus() != null) quote.setStatus(request.getStatus().orElse(quote.getStatus()));
         if (request.getIssuedDate() != null) quote.setIssuedDate(request.getIssuedDate().orElse(quote.getIssuedDate()));
         if (request.getValidUntil() != null) quote.setValidUntil(request.getValidUntil().orElse(quote.getValidUntil()));
         if (request.getCurrency() != null) quote.setCurrency(request.getCurrency().orElse(quote.getCurrency()));
@@ -111,13 +131,43 @@ public class QuoteService {
 
     public void delete(UUID id) {
         Quote quote = get(id);
+        if ("approved".equals(quote.getStatus()) || "converted".equals(quote.getStatus())) {
+            throw new HttpClientErrorException(HttpStatus.BAD_REQUEST,
+                    "Cannot delete a quote with status '" + quote.getStatus() + "'");
+        }
+        lineItemRepository.deleteAll(lineItemRepository.findByQuoteIdOrderByDisplayOrderAsc(id));
         quoteRepository.delete(quote);
     }
 
     public Quote send(UUID id) {
         Quote quote = get(id);
+        statusValidator.validateQuoteTransition(quote.getStatus(), "sent");
+        String oldStatus = quote.getStatus();
         quote.setStatus("sent");
-        return quoteRepository.save(quote);
+        Quote saved = quoteRepository.save(quote);
+        eventPublisher.publishEvent(new EntityEvent(
+                this, "quote", "status_changed", quote.getId(),
+                quote.getOrganization().getId(), oldStatus, "sent", saved));
+        // Send email to client if they have an email
+        if (saved.getClient() != null && saved.getClient().getEmail() != null) {
+            try {
+                emailService.sendQuoteEmail(
+                        saved.getClient().getEmail(),
+                        saved.getQuoteNumber(),
+                        saved.getClient().getName(),
+                        saved.getTotal() != null ? saved.getTotal().toPlainString() : "0",
+                        saved.getCurrency(),
+                        saved.getValidUntil() != null ? saved.getValidUntil().toString() : "N/A",
+                        null);
+                communicationLogService.logCommunication("quote", saved.getId(),
+                        "email", "outbound", saved.getClient().getName(),
+                        saved.getClient().getEmail(), "Quote " + saved.getQuoteNumber(),
+                        null, "sent");
+            } catch (Exception e) {
+                log.warn("Failed to send quote email for quote {}: {}", saved.getQuoteNumber(), e.getMessage());
+            }
+        }
+        return saved;
     }
 
     public Quote createNewVersion(UUID id) {
@@ -170,6 +220,8 @@ public class QuoteService {
 
     public Quote approve(UUID id, QuoteApprovalRequest request) {
         Quote quote = get(id);
+        statusValidator.validateQuoteTransition(quote.getStatus(), "approved");
+        String oldStatus = quote.getStatus();
         quote.setStatus("approved");
         quote.setApprovedAt(LocalDateTime.now());
         if (request.getApprovedByName() != null) quote.setApprovedByName(request.getApprovedByName());

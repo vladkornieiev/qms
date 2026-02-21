@@ -4,6 +4,12 @@ import com.kfdlabs.asap.dto.*;
 import com.kfdlabs.asap.entity.Organization;
 import com.kfdlabs.asap.entity.Template;
 import com.kfdlabs.asap.entity.TemplateItem;
+import com.kfdlabs.asap.entity.User;
+import com.kfdlabs.asap.entity.Client;
+import com.kfdlabs.asap.entity.Quote;
+import com.kfdlabs.asap.entity.QuoteLineItem;
+import com.kfdlabs.asap.entity.Project;
+import com.kfdlabs.asap.entity.Contract;
 import com.kfdlabs.asap.mapper.TemplateMapper;
 import com.kfdlabs.asap.repository.*;
 import com.kfdlabs.asap.security.SecurityUtils;
@@ -33,6 +39,11 @@ public class TemplateService {
     private final CategoryRepository categoryRepository;
     private final UserRepository userRepository;
     private final TemplateMapper templateMapper;
+    private final QuoteRepository quoteRepository;
+    private final QuoteLineItemRepository quoteLineItemRepository;
+    private final ProjectRepository projectRepository;
+    private final ContractRepository contractRepository;
+    private final ClientRepository clientRepository;
 
     private Organization getCurrentOrg() {
         return organizationRepository.findById(SecurityUtils.getCurrentOrganizationId())
@@ -130,12 +141,79 @@ public class TemplateService {
     }
 
     public TemplateApplyResponse apply(UUID id, TemplateApplyRequest request) {
-        get(id);
-        // Template application is a placeholder - returns the template id as entity id
-        // In a full implementation, this would create quotes/projects/contracts from template items
+        Template template = get(id);
+        Organization org = getCurrentOrg();
+        List<TemplateItem> items = templateItemRepository.findByTemplateIdOrderByDisplayOrderAsc(id);
+        User currentUser = userRepository.findById(SecurityUtils.getCurrentUserId()).orElse(null);
+        Client client = request.getClientId() != null
+                ? clientRepository.findById(request.getClientId()).orElse(null) : null;
+
         TemplateApplyResponse response = new TemplateApplyResponse();
-        response.setEntityType(request.getEntityType().getValue());
-        response.setEntityId(id);
+        String entityType = request.getEntityType().getValue();
+        response.setEntityType(entityType);
+
+        switch (entityType) {
+            case "quote" -> {
+                Quote quote = new Quote();
+                quote.setOrganization(org);
+                quote.setQuoteNumber(String.format("QTE-%05d", quoteRepository.findMaxQuoteNumber(org.getId()) + 1));
+                quote.setTitle(request.getTitle() != null ? request.getTitle() : template.getName());
+                quote.setClient(client);
+                if (request.getProjectId() != null) {
+                    quote.setProject(projectRepository.findById(request.getProjectId()).orElse(null));
+                }
+                quote.setCreatedBy(currentUser);
+                quote = quoteRepository.save(quote);
+
+                int order = 0;
+                for (TemplateItem ti : items) {
+                    if (!"line_item".equals(ti.getItemType())) continue;
+                    QuoteLineItem li = new QuoteLineItem();
+                    li.setOrganization(org);
+                    li.setQuote(quote);
+                    li.setProduct(ti.getProduct());
+                    li.setCategory(ti.getCategory());
+                    li.setDescription(ti.getLabel() != null ? ti.getLabel() : ti.getDescription());
+                    li.setQuantity(ti.getDefaultQuantity() != null ? ti.getDefaultQuantity() : java.math.BigDecimal.ONE);
+                    li.setUnitPrice(ti.getDefaultUnitPrice() != null ? ti.getDefaultUnitPrice() : java.math.BigDecimal.ZERO);
+                    li.setUnit(ti.getDefaultUnit());
+                    li.setSection(ti.getSection());
+                    li.setDisplayOrder(order++);
+                    li.setLineTotal(li.getQuantity().multiply(li.getUnitPrice()));
+                    quoteLineItemRepository.save(li);
+                }
+                response.setEntityId(quote.getId());
+            }
+            case "project" -> {
+                Project project = new Project();
+                project.setOrganization(org);
+                project.setProjectNumber(String.format("PRJ-%05d", projectRepository.count() + 1));
+                project.setTitle(request.getTitle() != null ? request.getTitle() : template.getName());
+                project.setClient(client);
+                project.setSource("template");
+                project.setCreatedBy(currentUser);
+                project = projectRepository.save(project);
+                response.setEntityId(project.getId());
+            }
+            case "contract" -> {
+                Contract contract = new Contract();
+                contract.setOrganization(org);
+                contract.setTitle(request.getTitle() != null ? request.getTitle() : template.getName());
+                contract.setClient(client);
+                if (request.getProjectId() != null) {
+                    contract.setProject(projectRepository.findById(request.getProjectId()).orElse(null));
+                }
+                if (template.getSettings() != null && template.getSettings().containsKey("contractType")) {
+                    contract.setContractType(template.getSettings().get("contractType").toString());
+                }
+                contract.setTemplateContent(template.getDescription());
+                contract = contractRepository.save(contract);
+                response.setEntityId(contract.getId());
+            }
+            default -> throw new HttpClientErrorException(HttpStatus.BAD_REQUEST,
+                    "Unsupported entity type: " + entityType);
+        }
+
         return response;
     }
 

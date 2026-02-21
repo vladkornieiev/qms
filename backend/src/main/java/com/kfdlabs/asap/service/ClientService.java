@@ -55,6 +55,18 @@ public class ClientService {
     }
 
     public Client createClient(CreateClientRequest request) {
+        // Duplicate detection by email within organization
+        if (request.getEmail() != null) {
+            clientRepository.findAll(SecurityUtils.getCurrentOrganizationId(), null, null, null,
+                    org.springframework.data.domain.Pageable.unpaged())
+                    .getContent().stream()
+                    .filter(c -> request.getEmail().equalsIgnoreCase(c.getEmail()))
+                    .findFirst()
+                    .ifPresent(existing -> {
+                        throw new HttpClientErrorException(HttpStatus.CONFLICT,
+                                "A client with email '" + request.getEmail() + "' already exists");
+                    });
+        }
         Client client = new Client();
         client.setOrganization(getCurrentOrg());
         client.setName(request.getName());

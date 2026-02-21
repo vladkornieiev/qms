@@ -33,6 +33,7 @@ public class InboundRequestService {
     private final UserRepository userRepository;
     private final ClientRepository clientRepository;
     private final ProjectRepository projectRepository;
+    private final StatusTransitionValidator statusValidator;
 
     private Organization getCurrentOrg() {
         return organizationRepository.findById(SecurityUtils.getCurrentOrganizationId())
@@ -89,8 +90,10 @@ public class InboundRequestService {
         InboundRequest req = get(id);
         String decision = request.getDecision();
         if ("approved".equals(decision)) {
+            statusValidator.validateInboundRequestTransition(req.getStatus(), "approved");
             req.setStatus("approved");
         } else if ("denied".equals(decision)) {
+            statusValidator.validateInboundRequestTransition(req.getStatus(), "denied");
             req.setStatus("denied");
             if (request.getDenialReason() != null) req.setDenialReason(request.getDenialReason());
         } else {
@@ -105,6 +108,10 @@ public class InboundRequestService {
         InboundRequest req = get(id);
         if (req.getProjectId() != null) {
             throw new HttpClientErrorException(HttpStatus.BAD_REQUEST, "Already converted to a project");
+        }
+        if (!"approved".equals(req.getStatus())) {
+            throw new HttpClientErrorException(HttpStatus.BAD_REQUEST,
+                    "Only approved requests can be converted. Current status: " + req.getStatus());
         }
         Project project = new Project();
         project.setOrganization(req.getOrganization());

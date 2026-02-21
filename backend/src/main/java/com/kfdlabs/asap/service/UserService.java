@@ -146,6 +146,25 @@ public class UserService {
         return userDetailsRepository.save(userDetails);
     }
 
+    private void validatePasswordComplexity(String password) {
+        if (password == null || password.length() < 8) {
+            throw new HttpClientErrorException(HttpStatus.BAD_REQUEST, "error.password.too.short");
+        }
+        if (password.length() > 128) {
+            throw new HttpClientErrorException(HttpStatus.BAD_REQUEST, "error.password.too.long");
+        }
+        boolean hasUpper = false, hasLower = false, hasDigit = false;
+        for (char c : password.toCharArray()) {
+            if (Character.isUpperCase(c)) hasUpper = true;
+            else if (Character.isLowerCase(c)) hasLower = true;
+            else if (Character.isDigit(c)) hasDigit = true;
+        }
+        if (!hasUpper || !hasLower || !hasDigit) {
+            throw new HttpClientErrorException(HttpStatus.BAD_REQUEST,
+                    "error.password.must.contain.uppercase.lowercase.digit");
+        }
+    }
+
     public void updateCurrentUserPassword(com.kfdlabs.asap.dto.UpdatePasswordRequest request) {
         UUID userId = SecurityUtils.getCurrentUserId();
         String email = SecurityUtils.getCurrentUserEmail();
@@ -154,6 +173,8 @@ public class UserService {
         if (request == null || request.getNewPassword() == null || request.getNewPassword().isBlank()) {
             throw new HttpClientErrorException(HttpStatus.BAD_REQUEST, "error.new.password.required");
         }
+
+        validatePasswordComplexity(request.getNewPassword());
 
         if (twoFactorService.isTwoFactorEnabled(email)) {
             var code = request.getTwoFactorAuthCode();

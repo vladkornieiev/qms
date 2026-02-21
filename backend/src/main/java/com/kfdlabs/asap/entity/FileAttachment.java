@@ -36,6 +36,9 @@ public class FileAttachment {
     @Column(name = "file_url", nullable = false, columnDefinition = "TEXT")
     private String fileUrl;
 
+    @Column(name = "s3_key", columnDefinition = "TEXT")
+    private String s3Key;
+
     @Column(name = "file_size_bytes")
     private Long fileSizeBytes;
 

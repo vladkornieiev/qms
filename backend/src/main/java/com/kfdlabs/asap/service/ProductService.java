@@ -102,6 +102,12 @@ public class ProductService {
         if (request.getDisplayOrder() != null) product.setDisplayOrder(request.getDisplayOrder().orElse(product.getDisplayOrder()));
         if (request.getParentId() != null) {
             UUID parentId = request.getParentId().orElse(null);
+            if (parentId != null) {
+                if (parentId.equals(id)) {
+                    throw new HttpClientErrorException(HttpStatus.BAD_REQUEST, "Product cannot be its own parent");
+                }
+                validateNoCircularReference(id, parentId);
+            }
             product.setParent(parentId != null ? getProduct(parentId) : null);
         }
         if (request.getCategoryId() != null) {
@@ -118,6 +124,20 @@ public class ProductService {
         Product product = getProduct(id);
         product.setIsActive(false);
         productRepository.save(product);
+    }
+
+    private void validateNoCircularReference(UUID productId, UUID parentId) {
+        UUID current = parentId;
+        int depth = 0;
+        while (current != null && depth < 20) {
+            if (current.equals(productId)) {
+                throw new HttpClientErrorException(HttpStatus.BAD_REQUEST,
+                        "Setting this parent would create a circular reference");
+            }
+            Product parent = productRepository.findById(current).orElse(null);
+            current = parent != null && parent.getParent() != null ? parent.getParent().getId() : null;
+            depth++;
+        }
     }
 
     public List<Product> listChildren(UUID parentId) {

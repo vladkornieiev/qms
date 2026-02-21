@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.ServerSideEncryption;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
@@ -34,7 +35,6 @@ public class S3Service {
         return getPresignedUrl(path, Duration.ofMinutes(presignedUrlExpirationMinutes));
     }
 
-    // todo encryption/decryption logic
     @SneakyThrows
     public URI getPresignedUrl(String path, Duration duration) {
         GetObjectRequest objectRequest = GetObjectRequest.builder()
@@ -55,7 +55,18 @@ public class S3Service {
     @SneakyThrows
     public void saveFileToS3(byte[] content, String path) {
         s3Client.putObject(
-                builder -> builder.key(path).bucket(bucketName),
+                builder -> builder.key(path).bucket(bucketName)
+                        .serverSideEncryption(ServerSideEncryption.AES256),
+                RequestBody.fromBytes(content)
+        );
+    }
+
+    @SneakyThrows
+    public void saveFileToS3(byte[] content, String path, String contentType) {
+        s3Client.putObject(
+                builder -> builder.key(path).bucket(bucketName)
+                        .contentType(contentType)
+                        .serverSideEncryption(ServerSideEncryption.AES256),
                 RequestBody.fromBytes(content)
         );
     }

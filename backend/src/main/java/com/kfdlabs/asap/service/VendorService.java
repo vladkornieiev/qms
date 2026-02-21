@@ -55,6 +55,18 @@ public class VendorService {
     }
 
     public Vendor createVendor(CreateVendorRequest request) {
+        // Duplicate detection by email within organization
+        if (request.getEmail() != null) {
+            vendorRepository.findAll(SecurityUtils.getCurrentOrganizationId(), null, null, null,
+                    org.springframework.data.domain.Pageable.unpaged())
+                    .getContent().stream()
+                    .filter(v -> request.getEmail().equalsIgnoreCase(v.getEmail()))
+                    .findFirst()
+                    .ifPresent(existing -> {
+                        throw new HttpClientErrorException(HttpStatus.CONFLICT,
+                                "A vendor with email '" + request.getEmail() + "' already exists");
+                    });
+        }
         Vendor vendor = new Vendor();
         vendor.setOrganization(getCurrentOrg());
         vendor.setName(request.getName());

@@ -23,11 +23,15 @@ import org.springframework.web.client.HttpClientErrorException;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
+import static org.springframework.http.HttpStatus.TOO_MANY_REQUESTS;
 
 @Slf4j
 @Service
@@ -49,6 +53,39 @@ public class AuthService {
 
     @Value("${app.mail.reset-expiration-hours:1}")
     private int passwordResetExpirationHours;
+
+    @Value("${app.security.max-login-attempts:5}")
+    private int maxLoginAttempts;
+
+    @Value("${app.security.lockout-duration-minutes:15}")
+    private int lockoutDurationMinutes;
+
+    private record LoginAttemptInfo(AtomicInteger attempts, LocalDateTime lockoutUntil) {}
+    private final Map<String, LoginAttemptInfo> loginAttempts = new ConcurrentHashMap<>();
+
+    private void checkLoginAttempts(String email) {
+        LoginAttemptInfo info = loginAttempts.get(email.toLowerCase());
+        if (info != null && info.lockoutUntil() != null && info.lockoutUntil().isAfter(LocalDateTime.now())) {
+            log.warn("Account locked due to too many failed login attempts: {}", email);
+            throw new HttpClientErrorException(TOO_MANY_REQUESTS, "error.account.temporarily.locked");
+        }
+    }
+
+    private void recordFailedAttempt(String email) {
+        String key = email.toLowerCase();
+        LoginAttemptInfo info = loginAttempts.computeIfAbsent(key,
+                k -> new LoginAttemptInfo(new AtomicInteger(0), null));
+        int attempts = info.attempts().incrementAndGet();
+        if (attempts >= maxLoginAttempts) {
+            loginAttempts.put(key, new LoginAttemptInfo(
+                    info.attempts(), LocalDateTime.now().plusMinutes(lockoutDurationMinutes)));
+            log.warn("Account locked after {} failed attempts: {}", attempts, email);
+        }
+    }
+
+    private void clearLoginAttempts(String email) {
+        loginAttempts.remove(email.toLowerCase());
+    }
 
     @Transactional
     public void createLoginLink(String email) {
@@ -169,8 +206,13 @@ public class AuthService {
     public AuthMultiResponse loginUser(LoginRequest request) {
         log.info("Authenticating user with email: {}", request.getEmail());
 
+        checkLoginAttempts(request.getEmail());
+
         UserDetails userDetails = userDetailsRepository.findByEmailWithPassword(request.getEmail())
-                .orElseThrow(() -> new HttpClientErrorException(NOT_FOUND, "error.user.not.found"));
+                .orElseThrow(() -> {
+                    recordFailedAttempt(request.getEmail());
+                    return new HttpClientErrorException(NOT_FOUND, "error.user.not.found");
+                });
 
         var authMethods = userService.getUserAuthMethods(request.getEmail());
         if (Boolean.FALSE.equals(authMethods.getPasswordEnabled())) {
@@ -179,6 +221,7 @@ public class AuthService {
 
         Optional<String> userPassword = Optional.ofNullable(userDetails.getPassword());
         if (userPassword.isEmpty() || !passwordEncoder.matches(request.getPassword(), userPassword.get())) {
+            recordFailedAttempt(request.getEmail());
             throw new HttpClientErrorException(BAD_REQUEST, "error.credentials.invalid");
         }
 
@@ -187,10 +230,12 @@ public class AuthService {
                 throw new HttpClientErrorException(BAD_REQUEST, "error.2fa.code.required");
             }
             if (!twoFactorService.verifyCode(userDetails.getTwoFactorAuthSecret(), request.getTwoFactorAuthCode())) {
+                recordFailedAttempt(request.getEmail());
                 throw new HttpClientErrorException(BAD_REQUEST, "error.2fa.invalid.verification.code");
             }
         }
 
+        clearLoginAttempts(request.getEmail());
         User user = userService.getUserByEmail(request.getEmail());
 
         if (request.getOrganizationId() == null && userService.isMultiOrganizationUser(request.getEmail())) {
