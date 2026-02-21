@@ -25,4 +25,13 @@ public interface OrganizationRepository extends JpaRepository<Organization, UUID
     Page<Organization> findAll(@Param("query") String query,
                                @Param("isActive") Boolean isActive,
                                Pageable pageable);
+
+    @Query("""
+            SELECT o FROM Organization o
+            WHERE o.id IN :ids AND o.isActive = true
+            AND (:name IS NULL OR LOWER(o.name) LIKE LOWER(CONCAT('%', :name, '%')))
+            """)
+    Page<Organization> findByIdInAndIsActive(@Param("ids") java.util.List<UUID> ids,
+                                              @Param("name") String name,
+                                              Pageable pageable);
 }

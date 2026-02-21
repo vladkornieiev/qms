@@ -11,6 +11,7 @@ import com.kfdlabs.asap.repository.OrganizationMemberRepository;
 import com.kfdlabs.asap.repository.OrganizationRepository;
 import com.kfdlabs.asap.util.PaginationUtils;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -24,6 +25,7 @@ import java.util.UUID;
 
 import static org.openapitools.jackson.nullable.JsonNullable.undefined;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -102,12 +104,6 @@ public class OrganizationService {
         List<UUID> orgIds = memberships.stream().map(m -> m.getOrganization().getId()).toList();
 
         Pageable pageable = PaginationUtils.getPageable(page, size, order, sortBy);
-        return organizationRepository.findAllById(orgIds).stream()
-                .filter(org -> org.getIsActive())
-                .filter(org -> name == null || name.isEmpty() || org.getName().toLowerCase().contains(name.toLowerCase()))
-                .collect(java.util.stream.Collectors.collectingAndThen(
-                        java.util.stream.Collectors.toList(),
-                        list -> new org.springframework.data.domain.PageImpl<>(list, pageable, list.size())
-                ));
+        return organizationRepository.findByIdInAndIsActive(orgIds, name, pageable);
     }
 }

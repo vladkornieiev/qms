@@ -6,26 +6,24 @@ import Link from "next/link";
 
 const faqs = [
   {
-    question:
-      "How do VaporSafe™ results compare to other approaches, like summa canisters?",
+    question: "What types of businesses is ASAP built for?",
     answer:
-      "Analytical results using US EPA Modified Method TO-14A compare well within regulatory tolerances. The system has never produced false positives or negatives across 100+ projects.",
+      "ASAP is designed for service-based businesses that manage projects, resources, and inventory — such as event production companies, AV providers, staffing agencies, consulting firms, and rental businesses.",
   },
   {
-    question: "How long do I need to monitor?",
+    question: "How does multi-tenant organization support work?",
     answer:
-      "Typical engagements last one week or less, averaging three to five days depending on objectives and barometric pressure considerations.",
+      "Each organization gets its own isolated workspace with separate data, users, and settings. Users can belong to multiple organizations and switch between them seamlessly.",
   },
   {
-    question:
-      "Has the VaporSafe™ system been used or approved by regulatory agencies?",
+    question: "Can I customize fields and workflows?",
     answer:
-      "Yes, accepted at multiple US EPA Superfund sites across multiple regions and states, plus US Navy, Army Corps of Engineers, and international agencies.",
+      "Yes. ASAP supports custom fields, lookup lists, categories, tags, and workflow automation rules that you can configure to match your exact business processes.",
   },
   {
-    question: "Do you compete with Environmental Consultants and Engineers?",
+    question: "How does invoicing and payment tracking work?",
     answer:
-      "No. Consultants are customers who commonly rent VaporSafe™ for projects, treating the company as a partner.",
+      "Create quotes, convert them to invoices with one click, record payments, and track outstanding balances. The system automatically updates invoice statuses and calculates aging reports.",
   },
 ];
 

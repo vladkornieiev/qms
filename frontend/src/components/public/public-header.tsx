@@ -2,13 +2,11 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { Menu, X } from "lucide-react";
-import Image from "next/image";
+import { Menu, X, Zap } from "lucide-react";
 
 const navigation = [
-  { name: "About", href: "/about" },
-  { name: "Services", href: "/services" },
   { name: "Solutions", href: "/solutions" },
+  { name: "About", href: "/about" },
   { name: "FAQs", href: "/faqs" },
 ];
 
@@ -22,14 +20,10 @@ export function PublicHeader() {
           href="/"
           className="flex items-center text-foreground-dark dark:text-foreground-light"
         >
-          <Image
-            src="/vaporsafe-logo.png"
-            alt="VaporSafe"
-            width={150}
-            height={40}
-            className="h-10 w-auto"
-            priority
-          />
+          <span className="flex items-center gap-2 text-xl font-black tracking-tight">
+            <Zap className="size-6 text-public-primary" />
+            ASAP
+          </span>
         </Link>
 
         {/* Desktop navigation */}
@@ -46,12 +40,6 @@ export function PublicHeader() {
             ))}
           </nav>
           <div className="h-4 w-px bg-border-light dark:bg-text-muted" />
-          <a
-            href="mailto:sales@vaporsafe.io"
-            className="text-sm font-bold text-text-muted hover:text-public-primary transition-colors"
-          >
-            Contact
-          </a>
           <Link
             href="/login"
             className="text-sm font-bold px-4 py-2 rounded border border-public-primary text-public-primary hover:bg-public-primary hover:text-white transition-all duration-200"
@@ -89,13 +77,6 @@ export function PublicHeader() {
               </Link>
             ))}
             <div className="border-t border-border-light dark:border-border-dark pt-4 flex flex-col gap-4">
-              <a
-                href="mailto:sales@vaporsafe.io"
-                className="text-sm font-bold text-text-muted hover:text-public-primary transition-colors"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Contact
-              </a>
               <Link
                 href="/login"
                 className="text-sm font-bold px-4 py-2 rounded border border-public-primary text-public-primary hover:bg-public-primary hover:text-white transition-all duration-200 text-center"

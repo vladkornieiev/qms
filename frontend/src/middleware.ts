@@ -36,6 +36,25 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
+  // Handle OAuth success callback - always allow through (needs to exchange code for tokens)
+  if (pathname === "/auth/success") {
+    const code = request.nextUrl.searchParams.get("code");
+    const accessToken2 = request.nextUrl.searchParams.get("accessToken");
+    if (code || accessToken2) {
+      return NextResponse.next();
+    }
+  }
+
+  // Handle magic link callback - always allow through
+  if (pathname === "/auth/callback") {
+    const token = request.nextUrl.searchParams.get("token");
+    if (token) {
+      return NextResponse.next();
+    } else {
+      return NextResponse.redirect(new URL("/login", request.url));
+    }
+  }
+
   // Handle auth routes (redirect authenticated users)
   if (
     AUTH_ROUTES.some((route) => pathname.startsWith(route)) &&
@@ -48,18 +67,6 @@ export function middleware(request: NextRequest) {
     }
     // Default redirect to home
     return NextResponse.redirect(new URL("/", request.url));
-  }
-
-  // Handle OAuth callback (magic link exchange)
-  if (pathname === "/auth/callback") {
-    const token = request.nextUrl.searchParams.get("token");
-    if (token) {
-      // Let the page handle the token exchange
-      return NextResponse.next();
-    } else {
-      // No token, redirect to login
-      return NextResponse.redirect(new URL("/login", request.url));
-    }
   }
 
   // Allow all other requests to proceed

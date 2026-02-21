@@ -10,6 +10,7 @@ import com.kfdlabs.asap.repository.OrganizationRepository;
 import com.kfdlabs.asap.repository.UserRepository;
 import com.kfdlabs.asap.util.PaginationUtils;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -19,6 +20,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -57,7 +59,21 @@ public class OrganizationMemberService {
                 .orElseThrow(() -> new HttpClientErrorException(HttpStatus.NOT_FOUND, "error.member.not.found"));
 
         if (request.getRole() != null) {
-            member.setRole(request.getRole().getValue().toLowerCase());
+            String newRole = request.getRole().getValue().toLowerCase();
+            // Protect last admin/owner from demotion
+            if (("owner".equals(member.getRole()) || "admin".equals(member.getRole()))
+                    && !"owner".equals(newRole) && !"admin".equals(newRole)) {
+                long adminCount = organizationMemberRepository.findByOrganizationId(organizationId,
+                        org.springframework.data.domain.Pageable.unpaged())
+                        .getContent().stream()
+                        .filter(m -> m.getIsActive() && ("owner".equals(m.getRole()) || "admin".equals(m.getRole())))
+                        .count();
+                if (adminCount <= 1) {
+                    throw new HttpClientErrorException(HttpStatus.BAD_REQUEST,
+                            "error.cannot.demote.last.admin");
+                }
+            }
+            member.setRole(newRole);
         }
         if (request.getIsActive() != null) {
             member.setIsActive(request.getIsActive());
@@ -70,6 +86,19 @@ public class OrganizationMemberService {
         OrganizationMember member = organizationMemberRepository.findById(memberId)
                 .filter(m -> m.getOrganization().getId().equals(organizationId))
                 .orElseThrow(() -> new HttpClientErrorException(HttpStatus.NOT_FOUND, "error.member.not.found"));
+
+        // Prevent removing the last admin/owner
+        if ("owner".equals(member.getRole()) || "admin".equals(member.getRole())) {
+            long adminCount = organizationMemberRepository.findByOrganizationId(organizationId,
+                    org.springframework.data.domain.Pageable.unpaged())
+                    .getContent().stream()
+                    .filter(m -> m.getIsActive() && ("owner".equals(m.getRole()) || "admin".equals(m.getRole())))
+                    .count();
+            if (adminCount <= 1) {
+                throw new HttpClientErrorException(HttpStatus.BAD_REQUEST,
+                        "error.cannot.remove.last.admin");
+            }
+        }
 
         organizationMemberRepository.delete(member);
     }

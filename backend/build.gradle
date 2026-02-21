@@ -76,6 +76,9 @@ dependencies {
     // rate limiting
     implementation 'com.bucket4j:bucket4j_jdk17-postgresql:8.15.0'
 
+    // pdf generation
+    implementation 'com.github.librepdf:openpdf:2.0.3'
+
     // s3
     implementation 'software.amazon.awssdk:s3:2.32.12'
 
@@ -145,5 +148,5 @@ tasks.named('processResources') {
 }
 
 dependencyCheck {
-    nvd.apiKey = '73E71AE6-BAC4-F011-8365-0EBF96DE670D'
+    nvd.apiKey = System.getenv('NVD_API_KEY') ?: ''
 }

@@ -11,9 +11,9 @@ spring:
       enabled: ${DOCKER_COMPOSE_ENABLED:true}
       file: backend/docker-compose.yml
   mail:
-    host: smtp.purelymail.com
-    username: vaporsafe@kfdlabs.com
-    password: hockiv-kujkA3-bennoj
+    host: ${SMTP_HOST:smtp.example.com}
+    username: ${SMTP_USERNAME:}
+    password: ${SMTP_PASSWORD:}
     properties:
       mail:
         smtp:

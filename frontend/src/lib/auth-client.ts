@@ -1,7 +1,7 @@
 import Cookies from "js-cookie";
 import { jwtDecode } from "jwt-decode";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+import { API_BASE_URL } from "@/lib/utils";
 
 export interface User {
   id: string;
@@ -335,6 +335,15 @@ class AuthClient {
   // OAuth2 methods
   getGoogleOAuthUrl(): string {
     return `${API_BASE_URL}/api/oauth2/authorization/google`;
+  }
+
+  async exchangeOAuthCode(code: string): Promise<AuthResponse> {
+    const response = await this.apiRequest<AuthResponse>(
+      `/api/auth/exchange-oauth-code?code=${encodeURIComponent(code)}`,
+      { method: "POST" }
+    );
+    this.setTokens(response);
+    return response;
   }
 
   // 2FA methods

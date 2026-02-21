@@ -32,6 +32,7 @@ export function AuthSuccessContent() {
 
   useEffect(() => {
     const handleSuccess = async () => {
+      const code = searchParams.get("code");
       const refreshToken = searchParams.get("refreshToken");
       const accessToken = searchParams.get("accessToken");
       const isMultiAccountUser =
@@ -39,35 +40,36 @@ export function AuthSuccessContent() {
         searchParams.get("isMultiOrgUser") === "true";
       const returnUrl = searchParams.get("returnUrl") || "/";
 
-      if (!refreshToken || !accessToken) {
-        setStatus("error");
-        setError("No authentication tokens provided");
-        return;
-      }
-
       try {
+        let tokens: { accessToken: string; refreshToken: string };
+
+        if (code) {
+          // New flow: exchange short-lived code for tokens
+          const authResponse = await authClient.exchangeOAuthCode(code);
+          tokens = {
+            accessToken: authResponse.accessToken,
+            refreshToken: authResponse.refreshToken,
+          };
+        } else if (accessToken && refreshToken) {
+          // Legacy flow: tokens passed directly in URL
+          authClient.setTokens({ accessToken, refreshToken });
+          tokens = { accessToken, refreshToken };
+        } else {
+          setStatus("error");
+          setError("No authentication tokens provided");
+          return;
+        }
+
         // If user has multiple accounts, we need to show account selection
         if (isMultiAccountUser) {
-          // Temporarily store tokens so we can fetch available accounts
-          authClient.setTokens({
-            accessToken,
-            refreshToken,
-          });
-
-          // Fetch available organizations using the temporary tokens
+          // Fetch available organizations using the tokens
           const accounts = await authClient.getAvailableOrganizations();
-          setPendingTokens({ accessToken, refreshToken });
+          setPendingTokens(tokens);
           setAvailableAccounts(accounts);
           setShowAccountSelection(true);
           setStatus("loading");
           return;
         }
-
-        // Single account user - just store tokens and proceed
-        authClient.setTokens({
-          accessToken,
-          refreshToken,
-        });
 
         // Load user data
         await loadUser();

@@ -30,7 +30,7 @@ public class RequestLoggingFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
         long before = System.currentTimeMillis();
-        long after = System.currentTimeMillis();
+        long after = before;
         String uri = request.getRequestURI();
         String ip = getClientIp(request);
         String method = request.getMethod();

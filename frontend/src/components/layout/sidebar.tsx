@@ -12,6 +12,27 @@ import {
   Building2,
   Shield,
   LayoutDashboard,
+  Tags,
+  List,
+  SlidersHorizontal,
+  FolderTree,
+  UserCircle,
+  Store,
+  Package,
+  Warehouse,
+  HardHat,
+  FolderKanban,
+  GitPullRequest,
+  FileCheck,
+  Receipt,
+  CreditCard,
+  FileSignature,
+  LayoutTemplate,
+  Bell,
+  Zap,
+  Link2,
+  BarChart3,
+  DollarSign,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSidebar } from "./sidebar-provider";
@@ -34,22 +55,34 @@ interface NavItem {
 }
 
 const mainNavItems: NavItem[] = [
+  { href: "/dashboard", icon: BarChart3, label: "Dashboard" },
+  { href: "/clients", icon: UserCircle, label: "Clients" },
+  { href: "/vendors", icon: Store, label: "Vendors" },
+  { href: "/products", icon: Package, label: "Products" },
+  { href: "/inventory", icon: Warehouse, label: "Inventory" },
+  { href: "/resources", icon: HardHat, label: "Resources" },
+  { href: "/projects", icon: FolderKanban, label: "Projects" },
+  { href: "/pipeline", icon: GitPullRequest, label: "Pipeline" },
+  { href: "/quotes", icon: FileCheck, label: "Quotes" },
+  { href: "/invoices", icon: Receipt, label: "Invoices" },
+  { href: "/payments", icon: CreditCard, label: "Payments" },
+  { href: "/contracts", icon: FileSignature, label: "Contracts" },
+  { href: "/payouts", icon: DollarSign, label: "Payouts" },
+  { href: "/reports", icon: LayoutDashboard, label: "Reports" },
+  { href: "/notifications", icon: Bell, label: "Notifications" },
   { href: "/users", icon: Users, label: "Users", requireAdmin: true },
 ];
 
 const adminNavItems: NavItem[] = [
-  {
-    href: "/admin/users",
-    icon: Users,
-    label: "Users",
-    requirePlatformAdmin: true,
-  },
-  {
-    href: "/admin/accounts",
-    icon: Building2,
-    label: "Organizations",
-    requirePlatformAdmin: true,
-  },
+  { href: "/admin/users", icon: Users, label: "Users", requirePlatformAdmin: true },
+  { href: "/admin/accounts", icon: Building2, label: "Organizations", requirePlatformAdmin: true },
+  { href: "/admin/tags", icon: Tags, label: "Tags", requireAdmin: true },
+  { href: "/admin/lookup-lists", icon: List, label: "Lookup Lists", requireAdmin: true },
+  { href: "/admin/custom-fields", icon: SlidersHorizontal, label: "Custom Fields", requireAdmin: true },
+  { href: "/admin/categories", icon: FolderTree, label: "Categories", requireAdmin: true },
+  { href: "/admin/automations", icon: Zap, label: "Automations", requireAdmin: true },
+  { href: "/admin/integrations", icon: Link2, label: "Integrations", requireAdmin: true },
+  { href: "/templates", icon: LayoutTemplate, label: "Templates", requireAdmin: true },
 ];
 
 function isAdminContext(pathname: string | null): boolean {

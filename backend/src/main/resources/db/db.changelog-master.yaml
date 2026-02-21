@@ -7,3 +7,107 @@ databaseChangeLog:
             path: db/changelog/001-init.sql
             relativeToChangelogFile: false
             splitStatements: false
+  - changeSet:
+      id: 002-tags-lookups-fields-categories
+      author: asap
+      changes:
+        - sqlFile:
+            path: db/changelog/002-tags-lookups-fields-categories.sql
+            relativeToChangelogFile: false
+            splitStatements: false
+  - changeSet:
+      id: 003-crm-clients-vendors
+      author: asap
+      changes:
+        - sqlFile:
+            path: db/changelog/003-crm-clients-vendors.sql
+            relativeToChangelogFile: false
+            splitStatements: false
+  - changeSet:
+      id: 004-products-inventory
+      author: asap
+      changes:
+        - sqlFile:
+            path: db/changelog/004-products-inventory.sql
+            relativeToChangelogFile: false
+            splitStatements: false
+  - changeSet:
+      id: 005-resources
+      author: asap
+      changes:
+        - sqlFile:
+            path: db/changelog/005-resources.sql
+            relativeToChangelogFile: false
+            splitStatements: false
+  - changeSet:
+      id: 006-projects
+      author: asap
+      changes:
+        - sqlFile:
+            path: db/changelog/006-projects.sql
+            relativeToChangelogFile: false
+            splitStatements: false
+  - changeSet:
+      id: 007-pipeline-quotes
+      author: asap
+      changes:
+        - sqlFile:
+            path: db/changelog/007-pipeline-quotes.sql
+            relativeToChangelogFile: false
+            splitStatements: false
+  - changeSet:
+      id: 008-invoices-payments
+      author: asap
+      changes:
+        - sqlFile:
+            path: db/changelog/008-invoices-payments.sql
+            relativeToChangelogFile: false
+            splitStatements: false
+  - changeSet:
+      id: 009-contracts-templates-files
+      author: asap
+      changes:
+        - sqlFile:
+            path: db/changelog/009-contracts-templates-files.sql
+            relativeToChangelogFile: false
+            splitStatements: false
+  - changeSet:
+      id: 010-activity-notifications
+      author: asap
+      changes:
+        - sqlFile:
+            path: db/changelog/010-activity-notifications.sql
+            relativeToChangelogFile: false
+            splitStatements: false
+  - changeSet:
+      id: 011-automation-integrations
+      author: asap
+      changes:
+        - sqlFile:
+            path: db/changelog/011-automation-integrations.sql
+            relativeToChangelogFile: false
+            splitStatements: false
+  - changeSet:
+      id: 012-views-rls
+      author: asap
+      changes:
+        - sqlFile:
+            path: db/changelog/012-views-rls.sql
+            relativeToChangelogFile: false
+            splitStatements: false
+  - changeSet:
+      id: 013-fix-fk-constraints
+      author: asap
+      changes:
+        - sqlFile:
+            path: db/changelog/013-fix-fk-constraints.sql
+            relativeToChangelogFile: false
+            splitStatements: false
+  - changeSet:
+      id: 014-add-performance-indexes
+      author: asap
+      changes:
+        - sqlFile:
+            path: db/changelog/014-add-performance-indexes.sql
+            relativeToChangelogFile: false
+            splitStatements: false

@@ -146,6 +146,176 @@ public class EmailService {
         }
     }
 
+    public void sendWorkflowEmail(String toEmail, String subject, String body) {
+        try {
+            log.info("Sending workflow email to: {}", toEmail);
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setFrom(fromEmail, appName);
+            helper.setTo(toEmail);
+            helper.setSubject(subject);
+
+            Context context = new Context(Locale.getDefault());
+            context.setVariable("appName", appName);
+            context.setVariable("subject", subject);
+            context.setVariable("body", body);
+            context.setVariable("supportEmail", fromEmail);
+            context.setVariable("currentYear", LocalDate.now().getYear());
+            String htmlContent = templateEngine.process("workflow-notification", context);
+
+            helper.setText(htmlContent, true);
+            mailSender.send(message);
+            log.info("Workflow email sent successfully to: {}", toEmail);
+        } catch (Exception e) {
+            log.error("Failed to send workflow email to: {}", toEmail, e);
+        }
+    }
+
+    public void sendInvoiceEmail(String toEmail, String invoiceNumber, String clientName,
+                                  String total, String currency, String dueDate, String invoiceUrl) {
+        try {
+            log.info("Sending invoice email to: {} for invoice {}", toEmail, invoiceNumber);
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setFrom(fromEmail, appName);
+            helper.setTo(toEmail);
+            helper.setSubject("Invoice " + invoiceNumber + " from " + appName);
+
+            Context context = new Context(Locale.getDefault());
+            context.setVariable("appName", appName);
+            context.setVariable("invoiceNumber", invoiceNumber);
+            context.setVariable("clientName", clientName);
+            context.setVariable("total", total);
+            context.setVariable("currency", currency);
+            context.setVariable("dueDate", dueDate);
+            context.setVariable("invoiceUrl", invoiceUrl);
+            context.setVariable("supportEmail", fromEmail);
+            context.setVariable("currentYear", LocalDate.now().getYear());
+            String htmlContent = templateEngine.process("invoice-notification", context);
+
+            helper.setText(htmlContent, true);
+            mailSender.send(message);
+            log.info("Invoice email sent successfully to: {}", toEmail);
+        } catch (Exception e) {
+            log.error("Failed to send invoice email to: {}", toEmail, e);
+        }
+    }
+
+    public void sendQuoteEmail(String toEmail, String quoteNumber, String clientName,
+                                String total, String currency, String validUntil, String quoteUrl) {
+        try {
+            log.info("Sending quote email to: {} for quote {}", toEmail, quoteNumber);
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setFrom(fromEmail, appName);
+            helper.setTo(toEmail);
+            helper.setSubject("Quote " + quoteNumber + " from " + appName);
+
+            Context context = new Context(Locale.getDefault());
+            context.setVariable("appName", appName);
+            context.setVariable("quoteNumber", quoteNumber);
+            context.setVariable("clientName", clientName);
+            context.setVariable("total", total);
+            context.setVariable("currency", currency);
+            context.setVariable("validUntil", validUntil);
+            context.setVariable("quoteUrl", quoteUrl);
+            context.setVariable("supportEmail", fromEmail);
+            context.setVariable("currentYear", LocalDate.now().getYear());
+            String htmlContent = templateEngine.process("quote-notification", context);
+
+            helper.setText(htmlContent, true);
+            mailSender.send(message);
+            log.info("Quote email sent successfully to: {}", toEmail);
+        } catch (Exception e) {
+            log.error("Failed to send quote email to: {}", toEmail, e);
+        }
+    }
+
+    public void sendPaymentReceiptEmail(String toEmail, String invoiceNumber,
+                                         String amount, String currency, String paymentDate) {
+        try {
+            log.info("Sending payment receipt email to: {} for invoice {}", toEmail, invoiceNumber);
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setFrom(fromEmail, appName);
+            helper.setTo(toEmail);
+            helper.setSubject("Payment Received - Invoice " + invoiceNumber);
+
+            Context context = new Context(Locale.getDefault());
+            context.setVariable("appName", appName);
+            context.setVariable("invoiceNumber", invoiceNumber);
+            context.setVariable("amount", amount);
+            context.setVariable("currency", currency);
+            context.setVariable("paymentDate", paymentDate);
+            context.setVariable("supportEmail", fromEmail);
+            context.setVariable("currentYear", LocalDate.now().getYear());
+            String htmlContent = templateEngine.process("payment-receipt", context);
+
+            helper.setText(htmlContent, true);
+            mailSender.send(message);
+            log.info("Payment receipt email sent successfully to: {}", toEmail);
+        } catch (Exception e) {
+            log.error("Failed to send payment receipt email to: {}", toEmail, e);
+        }
+    }
+
+    public void sendReminderEmail(String toEmail, String subject, String reminderType,
+                                   String entityRef, String details, String actionUrl) {
+        try {
+            log.info("Sending reminder email ({}) to: {}", reminderType, toEmail);
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setFrom(fromEmail, appName);
+            helper.setTo(toEmail);
+            helper.setSubject(subject);
+
+            Context context = new Context(Locale.getDefault());
+            context.setVariable("appName", appName);
+            context.setVariable("reminderType", reminderType);
+            context.setVariable("entityRef", entityRef);
+            context.setVariable("details", details);
+            context.setVariable("actionUrl", actionUrl);
+            context.setVariable("supportEmail", fromEmail);
+            context.setVariable("currentYear", LocalDate.now().getYear());
+            String htmlContent = templateEngine.process("reminder", context);
+
+            helper.setText(htmlContent, true);
+            mailSender.send(message);
+            log.info("Reminder email sent successfully to: {}", toEmail);
+        } catch (Exception e) {
+            log.error("Failed to send reminder email to: {}", toEmail, e);
+        }
+    }
+
+    public void sendContractEmail(String toEmail, String contractTitle, String contractType,
+                                   String clientName, String expiresAt, String contractUrl) {
+        try {
+            log.info("Sending contract email to: {} for contract '{}'", toEmail, contractTitle);
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setFrom(fromEmail, appName);
+            helper.setTo(toEmail);
+            helper.setSubject("Contract: " + contractTitle + " from " + appName);
+
+            Context context = new Context(Locale.getDefault());
+            context.setVariable("appName", appName);
+            context.setVariable("contractTitle", contractTitle);
+            context.setVariable("contractType", contractType);
+            context.setVariable("clientName", clientName);
+            context.setVariable("expiresAt", expiresAt);
+            context.setVariable("contractUrl", contractUrl);
+            context.setVariable("supportEmail", fromEmail);
+            context.setVariable("currentYear", LocalDate.now().getYear());
+            String htmlContent = templateEngine.process("contract-notification", context);
+
+            helper.setText(htmlContent, true);
+            mailSender.send(message);
+            log.info("Contract email sent successfully to: {}", toEmail);
+        } catch (Exception e) {
+            log.error("Failed to send contract email to: {}", toEmail, e);
+        }
+    }
+
     private String buildLoginEmailContent(String email, String loginUrl) {
         Context context = new Context(Locale.getDefault());
         context.setVariable("email", email);

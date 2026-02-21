@@ -1,6 +1,5 @@
 import Link from "next/link";
-import { Linkedin, Mail, Phone } from "lucide-react";
-import Image from "next/image";
+import { Zap } from "lucide-react";
 
 const footerLinks = [
   { name: "Privacy Policy", href: "/privacy" },
@@ -16,13 +15,10 @@ export function PublicFooter() {
             href="/"
             className="flex items-center text-foreground-dark dark:text-foreground-light opacity-80"
           >
-            <Image
-              src="/vaporsafe-logo.png"
-              alt="VaporSafe"
-              width={120}
-              height={32}
-              className="h-8 w-auto"
-            />
+            <span className="flex items-center gap-2 text-lg font-black tracking-tight">
+              <Zap className="size-5 text-public-primary" />
+              ASAP
+            </span>
           </Link>
           <div className="flex flex-wrap items-center justify-center gap-8">
             {footerLinks.map((link) => (
@@ -35,35 +31,10 @@ export function PublicFooter() {
               </Link>
             ))}
           </div>
-          <div className="flex items-center gap-4">
-            <Link
-              href="tel:805-899-8142"
-              className="text-text-muted hover:text-public-primary transition-colors flex items-center gap-1 text-sm"
-            >
-              <Phone className="size-4" />
-              <span className="hidden sm:inline">805-899-8142</span>
-            </Link>
-            <Link
-              href="mailto:sales@vaporsafe.io"
-              className="text-text-muted hover:text-public-primary transition-colors"
-            >
-              <Mail className="size-5" />
-            </Link>
-            <Link
-              href="https://www.linkedin.com/company/vaporsafe"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-text-muted hover:text-public-primary transition-colors"
-            >
-              <Linkedin className="size-5" />
-            </Link>
-          </div>
         </div>
         <div className="text-center">
           <p className="text-text-muted text-sm">
-            © {new Date().getFullYear()} VaporSafe. All rights reserved.
-            <br />
-            World leaders in real-time chemical emissions & odor monitoring.
+            © {new Date().getFullYear()} ASAP Platform. All rights reserved.
           </p>
         </div>
       </div>

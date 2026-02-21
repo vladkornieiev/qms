@@ -5,11 +5,13 @@ import { ReactQueryProvider } from "@/providers/query-client-provider";
 import { AuthProvider } from "@/components/auth/auth-provider";
 import { SidebarProvider } from "@/components/layout/sidebar-provider";
 import { SidebarErrorBoundary } from "@/components/layout/sidebar-error-boundary";
+import { AppShell } from "@/components/layout/app-shell";
 import { HotkeysProvider } from "@/contexts/hotkeys-context";
 import { HotkeyCheatSheet } from "@/components/hotkeys/hotkey-cheat-sheet";
 import { UserPreferencesProvider } from "@/contexts/user-preferences-context";
 import { PreferencesDialogProvider } from "@/contexts/preferences-dialog-context";
 import { UserPreferencesDialogFromContext } from "@/components/preferences/user-preferences-dialog-from-context";
+import { Toaster } from "sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -23,7 +25,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "ASAP Platform",
-  description: "",
+  description: "All-in-one business management platform for quotes, projects, invoicing, inventory, and resource scheduling.",
 };
 
 export default function RootLayout({
@@ -43,10 +45,10 @@ export default function RootLayout({
                 <PreferencesDialogProvider>
                   <SidebarErrorBoundary>
                     <SidebarProvider>
-                      {children}
+                      <AppShell>{children}</AppShell>
                       <HotkeyCheatSheet />
                       <UserPreferencesDialogFromContext />
-
+                      <Toaster richColors position="top-right" />
                     </SidebarProvider>
                   </SidebarErrorBoundary>
                 </PreferencesDialogProvider>

@@ -3,21 +3,21 @@ import { Check } from "lucide-react";
 const steps = [
   {
     number: 1,
-    title: "Request a Technical Overview",
+    title: "Create Your Organization",
     description:
-      "Contact our team to discuss your monitoring needs. We handle everything—from site assessment and hardware deployment to network connectivity and sensor calibration.",
+      "Sign up in seconds and set up your workspace. Invite team members, configure roles, and customize your settings to match your workflow.",
     features: [
-      "Turn-key Deployment",
-      "No Technical Expertise Required",
-      "Full Hardware & Maintenance Support",
+      "Multi-tenant workspace",
+      "Role-based access control",
+      "Custom fields and categories",
     ],
     primary: true,
   },
   {
     number: 2,
-    title: "Access Real-time Data",
+    title: "Start Managing Your Business",
     description:
-      "Log in to your secure VaporSafe® portal to view real-time chemical, weather, and indoor condition data. Export defensible data for compliance reports instantly.",
+      "Add clients, create quotes, manage projects, and send invoices — all from one dashboard. Track resources, inventory, and payments in real time.",
     showPreview: true,
     primary: false,
   },
