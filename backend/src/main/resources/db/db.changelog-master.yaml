@@ -23,3 +23,11 @@ databaseChangeLog:
             path: db/changelog/003-crm-clients-vendors.sql
             relativeToChangelogFile: false
             splitStatements: false
+  - changeSet:
+      id: 004-products-inventory
+      author: asap
+      changes:
+        - sqlFile:
+            path: db/changelog/004-products-inventory.sql
+            relativeToChangelogFile: false
+            splitStatements: false

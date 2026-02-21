@@ -3247,6 +3247,730 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  # ===== Products =====
+  /api/products:
+    get:
+      summary: List products
+      operationId: listProducts
+      tags:
+        - products
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: query
+          in: query
+          schema:
+            type: string
+        - name: productType
+          in: query
+          schema:
+            type: string
+        - name: trackingType
+          in: query
+          schema:
+            type: string
+        - name: isActive
+          in: query
+          schema:
+            type: boolean
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: size
+          in: query
+          schema:
+            type: integer
+        - name: sortBy
+          in: query
+          schema:
+            type: string
+        - name: order
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Paginated list of products
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedProductResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    post:
+      summary: Create product
+      operationId: createProduct
+      tags:
+        - products
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateProductRequest"
+      responses:
+        "201":
+          description: Product created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/products/{id}:
+    get:
+      summary: Get product by ID
+      operationId: getProductById
+      tags:
+        - products
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Product details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Product not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    patch:
+      summary: Update product
+      operationId: updateProduct
+      tags:
+        - products
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateProductRequest"
+      responses:
+        "200":
+          description: Product updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Product not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      summary: Delete product (soft)
+      operationId: deleteProduct
+      tags:
+        - products
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Product deleted
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Product not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/products/{id}/children:
+    get:
+      summary: Get sub-products
+      operationId: listProductChildren
+      tags:
+        - products
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Sub-products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ProductResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/products/{id}/inventory:
+    get:
+      summary: Get serialized inventory items for product
+      operationId: listProductInventory
+      tags:
+        - products
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Inventory items for this product
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/InventoryItemResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/products/{id}/stock:
+    get:
+      summary: Get stock levels for consumable product
+      operationId: listProductStock
+      tags:
+        - products
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Stock levels for this product
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/StockLevelResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  # ===== Inventory Items =====
+  /api/inventory-items:
+    get:
+      summary: List inventory items
+      operationId: listInventoryItems
+      tags:
+        - inventory
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: query
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: productId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: size
+          in: query
+          schema:
+            type: integer
+        - name: sortBy
+          in: query
+          schema:
+            type: string
+        - name: order
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Paginated list of inventory items
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedInventoryItemResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    post:
+      summary: Create inventory item
+      operationId: createInventoryItem
+      tags:
+        - inventory
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateInventoryItemRequest"
+      responses:
+        "201":
+          description: Inventory item created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InventoryItemResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/inventory-items/{id}:
+    get:
+      summary: Get inventory item by ID
+      operationId: getInventoryItemById
+      tags:
+        - inventory
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Inventory item details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InventoryItemResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Item not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    patch:
+      summary: Update inventory item
+      operationId: updateInventoryItem
+      tags:
+        - inventory
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateInventoryItemRequest"
+      responses:
+        "200":
+          description: Inventory item updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InventoryItemResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Item not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      summary: Delete inventory item
+      operationId: deleteInventoryItem
+      tags:
+        - inventory
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Item deleted
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Item not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/inventory-items/{id}/check-out:
+    post:
+      summary: Check out inventory item
+      operationId: checkOutInventoryItem
+      tags:
+        - inventory
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CheckOutRequest"
+      responses:
+        "200":
+          description: Item checked out
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InventoryItemResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Item not available for check-out
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/inventory-items/{id}/check-in:
+    post:
+      summary: Check in inventory item
+      operationId: checkInInventoryItem
+      tags:
+        - inventory
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CheckInRequest"
+      responses:
+        "200":
+          description: Item checked in
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InventoryItemResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/inventory-items/{id}/transfer:
+    post:
+      summary: Transfer inventory item to new location
+      operationId: transferInventoryItem
+      tags:
+        - inventory
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TransferItemRequest"
+      responses:
+        "200":
+          description: Item transferred
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InventoryItemResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  # ===== Stock Levels =====
+  /api/stock-levels/{id}/consume:
+    post:
+      summary: Consume stock
+      operationId: consumeStock
+      tags:
+        - inventory
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ConsumeStockRequest"
+      responses:
+        "200":
+          description: Stock consumed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StockLevelResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/stock-levels/{id}/restock:
+    post:
+      summary: Restock inventory
+      operationId: restockLevel
+      tags:
+        - inventory
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RestockRequest"
+      responses:
+        "200":
+          description: Stock restocked
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StockLevelResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/stock-levels/{id}/transfer:
+    post:
+      summary: Transfer stock between locations
+      operationId: transferStock
+      tags:
+        - inventory
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TransferStockRequest"
+      responses:
+        "200":
+          description: Stock transferred
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StockLevelResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  # ===== Inventory Transactions =====
+  /api/inventory-transactions:
+    get:
+      summary: List inventory transactions
+      operationId: listInventoryTransactions
+      tags:
+        - inventory
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: inventoryItemId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: productId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: projectId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: size
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Paginated list of transactions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedInventoryTransactionResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
 components:
   securitySchemes:
     bearerAuth:
@@ -4610,3 +5334,463 @@ components:
         isPrimary:
           type: boolean
           nullable: true
+
+    # ========= Product & Inventory Schemas =========
+    ProductResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        parentId:
+          type: string
+          format: uuid
+        categoryId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        sku:
+          type: string
+        productType:
+          type: string
+        description:
+          type: string
+        unitPrice:
+          type: number
+        priceUnit:
+          type: string
+        costPrice:
+          type: number
+        trackingType:
+          type: string
+        unitOfMeasure:
+          type: string
+        reorderPoint:
+          type: integer
+        isRentable:
+          type: boolean
+        isSellable:
+          type: boolean
+        purchasePrice:
+          type: number
+        purchaseDate:
+          type: string
+          format: date
+        depreciationMethod:
+          type: string
+        usefulLifeMonths:
+          type: integer
+        customFields:
+          type: object
+          additionalProperties: true
+        isActive:
+          type: boolean
+        displayOrder:
+          type: integer
+        createdAt:
+          $ref: "#/components/schemas/Timestamp"
+        updatedAt:
+          $ref: "#/components/schemas/Timestamp"
+
+    PaginatedProductResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProductResponse"
+        page:
+          type: integer
+        size:
+          type: integer
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+
+    CreateProductRequest:
+      type: object
+      required:
+        - name
+      properties:
+        parentId:
+          type: string
+          format: uuid
+        categoryId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        sku:
+          type: string
+        productType:
+          type: string
+        description:
+          type: string
+        unitPrice:
+          type: number
+        priceUnit:
+          type: string
+        costPrice:
+          type: number
+        trackingType:
+          type: string
+        unitOfMeasure:
+          type: string
+        reorderPoint:
+          type: integer
+        isRentable:
+          type: boolean
+        isSellable:
+          type: boolean
+        purchasePrice:
+          type: number
+        purchaseDate:
+          type: string
+          format: date
+        depreciationMethod:
+          type: string
+        usefulLifeMonths:
+          type: integer
+        customFields:
+          type: object
+          additionalProperties: true
+
+    UpdateProductRequest:
+      type: object
+      properties:
+        parentId:
+          type: string
+          format: uuid
+          nullable: true
+        categoryId:
+          type: string
+          format: uuid
+          nullable: true
+        name:
+          type: string
+          nullable: true
+        sku:
+          type: string
+          nullable: true
+        productType:
+          type: string
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        unitPrice:
+          type: number
+          nullable: true
+        priceUnit:
+          type: string
+          nullable: true
+        costPrice:
+          type: number
+          nullable: true
+        trackingType:
+          type: string
+          nullable: true
+        unitOfMeasure:
+          type: string
+          nullable: true
+        reorderPoint:
+          type: integer
+          nullable: true
+        isRentable:
+          type: boolean
+          nullable: true
+        isSellable:
+          type: boolean
+          nullable: true
+        purchasePrice:
+          type: number
+          nullable: true
+        purchaseDate:
+          type: string
+          format: date
+          nullable: true
+        depreciationMethod:
+          type: string
+          nullable: true
+        usefulLifeMonths:
+          type: integer
+          nullable: true
+        customFields:
+          type: object
+          additionalProperties: true
+          nullable: true
+        isActive:
+          type: boolean
+          nullable: true
+        displayOrder:
+          type: integer
+          nullable: true
+
+    InventoryItemResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        productId:
+          type: string
+          format: uuid
+        productName:
+          type: string
+        vendorId:
+          type: string
+          format: uuid
+        serialNumber:
+          type: string
+        barcode:
+          type: string
+        status:
+          type: string
+        condition:
+          type: string
+        ownership:
+          type: string
+        location:
+          type: string
+        notes:
+          type: string
+        purchasePrice:
+          type: number
+        purchaseDate:
+          type: string
+          format: date
+        customFields:
+          type: object
+          additionalProperties: true
+        createdAt:
+          $ref: "#/components/schemas/Timestamp"
+        updatedAt:
+          $ref: "#/components/schemas/Timestamp"
+
+    PaginatedInventoryItemResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/InventoryItemResponse"
+        page:
+          type: integer
+        size:
+          type: integer
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+
+    CreateInventoryItemRequest:
+      type: object
+      required:
+        - productId
+      properties:
+        productId:
+          type: string
+          format: uuid
+        vendorId:
+          type: string
+          format: uuid
+        serialNumber:
+          type: string
+        barcode:
+          type: string
+        status:
+          type: string
+        condition:
+          type: string
+        ownership:
+          type: string
+        location:
+          type: string
+        notes:
+          type: string
+        purchasePrice:
+          type: number
+        purchaseDate:
+          type: string
+          format: date
+        customFields:
+          type: object
+          additionalProperties: true
+
+    UpdateInventoryItemRequest:
+      type: object
+      properties:
+        vendorId:
+          type: string
+          format: uuid
+          nullable: true
+        serialNumber:
+          type: string
+          nullable: true
+        barcode:
+          type: string
+          nullable: true
+        status:
+          type: string
+          nullable: true
+        condition:
+          type: string
+          nullable: true
+        ownership:
+          type: string
+          nullable: true
+        location:
+          type: string
+          nullable: true
+        notes:
+          type: string
+          nullable: true
+        purchasePrice:
+          type: number
+          nullable: true
+        purchaseDate:
+          type: string
+          format: date
+          nullable: true
+        customFields:
+          type: object
+          additionalProperties: true
+          nullable: true
+
+    CheckOutRequest:
+      type: object
+      properties:
+        projectId:
+          type: string
+          format: uuid
+        notes:
+          type: string
+
+    CheckInRequest:
+      type: object
+      properties:
+        condition:
+          type: string
+        location:
+          type: string
+        notes:
+          type: string
+
+    TransferItemRequest:
+      type: object
+      required:
+        - location
+      properties:
+        location:
+          type: string
+        notes:
+          type: string
+
+    StockLevelResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        productId:
+          type: string
+          format: uuid
+        productName:
+          type: string
+        location:
+          type: string
+        quantityOnHand:
+          type: number
+        quantityReserved:
+          type: number
+        createdAt:
+          $ref: "#/components/schemas/Timestamp"
+        updatedAt:
+          $ref: "#/components/schemas/Timestamp"
+
+    ConsumeStockRequest:
+      type: object
+      required:
+        - quantity
+      properties:
+        quantity:
+          type: number
+        projectId:
+          type: string
+          format: uuid
+        notes:
+          type: string
+
+    RestockRequest:
+      type: object
+      required:
+        - quantity
+      properties:
+        quantity:
+          type: number
+        notes:
+          type: string
+
+    TransferStockRequest:
+      type: object
+      required:
+        - toLocation
+        - quantity
+      properties:
+        toLocation:
+          type: string
+        quantity:
+          type: number
+        notes:
+          type: string
+
+    InventoryTransactionResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        inventoryItemId:
+          type: string
+          format: uuid
+        productId:
+          type: string
+          format: uuid
+        stockLevelId:
+          type: string
+          format: uuid
+        quantity:
+          type: number
+        projectId:
+          type: string
+          format: uuid
+        transactionType:
+          type: string
+        performedById:
+          type: string
+          format: uuid
+        notes:
+          type: string
+        createdAt:
+          $ref: "#/components/schemas/Timestamp"
+
+    PaginatedInventoryTransactionResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/InventoryTransactionResponse"
+        page:
+          type: integer
+        size:
+          type: integer
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
