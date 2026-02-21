@@ -7247,6 +7247,358 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  # Phase 11: Workflow Rules
+  /api/workflow-rules:
+    get:
+      summary: List workflow rules
+      operationId: listWorkflowRules
+      tags:
+        - workflow-rules
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 25
+      responses:
+        "200":
+          description: List of workflow rules
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedWorkflowRuleResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    post:
+      summary: Create workflow rule
+      operationId: createWorkflowRule
+      tags:
+        - workflow-rules
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateWorkflowRuleRequest"
+      responses:
+        "201":
+          description: Workflow rule created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkflowRuleResponse"
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/workflow-rules/{id}:
+    get:
+      summary: Get workflow rule
+      operationId: getWorkflowRule
+      tags:
+        - workflow-rules
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Workflow rule details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkflowRuleResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    patch:
+      summary: Update workflow rule
+      operationId: updateWorkflowRule
+      tags:
+        - workflow-rules
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateWorkflowRuleRequest"
+      responses:
+        "200":
+          description: Workflow rule updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkflowRuleResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      summary: Delete workflow rule
+      operationId: deleteWorkflowRule
+      tags:
+        - workflow-rules
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Workflow rule deleted
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/workflow-rules/{id}/toggle:
+    post:
+      summary: Toggle workflow rule active status
+      operationId: toggleWorkflowRule
+      tags:
+        - workflow-rules
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Workflow rule toggled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkflowRuleResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  # Phase 11: Integrations
+  /api/integrations:
+    get:
+      summary: List integrations
+      operationId: listIntegrations
+      tags:
+        - integrations
+      responses:
+        "200":
+          description: List of integrations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/IntegrationResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    post:
+      summary: Connect integration
+      operationId: createIntegration
+      tags:
+        - integrations
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateIntegrationRequest"
+      responses:
+        "201":
+          description: Integration connected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IntegrationResponse"
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/integrations/{id}:
+    get:
+      summary: Get integration
+      operationId: getIntegration
+      tags:
+        - integrations
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Integration details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IntegrationResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    patch:
+      summary: Update integration settings
+      operationId: updateIntegration
+      tags:
+        - integrations
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateIntegrationRequest"
+      responses:
+        "200":
+          description: Integration updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IntegrationResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      summary: Disconnect integration
+      operationId: deleteIntegration
+      tags:
+        - integrations
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Integration disconnected
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/integrations/{id}/sync:
+    post:
+      summary: Trigger manual sync
+      operationId: syncIntegration
+      tags:
+        - integrations
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Sync triggered
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IntegrationResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/integrations/{id}/sync-log:
+    get:
+      summary: Get sync log for integration
+      operationId: getIntegrationSyncLog
+      tags:
+        - integrations
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 25
+      responses:
+        "200":
+          description: Sync log entries
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedSyncLogResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
 components:
   securitySchemes:
     bearerAuth:
@@ -11420,3 +11772,189 @@ components:
         createdAt:
           type: string
           format: date-time
+
+    # Phase 11: Workflow Rules schemas
+    WorkflowRuleResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        isActive:
+          type: boolean
+        triggerEntity:
+          type: string
+        triggerEvent:
+          type: string
+        triggerConditions:
+          type: object
+        actions:
+          type: array
+          items:
+            type: object
+        executionOrder:
+          type: integer
+        createdById:
+          type: string
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateWorkflowRuleRequest:
+      type: object
+      required:
+        - name
+        - triggerEntity
+        - triggerEvent
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        isActive:
+          type: boolean
+        triggerEntity:
+          type: string
+        triggerEvent:
+          type: string
+        triggerConditions:
+          type: object
+        actions:
+          type: array
+          items:
+            type: object
+        executionOrder:
+          type: integer
+
+    UpdateWorkflowRuleRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        isActive:
+          type: boolean
+        triggerEntity:
+          type: string
+        triggerEvent:
+          type: string
+        triggerConditions:
+          type: object
+        actions:
+          type: array
+          items:
+            type: object
+        executionOrder:
+          type: integer
+
+    PaginatedWorkflowRuleResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/WorkflowRuleResponse"
+        page:
+          type: integer
+        size:
+          type: integer
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+
+    # Phase 11: Integration schemas
+    IntegrationResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        provider:
+          type: string
+        status:
+          type: string
+        settings:
+          type: object
+        lastSyncedAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateIntegrationRequest:
+      type: object
+      required:
+        - provider
+      properties:
+        provider:
+          type: string
+        credentials:
+          type: object
+        settings:
+          type: object
+
+    UpdateIntegrationRequest:
+      type: object
+      properties:
+        settings:
+          type: object
+        credentials:
+          type: object
+
+    SyncLogResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        integrationId:
+          type: string
+          format: uuid
+        direction:
+          type: string
+        entityType:
+          type: string
+        entityId:
+          type: string
+          format: uuid
+        externalId:
+          type: string
+        status:
+          type: string
+        errorMessage:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    PaginatedSyncLogResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/SyncLogResponse"
+        page:
+          type: integer
+        size:
+          type: integer
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer

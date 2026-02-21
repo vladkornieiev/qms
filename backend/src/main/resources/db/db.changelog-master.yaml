@@ -79,3 +79,11 @@ databaseChangeLog:
             path: db/changelog/010-activity-notifications.sql
             relativeToChangelogFile: false
             splitStatements: false
+  - changeSet:
+      id: 011-automation-integrations
+      author: asap
+      changes:
+        - sqlFile:
+            path: db/changelog/011-automation-integrations.sql
+            relativeToChangelogFile: false
+            splitStatements: false
