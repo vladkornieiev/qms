@@ -63,3 +63,11 @@ databaseChangeLog:
             path: db/changelog/008-invoices-payments.sql
             relativeToChangelogFile: false
             splitStatements: false
+  - changeSet:
+      id: 009-contracts-templates-files
+      author: asap
+      changes:
+        - sqlFile:
+            path: db/changelog/009-contracts-templates-files.sql
+            relativeToChangelogFile: false
+            splitStatements: false

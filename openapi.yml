@@ -6383,6 +6383,674 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  # ========= Contract Endpoints =========
+
+  /api/contracts:
+    get:
+      summary: List contracts
+      operationId: listContracts
+      tags:
+        - contracts
+      parameters:
+        - name: query
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: contractType
+          in: query
+          schema:
+            type: string
+        - name: clientId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: projectId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 25
+      responses:
+        "200":
+          description: Paginated list of contracts
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedContractResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    post:
+      summary: Create contract
+      operationId: createContract
+      tags:
+        - contracts
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateContractRequest"
+      responses:
+        "201":
+          description: Contract created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContractResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/contracts/{id}:
+    get:
+      summary: Get contract
+      operationId: getContractById
+      tags:
+        - contracts
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Contract details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContractResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    patch:
+      summary: Update contract
+      operationId: updateContract
+      tags:
+        - contracts
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateContractRequest"
+      responses:
+        "200":
+          description: Contract updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContractResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      summary: Delete contract
+      operationId: deleteContract
+      tags:
+        - contracts
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Contract deleted
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/contracts/{id}/send:
+    post:
+      summary: Send contract
+      operationId: sendContract
+      tags:
+        - contracts
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Contract sent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContractResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/contracts/{id}/sign:
+    post:
+      summary: Record signature
+      operationId: signContract
+      tags:
+        - contracts
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ContractSignRequest"
+      responses:
+        "200":
+          description: Signature recorded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContractResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  # ========= Template Endpoints =========
+
+  /api/templates:
+    get:
+      summary: List templates
+      operationId: listTemplates
+      tags:
+        - templates
+      parameters:
+        - name: query
+          in: query
+          schema:
+            type: string
+        - name: templateType
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 25
+      responses:
+        "200":
+          description: Paginated list of templates
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedTemplateResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    post:
+      summary: Create template
+      operationId: createTemplate
+      tags:
+        - templates
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTemplateRequest"
+      responses:
+        "201":
+          description: Template created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TemplateResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/templates/{id}:
+    get:
+      summary: Get template with items
+      operationId: getTemplateById
+      tags:
+        - templates
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Template detail with items
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TemplateDetailResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    patch:
+      summary: Update template
+      operationId: updateTemplate
+      tags:
+        - templates
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateTemplateRequest"
+      responses:
+        "200":
+          description: Template updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TemplateResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      summary: Delete template
+      operationId: deleteTemplate
+      tags:
+        - templates
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Template deleted
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/templates/{id}/items:
+    get:
+      summary: List template items
+      operationId: listTemplateItems
+      tags:
+        - templates
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Template items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TemplateItemResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    post:
+      summary: Add template item
+      operationId: createTemplateItem
+      tags:
+        - templates
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTemplateItemRequest"
+      responses:
+        "201":
+          description: Template item added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TemplateItemResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/templates/{id}/items/{itemId}:
+    patch:
+      summary: Update template item
+      operationId: updateTemplateItem
+      tags:
+        - templates
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: itemId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateTemplateItemRequest"
+      responses:
+        "200":
+          description: Template item updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TemplateItemResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      summary: Delete template item
+      operationId: deleteTemplateItem
+      tags:
+        - templates
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: itemId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Template item deleted
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/templates/{id}/clone:
+    post:
+      summary: Clone template
+      operationId: cloneTemplate
+      tags:
+        - templates
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "201":
+          description: Template cloned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TemplateDetailResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/templates/{id}/apply:
+    post:
+      summary: Apply template (create entity from template)
+      operationId: applyTemplate
+      tags:
+        - templates
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TemplateApplyRequest"
+      responses:
+        "201":
+          description: Entity created from template
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TemplateApplyResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  # ========= File Endpoints =========
+
+  /api/files/{entityType}/{entityId}:
+    get:
+      summary: List file attachments for entity
+      operationId: listFileAttachments
+      tags:
+        - files
+      parameters:
+        - name: entityType
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: entityId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: List of file attachments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/FileAttachmentResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    post:
+      summary: Upload file attachment
+      operationId: uploadFileAttachment
+      tags:
+        - files
+      parameters:
+        - name: entityType
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: entityId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/FileUploadRequest"
+      responses:
+        "201":
+          description: File uploaded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FileAttachmentResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/files/{id}:
+    get:
+      summary: Get file metadata
+      operationId: getFileAttachmentById
+      tags:
+        - files
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: File metadata
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FileAttachmentResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      summary: Delete file attachment
+      operationId: deleteFileAttachment
+      tags:
+        - files
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: File deleted
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
 components:
   securitySchemes:
     bearerAuth:
@@ -9968,4 +10636,464 @@ components:
         currency:
           type: string
         notes:
+          type: string
+
+    # ========= Contract Schemas =========
+
+    ContractResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        projectId:
+          type: string
+          format: uuid
+        clientId:
+          type: string
+          format: uuid
+        clientName:
+          type: string
+        resourceId:
+          type: string
+          format: uuid
+        vendorId:
+          type: string
+          format: uuid
+        contractType:
+          type: string
+        title:
+          type: string
+        templateContent:
+          type: string
+        generatedFileUrl:
+          type: string
+        status:
+          type: string
+        sentAt:
+          type: string
+          format: date-time
+        signedAt:
+          type: string
+          format: date-time
+        signedFileUrl:
+          type: string
+        signingProvider:
+          type: string
+        externalSigningId:
+          type: string
+        expiresAt:
+          type: string
+          format: date
+        notes:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    PaginatedContractResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/ContractResponse"
+        page:
+          type: integer
+        size:
+          type: integer
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+
+    CreateContractRequest:
+      type: object
+      required:
+        - contractType
+        - title
+      properties:
+        projectId:
+          type: string
+          format: uuid
+        clientId:
+          type: string
+          format: uuid
+        resourceId:
+          type: string
+          format: uuid
+        vendorId:
+          type: string
+          format: uuid
+        contractType:
+          type: string
+        title:
+          type: string
+        templateContent:
+          type: string
+        expiresAt:
+          type: string
+          format: date
+        notes:
+          type: string
+
+    UpdateContractRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          nullable: true
+        templateContent:
+          type: string
+          nullable: true
+        contractType:
+          type: string
+          nullable: true
+        status:
+          type: string
+          nullable: true
+        expiresAt:
+          type: string
+          format: date
+          nullable: true
+        notes:
+          type: string
+          nullable: true
+        generatedFileUrl:
+          type: string
+          nullable: true
+        signingProvider:
+          type: string
+          nullable: true
+        externalSigningId:
+          type: string
+          nullable: true
+
+    ContractSignRequest:
+      type: object
+      properties:
+        signedFileUrl:
+          type: string
+        signingProvider:
+          type: string
+        externalSigningId:
+          type: string
+
+    # ========= Template Schemas =========
+
+    TemplateResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        templateType:
+          type: string
+        isClientFacing:
+          type: boolean
+        isActive:
+          type: boolean
+        settings:
+          type: object
+          additionalProperties: true
+        createdById:
+          type: string
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    TemplateDetailResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        templateType:
+          type: string
+        isClientFacing:
+          type: boolean
+        isActive:
+          type: boolean
+        settings:
+          type: object
+          additionalProperties: true
+        createdById:
+          type: string
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/TemplateItemResponse"
+
+    PaginatedTemplateResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/TemplateResponse"
+        page:
+          type: integer
+        size:
+          type: integer
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+
+    CreateTemplateRequest:
+      type: object
+      required:
+        - name
+        - templateType
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        templateType:
+          type: string
+        isClientFacing:
+          type: boolean
+        isActive:
+          type: boolean
+        settings:
+          type: object
+          additionalProperties: true
+
+    UpdateTemplateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        templateType:
+          type: string
+          nullable: true
+        isClientFacing:
+          type: boolean
+          nullable: true
+        isActive:
+          type: boolean
+          nullable: true
+        settings:
+          type: object
+          additionalProperties: true
+          nullable: true
+
+    TemplateItemResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        templateId:
+          type: string
+          format: uuid
+        itemType:
+          type: string
+        productId:
+          type: string
+          format: uuid
+        categoryId:
+          type: string
+          format: uuid
+        label:
+          type: string
+        description:
+          type: string
+        defaultQuantity:
+          type: number
+        defaultUnitPrice:
+          type: number
+        defaultUnit:
+          type: string
+        fieldType:
+          type: string
+        fieldOptions:
+          type: object
+        isRequired:
+          type: boolean
+        dependsOnItemId:
+          type: string
+          format: uuid
+        dependsOnValue:
+          type: string
+        section:
+          type: string
+        displayOrder:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+
+    CreateTemplateItemRequest:
+      type: object
+      required:
+        - itemType
+        - label
+      properties:
+        itemType:
+          type: string
+        productId:
+          type: string
+          format: uuid
+        categoryId:
+          type: string
+          format: uuid
+        label:
+          type: string
+        description:
+          type: string
+        defaultQuantity:
+          type: number
+        defaultUnitPrice:
+          type: number
+        defaultUnit:
+          type: string
+        fieldType:
+          type: string
+        fieldOptions:
+          type: object
+        isRequired:
+          type: boolean
+        dependsOnItemId:
+          type: string
+          format: uuid
+        dependsOnValue:
+          type: string
+        section:
+          type: string
+        displayOrder:
+          type: integer
+
+    UpdateTemplateItemRequest:
+      type: object
+      properties:
+        label:
+          type: string
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        defaultQuantity:
+          type: number
+          nullable: true
+        defaultUnitPrice:
+          type: number
+          nullable: true
+        defaultUnit:
+          type: string
+          nullable: true
+        fieldType:
+          type: string
+          nullable: true
+        fieldOptions:
+          type: object
+          nullable: true
+        isRequired:
+          type: boolean
+          nullable: true
+        section:
+          type: string
+          nullable: true
+        displayOrder:
+          type: integer
+          nullable: true
+
+    TemplateApplyRequest:
+      type: object
+      required:
+        - entityType
+      properties:
+        entityType:
+          type: string
+          enum:
+            - quote
+            - project
+            - contract
+        clientId:
+          type: string
+          format: uuid
+        projectId:
+          type: string
+          format: uuid
+        title:
+          type: string
+
+    TemplateApplyResponse:
+      type: object
+      properties:
+        entityType:
+          type: string
+        entityId:
+          type: string
+          format: uuid
+
+    # ========= File Schemas =========
+
+    FileAttachmentResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        entityType:
+          type: string
+        entityId:
+          type: string
+          format: uuid
+        fileName:
+          type: string
+        fileUrl:
+          type: string
+        fileSizeBytes:
+          type: integer
+          format: int64
+        mimeType:
+          type: string
+        category:
+          type: string
+        uploadedById:
+          type: string
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time
+
+    FileUploadRequest:
+      type: object
+      required:
+        - file
+      properties:
+        file:
+          type: string
+          format: binary
+        category:
           type: string
