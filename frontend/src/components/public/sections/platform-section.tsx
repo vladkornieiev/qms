@@ -6,13 +6,13 @@ export function PlatformSection() {
           The Platform
         </span>
         <h2 className="text-3xl md:text-4xl font-black text-foreground-dark dark:text-foreground-light mb-6">
-          VaporSafe® as a Turn-key, Data as a Service (DaaS) Platform
+          ASAP: One Platform for Your Entire Business
         </h2>
         <p className="text-lg text-text-muted dark:text-border-light max-w-3xl mx-auto leading-relaxed">
-          VaporSafe® functions as a turn-key Data as a Service (DaaS) platform
-          for Environmental Consultants, stakeholders, and the Cannabis
-          industry. We integrate chemical, weather, and indoor condition data
-          through a secure web portal for real-time visualization and export.
+          ASAP is a multi-tenant business management platform that connects your
+          CRM, quoting, project management, invoicing, inventory, and resource
+          scheduling into a single unified workspace. No more jumping between
+          tools or reconciling spreadsheets.
         </p>
       </div>
     </section>

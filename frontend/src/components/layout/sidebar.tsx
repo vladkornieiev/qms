@@ -55,6 +55,7 @@ interface NavItem {
 }
 
 const mainNavItems: NavItem[] = [
+  { href: "/dashboard", icon: BarChart3, label: "Dashboard" },
   { href: "/clients", icon: UserCircle, label: "Clients" },
   { href: "/vendors", icon: Store, label: "Vendors" },
   { href: "/products", icon: Package, label: "Products" },
@@ -67,6 +68,8 @@ const mainNavItems: NavItem[] = [
   { href: "/payments", icon: CreditCard, label: "Payments" },
   { href: "/contracts", icon: FileSignature, label: "Contracts" },
   { href: "/payouts", icon: DollarSign, label: "Payouts" },
+  { href: "/reports", icon: LayoutDashboard, label: "Reports" },
+  { href: "/notifications", icon: Bell, label: "Notifications" },
   { href: "/users", icon: Users, label: "Users", requireAdmin: true },
 ];
 

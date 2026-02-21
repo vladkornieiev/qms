@@ -6,11 +6,13 @@ import com.kfdlabs.asap.mapper.ContractMapper;
 import com.kfdlabs.asap.service.ContractService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 
 import java.util.UUID;
 
 @Controller
+@PreAuthorize("isAuthenticated()")
 @RequiredArgsConstructor
 public class ContractController implements ContractsApi {
 

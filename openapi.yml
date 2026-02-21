@@ -5,11 +5,15 @@ info:
 servers:
   - url: http://localhost:8080
 
+security:
+  - bearerAuth: []
+
 paths:
   /api/oauth2/authorization/google:
     get:
       summary: Initiate Google OAuth2 login
       operationId: initiateGoogleOAuth2
+      security: []
       description: Redirects the user to Google's OAuth2 authorization endpoint to initiate the login process.
       responses:
         "302":
@@ -21,6 +25,7 @@ paths:
       operationId: createLoginLink
       tags:
         - auth
+      security: []
       description: Generate a login link that will be sent to the user's email
       requestBody:
         required: true
@@ -50,6 +55,7 @@ paths:
       operationId: exchangeLoginLink
       tags:
         - auth
+      security: []
       description: Exchange a login link token for a JWT access token by clicking the link from email
       parameters:
         - name: organizationId
@@ -96,6 +102,7 @@ paths:
       operationId: refreshToken
       tags:
         - auth
+      security: []
       description: Refresh an existing JWT token to extend its lifetime
       requestBody:
         required: true
@@ -129,6 +136,7 @@ paths:
       operationId: loginUser
       tags:
         - auth
+      security: []
       description: Authenticate user with email and password
       requestBody:
         required: true
@@ -168,6 +176,7 @@ paths:
       operationId: forgotPassword
       tags:
         - auth
+      security: []
       description: Send password reset link to user's email
       requestBody:
         required: true
@@ -203,6 +212,7 @@ paths:
       operationId: resetPassword
       tags:
         - auth
+      security: []
       description: Reset user password using reset token
       requestBody:
         required: true

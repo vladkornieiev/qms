@@ -4,13 +4,13 @@ services:
     container_name: postgres-standalone
     platform: linux/amd64
     environment:
-      - "POSTGRES_DB=vaporsafe"
-      - "POSTGRES_PASSWORD=vaporsafe"
-      - "POSTGRES_USER=vaporsafe"
+      - "POSTGRES_DB=asap"
+      - "POSTGRES_PASSWORD=asap"
+      - "POSTGRES_USER=asap"
     ports:
       - "5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U vaporsafe -d vaporsafe"]
+      test: ["CMD-SHELL", "pg_isready -U asap -d asap"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -22,11 +22,11 @@ services:
       - "9000:9000" # S3 API
       - "9001:9001" # Web UI
     environment:
-      MINIO_ROOT_USER: vaporsafe
-      MINIO_ROOT_PASSWORD: vaporsafe
+      MINIO_ROOT_USER: asap
+      MINIO_ROOT_PASSWORD: asap
     entrypoint: >
       /bin/sh -c "
-        mkdir -p /data/vaporsafe &&
+        mkdir -p /data/asap &&
         exec minio server /data --console-address :9001
       "
     healthcheck:
@@ -46,25 +46,25 @@ services:
     environment:
       - APP_BASE_API_URL=http://localhost:8080
       - APP_BASE_UI_URL=http://localhost:3000
-      - APP_MAIL_FROM=vaporsafe@kfdlabs.com
-      - APP_MAIL_NAME=VaporSafe
-      - AWS_ACCESS_KEY=vaporsafe
-      - AWS_SECRET_KEY=vaporsafe
+      - APP_MAIL_FROM=asap@kfdlabs.com
+      - APP_MAIL_NAME=ASAP
+      - AWS_ACCESS_KEY=asap
+      - AWS_SECRET_KEY=asap
       - AWS_REGION=us-east-1
       - AWS_ENDPOINT=http://minio-standalone:9000
       - AWS_S3_PRESIGNED_URL_ENDPOINT=http://localhost:9000
-      - AWS_S3_BUCKET=vaporsafe
+      - AWS_S3_BUCKET=asap
       - DB_HOST=postgres-standalone
       - DB_PORT=5432
-      - DB_NAME=vaporsafe
-      - DB_USERNAME=vaporsafe
-      - DB_PASSWORD=vaporsafe
+      - DB_NAME=asap
+      - DB_USERNAME=asap
+      - DB_PASSWORD=asap
       - REDIS_HOST=redis-standalone
       - REDIS_PORT=6379
       - DOCKER_COMPOSE_ENABLED=false
       - SMTP_HOST=smtp.purelymail.com
       - SMTP_PORT=587
-      - SMTP_USERNAME=vaporsafe@kfdlabs.com
+      - SMTP_USERNAME=asap@kfdlabs.com
       - SMTP_PASSWORD=hockiv-kujkA3-bennoj
       - GOOGLE_CLIENT_ID=
       - GOOGLE_CLIENT_SECRET=

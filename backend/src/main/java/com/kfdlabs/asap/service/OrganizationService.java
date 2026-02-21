@@ -11,6 +11,7 @@ import com.kfdlabs.asap.repository.OrganizationMemberRepository;
 import com.kfdlabs.asap.repository.OrganizationRepository;
 import com.kfdlabs.asap.util.PaginationUtils;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -24,6 +25,7 @@ import java.util.UUID;
 
 import static org.openapitools.jackson.nullable.JsonNullable.undefined;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional

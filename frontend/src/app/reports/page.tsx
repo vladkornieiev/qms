@@ -14,12 +14,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { FileText } from "lucide-react";
+import { formatCurrency } from "@/lib/utils";
 
 type ReportType = "projects" | "invoices" | "resources" | "clients";
-
-function formatCurrency(val: number) {
-  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(val);
-}
 
 export default function ReportsPage() {
   const [reportType, setReportType] = useState<ReportType>("projects");

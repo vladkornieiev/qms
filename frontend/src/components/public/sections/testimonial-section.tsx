@@ -3,25 +3,24 @@
 import { Quote, ChevronLeft, ChevronRight } from "lucide-react";
 import { useState } from "react";
 
-const AUTHOR_CONSULTANT = "Environmental Consultant";
-
 const testimonials = [
   {
     quote:
-      "We spent years and hundreds of thousands of dollars on samples...VaporSafe® resolved these questions right away.",
-    author: AUTHOR_CONSULTANT,
-    role: "Vapor Intrusion Project Lead",
-  },
-  {
-    quote: "VaporSafe® is a game changer as far as getting real-time results.",
-    author: AUTHOR_CONSULTANT,
-    role: "Site Assessment Specialist",
+      "ASAP replaced five different tools we were juggling. Now our entire workflow — from quote to payment — lives in one place.",
+    author: "Operations Manager",
+    role: "Event Production Agency",
   },
   {
     quote:
-      "This is the best available vapor intrusion assessment technology, by far.",
-    author: AUTHOR_CONSULTANT,
-    role: "Senior Project Manager",
+      "The resource scheduling alone saved us hours every week. We can see who's available, book them, and track payouts without any spreadsheets.",
+    author: "Project Lead",
+    role: "AV Services Company",
+  },
+  {
+    quote:
+      "Our invoicing used to take days. Now we convert quotes to invoices in one click and get paid faster.",
+    author: "Business Owner",
+    role: "Technical Services Firm",
   },
 ];
 

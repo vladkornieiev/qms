@@ -10,6 +10,7 @@ import { HotkeyCheatSheet } from "@/components/hotkeys/hotkey-cheat-sheet";
 import { UserPreferencesProvider } from "@/contexts/user-preferences-context";
 import { PreferencesDialogProvider } from "@/contexts/preferences-dialog-context";
 import { UserPreferencesDialogFromContext } from "@/components/preferences/user-preferences-dialog-from-context";
+import { Toaster } from "sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -23,7 +24,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "ASAP Platform",
-  description: "",
+  description: "All-in-one business management platform for quotes, projects, invoicing, inventory, and resource scheduling.",
 };
 
 export default function RootLayout({
@@ -46,7 +47,7 @@ export default function RootLayout({
                       {children}
                       <HotkeyCheatSheet />
                       <UserPreferencesDialogFromContext />
-
+                      <Toaster richColors position="top-right" />
                     </SidebarProvider>
                   </SidebarErrorBoundary>
                 </PreferencesDialogProvider>

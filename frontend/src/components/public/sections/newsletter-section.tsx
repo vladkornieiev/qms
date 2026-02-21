@@ -7,8 +7,6 @@ export function NewsletterSection() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement newsletter signup
-    console.log("Newsletter signup:", email);
     setEmail("");
   };
 
@@ -19,7 +17,7 @@ export function NewsletterSection() {
           Subscribe for Updates
         </h3>
         <p className="text-sm text-text-muted mb-6">
-          Stay informed on the latest sensor technology and regulatory news.
+          Stay informed about new features, integrations, and product updates.
         </p>
         <form onSubmit={handleSubmit} className="flex gap-2">
           <input

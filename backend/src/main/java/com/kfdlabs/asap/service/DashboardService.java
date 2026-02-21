@@ -5,6 +5,7 @@ import com.kfdlabs.asap.security.SecurityUtils;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,6 +14,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -56,8 +58,15 @@ public class DashboardService {
         return response;
     }
 
+    private static final Set<String> ALLOWED_STATUS_TABLES = Set.of(
+        "inbound_requests", "quotes", "projects", "invoices"
+    );
+
     @SuppressWarnings("unchecked")
     private Map<String, Integer> countByStatus(String tableName, UUID orgId) {
+        if (!ALLOWED_STATUS_TABLES.contains(tableName)) {
+            throw new IllegalArgumentException("Invalid table name: " + tableName);
+        }
         Query query = entityManager.createNativeQuery(
             "SELECT status, COUNT(*)::int FROM " + tableName + " WHERE organization_id = :orgId GROUP BY status");
         query.setParameter("orgId", orgId);

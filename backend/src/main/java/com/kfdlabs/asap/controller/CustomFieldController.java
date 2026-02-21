@@ -6,12 +6,14 @@ import com.kfdlabs.asap.mapper.CustomFieldDefinitionMapper;
 import com.kfdlabs.asap.service.CustomFieldService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 
 import java.util.List;
 import java.util.UUID;
 
 @Controller
+@PreAuthorize("isAuthenticated()")
 @RequiredArgsConstructor
 public class CustomFieldController implements CustomFieldsApi {
 

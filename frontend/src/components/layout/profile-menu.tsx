@@ -5,8 +5,7 @@ import Link from "next/link";
 import { useAuthStore } from "@/store/auth-store";
 import { authClient } from "@/lib/auth-client";
 import { isOwner } from "@/lib/permissions";
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+import { API_BASE_URL } from "@/lib/utils";
 import {
   DropdownMenu,
   DropdownMenuContent,

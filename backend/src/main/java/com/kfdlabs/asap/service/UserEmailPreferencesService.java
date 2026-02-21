@@ -4,6 +4,7 @@ import com.kfdlabs.asap.entity.UserEmailPreferences;
 import com.kfdlabs.asap.repository.UserEmailPreferencesRepository;
 import com.kfdlabs.asap.security.JwtUtil;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.HttpClientErrorException;
@@ -14,6 +15,7 @@ import static com.kfdlabs.asap.security.SecurityUtils.getCurrentUserEmail;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserEmailPreferencesService {

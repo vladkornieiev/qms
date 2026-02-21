@@ -13,10 +13,7 @@ import {
   AlertTriangle,
   BarChart3,
 } from "lucide-react";
-
-function formatCurrency(val: number) {
-  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(val);
-}
+import { formatCurrency } from "@/lib/utils";
 
 export default function DashboardPage() {
   const { data: revenue } = useQuery({

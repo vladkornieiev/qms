@@ -6,11 +6,13 @@ import com.kfdlabs.asap.mapper.QuoteMapper;
 import com.kfdlabs.asap.service.InboundRequestService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 
 import java.util.UUID;
 
 @Controller
+@PreAuthorize("isAuthenticated()")
 @RequiredArgsConstructor
 public class InboundRequestController implements InboundRequestsApi {
 

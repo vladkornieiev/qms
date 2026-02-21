@@ -6,6 +6,7 @@ import com.kfdlabs.asap.mapper.ProjectMapper;
 import com.kfdlabs.asap.service.ProjectService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 
 import java.time.LocalDate;
@@ -13,6 +14,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Controller
+@PreAuthorize("isAuthenticated()")
 @RequiredArgsConstructor
 public class ProjectController implements ProjectsApi {
 

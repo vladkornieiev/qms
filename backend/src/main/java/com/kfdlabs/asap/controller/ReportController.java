@@ -5,11 +5,13 @@ import com.kfdlabs.asap.dto.*;
 import com.kfdlabs.asap.service.ReportService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 
 import java.util.List;
 
 @Controller
+@PreAuthorize("isAuthenticated()")
 @RequiredArgsConstructor
 public class ReportController implements ReportsApi {
 

@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
     <springProperty name="ENV" source="ENV" defaultValue="local"/>
-    <springProperty name="APP_NAME" source="spring.application.name" defaultValue="vaporsafe"/>
+    <springProperty name="APP_NAME" source="spring.application.name" defaultValue="asap"/>
     <springProperty name="LOKI_HOST" source="LOKI_HOST" defaultValue="localhost:3100"/>
 
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>[vaporsafe] %d{HH:mm:ss.SSS} [%thread] %-5level %logger - %msg%n</pattern>
+            <pattern>[asap] %d{HH:mm:ss.SSS} [%thread] %-5level %logger - %msg%n</pattern>
         </encoder>
     </appender>
 

@@ -30,23 +30,22 @@ export function GeneralHelpContent() {
       </div>
 
       <div className="border rounded-lg p-4">
-        <p className="font-medium mb-2">Pages with help guides:</p>
+        <p className="font-medium mb-2">Key sections:</p>
         <ul className="text-sm text-muted-foreground space-y-1">
           <li>
-            • <strong>Projects List</strong> - Manage and navigate your projects
+            • <strong>Dashboard</strong> - Revenue, pipeline, and utilization overview
           </li>
           <li>
-            • <strong>Project Dashboard</strong> - Overview and quick actions
-            for a project
+            • <strong>Projects</strong> - Manage projects, resources, and products
           </li>
           <li>
-            • <strong>Charts</strong> - View and analyze sensor data with charts
+            • <strong>Quotes & Invoices</strong> - Create quotes and track payments
           </li>
           <li>
-            • <strong>User Management</strong> - Create and manage users
+            • <strong>Resources</strong> - Schedule and manage team members
           </li>
           <li>
-            • <strong>Data Sources</strong> - Manage sensors and data sources
+            • <strong>Inventory</strong> - Track products and stock levels
           </li>
         </ul>
         <p className="text-xs text-muted-foreground mt-3">
