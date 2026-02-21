@@ -7599,6 +7599,242 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  # Phase 12: Dashboard & Reports
+  /api/dashboard/revenue:
+    get:
+      summary: Revenue summary
+      operationId: getDashboardRevenue
+      tags:
+        - dashboard
+      parameters:
+        - name: period
+          in: query
+          schema:
+            type: string
+            enum: [month, quarter, year]
+            default: month
+      responses:
+        "200":
+          description: Revenue summary data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RevenueSummaryResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/dashboard/pipeline:
+    get:
+      summary: Pipeline summary
+      operationId: getDashboardPipeline
+      tags:
+        - dashboard
+      responses:
+        "200":
+          description: Pipeline status counts
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PipelineSummaryResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/dashboard/utilization:
+    get:
+      summary: Resource utilization
+      operationId: getDashboardUtilization
+      tags:
+        - dashboard
+      responses:
+        "200":
+          description: Resource utilization metrics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UtilizationSummaryResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/dashboard/inventory-alerts:
+    get:
+      summary: Inventory alerts
+      operationId: getDashboardInventoryAlerts
+      tags:
+        - dashboard
+      responses:
+        "200":
+          description: Inventory alert data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InventoryAlertResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/dashboard/top-clients:
+    get:
+      summary: Top clients by revenue
+      operationId: getDashboardTopClients
+      tags:
+        - dashboard
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+      responses:
+        "200":
+          description: Top clients list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TopClientResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/reports/projects:
+    get:
+      summary: Projects report
+      operationId: getProjectsReport
+      tags:
+        - reports
+      parameters:
+        - name: format
+          in: query
+          schema:
+            type: string
+            enum: [json, csv]
+            default: json
+        - name: status
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Projects report data
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ProjectReportRow"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/reports/invoices:
+    get:
+      summary: Invoice aging report
+      operationId: getInvoiceAgingReport
+      tags:
+        - reports
+      parameters:
+        - name: format
+          in: query
+          schema:
+            type: string
+            enum: [json, csv]
+            default: json
+      responses:
+        "200":
+          description: Invoice aging report
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/InvoiceAgingRow"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/reports/resources:
+    get:
+      summary: Resource utilization report
+      operationId: getResourceUtilizationReport
+      tags:
+        - reports
+      parameters:
+        - name: format
+          in: query
+          schema:
+            type: string
+            enum: [json, csv]
+            default: json
+      responses:
+        "200":
+          description: Resource utilization report
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ResourceUtilizationRow"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/reports/clients:
+    get:
+      summary: Client revenue report
+      operationId: getClientRevenueReport
+      tags:
+        - reports
+      parameters:
+        - name: format
+          in: query
+          schema:
+            type: string
+            enum: [json, csv]
+            default: json
+      responses:
+        "200":
+          description: Client revenue report
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ClientRevenueRow"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
 components:
   securitySchemes:
     bearerAuth:
@@ -11958,3 +12194,208 @@ components:
           format: int64
         totalPages:
           type: integer
+
+    # Phase 12: Dashboard & Reports schemas
+    RevenueSummaryResponse:
+      type: object
+      properties:
+        totalInvoiced:
+          type: number
+          format: double
+        totalPaid:
+          type: number
+          format: double
+        totalOutstanding:
+          type: number
+          format: double
+        invoiceCount:
+          type: integer
+        paidCount:
+          type: integer
+        overdueCount:
+          type: integer
+        periodLabel:
+          type: string
+
+    PipelineSummaryResponse:
+      type: object
+      properties:
+        inboundByStatus:
+          type: object
+          additionalProperties:
+            type: integer
+        quotesByStatus:
+          type: object
+          additionalProperties:
+            type: integer
+        projectsByStatus:
+          type: object
+          additionalProperties:
+            type: integer
+        invoicesByStatus:
+          type: object
+          additionalProperties:
+            type: integer
+
+    UtilizationSummaryResponse:
+      type: object
+      properties:
+        totalResources:
+          type: integer
+        bookedCount:
+          type: integer
+        availableCount:
+          type: integer
+        utilizationPercent:
+          type: number
+          format: double
+
+    InventoryAlertResponse:
+      type: object
+      properties:
+        lowStockCount:
+          type: integer
+        checkedOutCount:
+          type: integer
+        maintenanceCount:
+          type: integer
+        lowStockItems:
+          type: array
+          items:
+            $ref: "#/components/schemas/LowStockItem"
+
+    LowStockItem:
+      type: object
+      properties:
+        productId:
+          type: string
+          format: uuid
+        productName:
+          type: string
+        sku:
+          type: string
+        location:
+          type: string
+        quantityOnHand:
+          type: number
+        reorderPoint:
+          type: number
+
+    TopClientResponse:
+      type: object
+      properties:
+        clientId:
+          type: string
+          format: uuid
+        clientName:
+          type: string
+        totalProjects:
+          type: integer
+        totalInvoiced:
+          type: number
+          format: double
+        totalPaid:
+          type: number
+          format: double
+        totalOutstanding:
+          type: number
+          format: double
+
+    ProjectReportRow:
+      type: object
+      properties:
+        projectId:
+          type: string
+          format: uuid
+        projectNumber:
+          type: string
+        title:
+          type: string
+        status:
+          type: string
+        clientName:
+          type: string
+        totalBillable:
+          type: number
+          format: double
+        totalCost:
+          type: number
+          format: double
+        totalProfit:
+          type: number
+          format: double
+        createdAt:
+          type: string
+          format: date-time
+
+    InvoiceAgingRow:
+      type: object
+      properties:
+        invoiceId:
+          type: string
+          format: uuid
+        invoiceNumber:
+          type: string
+        clientName:
+          type: string
+        status:
+          type: string
+        total:
+          type: number
+          format: double
+        balanceDue:
+          type: number
+          format: double
+        issuedDate:
+          type: string
+          format: date
+        dueDate:
+          type: string
+          format: date
+        daysOverdue:
+          type: integer
+
+    ResourceUtilizationRow:
+      type: object
+      properties:
+        resourceId:
+          type: string
+          format: uuid
+        resourceName:
+          type: string
+        type:
+          type: string
+        totalBookedDays:
+          type: integer
+        totalAvailableDays:
+          type: integer
+        utilizationPercent:
+          type: number
+          format: double
+        totalBilled:
+          type: number
+          format: double
+
+    ClientRevenueRow:
+      type: object
+      properties:
+        clientId:
+          type: string
+          format: uuid
+        clientName:
+          type: string
+        totalProjects:
+          type: integer
+        completedProjects:
+          type: integer
+        activeProjects:
+          type: integer
+        totalInvoiced:
+          type: number
+          format: double
+        totalPaid:
+          type: number
+          format: double
+        totalOutstanding:
+          type: number
+          format: double

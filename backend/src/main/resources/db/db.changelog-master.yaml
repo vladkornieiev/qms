@@ -87,3 +87,11 @@ databaseChangeLog:
             path: db/changelog/011-automation-integrations.sql
             relativeToChangelogFile: false
             splitStatements: false
+  - changeSet:
+      id: 012-views-rls
+      author: asap
+      changes:
+        - sqlFile:
+            path: db/changelog/012-views-rls.sql
+            relativeToChangelogFile: false
+            splitStatements: false
