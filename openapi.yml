@@ -4529,6 +4529,737 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  # ========= Project Endpoints =========
+
+  /api/projects:
+    get:
+      summary: List projects
+      operationId: listProjects
+      tags:
+        - projects
+      parameters:
+        - name: query
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: clientId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 25
+        - name: sort
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Paginated list of projects
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedProjectResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    post:
+      summary: Create project
+      operationId: createProject
+      tags:
+        - projects
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateProjectRequest"
+      responses:
+        "201":
+          description: Project created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProjectResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/projects/calendar:
+    get:
+      summary: Get project calendar entries
+      operationId: getProjectCalendar
+      tags:
+        - projects
+      parameters:
+        - name: start
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: end
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+      responses:
+        "200":
+          description: Calendar entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ProjectCalendarEntry"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/projects/{id}:
+    get:
+      summary: Get project by ID
+      operationId: getProjectById
+      tags:
+        - projects
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Project details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProjectDetailResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    patch:
+      summary: Update project
+      operationId: updateProject
+      tags:
+        - projects
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateProjectRequest"
+      responses:
+        "200":
+          description: Project updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProjectResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      summary: Delete project
+      operationId: deleteProject
+      tags:
+        - projects
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Project deleted
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/projects/{id}/status:
+    patch:
+      summary: Transition project status
+      operationId: updateProjectStatus
+      tags:
+        - projects
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProjectStatusTransition"
+      responses:
+        "200":
+          description: Status updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProjectResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/projects/{id}/date-ranges:
+    get:
+      summary: List project date ranges
+      operationId: listProjectDateRanges
+      tags:
+        - projects
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: List of date ranges
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ProjectDateRangeResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    post:
+      summary: Create project date range
+      operationId: createProjectDateRange
+      tags:
+        - projects
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateProjectDateRangeRequest"
+      responses:
+        "201":
+          description: Date range created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProjectDateRangeResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/projects/{id}/date-ranges/{rangeId}:
+    patch:
+      summary: Update project date range
+      operationId: updateProjectDateRange
+      tags:
+        - projects
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: rangeId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateProjectDateRangeRequest"
+      responses:
+        "200":
+          description: Date range updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProjectDateRangeResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      summary: Delete project date range
+      operationId: deleteProjectDateRange
+      tags:
+        - projects
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: rangeId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Date range deleted
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/projects/{id}/resources:
+    get:
+      summary: List project resources
+      operationId: listProjectResources
+      tags:
+        - projects
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: List of assigned resources
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ProjectResourceResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    post:
+      summary: Assign resource to project
+      operationId: assignProjectResource
+      tags:
+        - projects
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateProjectResourceRequest"
+      responses:
+        "201":
+          description: Resource assigned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProjectResourceResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/projects/{id}/resources/{prId}:
+    patch:
+      summary: Update project resource assignment
+      operationId: updateProjectResource
+      tags:
+        - projects
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: prId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateProjectResourceRequest"
+      responses:
+        "200":
+          description: Resource assignment updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProjectResourceResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      summary: Remove resource from project
+      operationId: removeProjectResource
+      tags:
+        - projects
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: prId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Resource removed
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/projects/{id}/resources/{prId}/confirm:
+    post:
+      summary: Confirm resource assignment
+      operationId: confirmProjectResource
+      tags:
+        - projects
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: prId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Resource confirmed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProjectResourceResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/projects/{id}/products:
+    get:
+      summary: List project products
+      operationId: listProjectProducts
+      tags:
+        - projects
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: List of assigned products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ProjectProductResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    post:
+      summary: Assign product to project
+      operationId: assignProjectProduct
+      tags:
+        - projects
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateProjectProductRequest"
+      responses:
+        "201":
+          description: Product assigned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProjectProductResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/projects/{id}/products/{ppId}:
+    patch:
+      summary: Update project product assignment
+      operationId: updateProjectProduct
+      tags:
+        - projects
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: ppId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateProjectProductRequest"
+      responses:
+        "200":
+          description: Product assignment updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProjectProductResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      summary: Remove product from project
+      operationId: removeProjectProduct
+      tags:
+        - projects
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: ppId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Product removed
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/projects/{id}/products/{ppId}/check-out:
+    post:
+      summary: Check out project product
+      operationId: checkOutProjectProduct
+      tags:
+        - projects
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: ppId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Product checked out
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProjectProductResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/projects/{id}/products/{ppId}/return:
+    post:
+      summary: Return project product
+      operationId: returnProjectProduct
+      tags:
+        - projects
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: ppId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Product returned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProjectProductResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/projects/{id}/recalculate:
+    post:
+      summary: Recalculate project totals
+      operationId: recalculateProjectTotals
+      tags:
+        - projects
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Totals recalculated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProjectResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
 components:
   securitySchemes:
     bearerAuth:
@@ -6694,4 +7425,508 @@ components:
         paymentMethod:
           type: string
         paymentReference:
+          type: string
+
+    # ========= Project Schemas =========
+
+    ProjectResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        clientId:
+          type: string
+          format: uuid
+        clientName:
+          type: string
+        projectNumber:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+        priority:
+          type: string
+        venueName:
+          type: string
+        location:
+          type: object
+          additionalProperties: true
+        onsiteContact:
+          type: object
+          additionalProperties: true
+        totalBillable:
+          type: number
+        totalCost:
+          type: number
+        totalProfit:
+          type: number
+        externalAccountingId:
+          type: string
+        source:
+          type: string
+        inboundRequestId:
+          type: string
+          format: uuid
+        customFields:
+          type: object
+          additionalProperties: true
+        createdById:
+          type: string
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    ProjectDetailResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        clientId:
+          type: string
+          format: uuid
+        clientName:
+          type: string
+        projectNumber:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+        priority:
+          type: string
+        venueName:
+          type: string
+        location:
+          type: object
+          additionalProperties: true
+        onsiteContact:
+          type: object
+          additionalProperties: true
+        totalBillable:
+          type: number
+        totalCost:
+          type: number
+        totalProfit:
+          type: number
+        externalAccountingId:
+          type: string
+        source:
+          type: string
+        inboundRequestId:
+          type: string
+          format: uuid
+        customFields:
+          type: object
+          additionalProperties: true
+        createdById:
+          type: string
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        dateRanges:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProjectDateRangeResponse"
+        resources:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProjectResourceResponse"
+        products:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProjectProductResponse"
+
+    PaginatedProjectResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProjectResponse"
+        page:
+          type: integer
+        size:
+          type: integer
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+
+    CreateProjectRequest:
+      type: object
+      required:
+        - title
+      properties:
+        clientId:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+        priority:
+          type: string
+        venueName:
+          type: string
+        location:
+          type: object
+          additionalProperties: true
+        onsiteContact:
+          type: object
+          additionalProperties: true
+        externalAccountingId:
+          type: string
+        source:
+          type: string
+        customFields:
+          type: object
+          additionalProperties: true
+
+    UpdateProjectRequest:
+      type: object
+      properties:
+        clientId:
+          type: string
+          format: uuid
+          nullable: true
+        title:
+          type: string
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        priority:
+          type: string
+          nullable: true
+        venueName:
+          type: string
+          nullable: true
+        location:
+          type: object
+          additionalProperties: true
+          nullable: true
+        onsiteContact:
+          type: object
+          additionalProperties: true
+          nullable: true
+        externalAccountingId:
+          type: string
+          nullable: true
+        source:
+          type: string
+          nullable: true
+        customFields:
+          type: object
+          additionalProperties: true
+          nullable: true
+
+    ProjectStatusTransition:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+
+    ProjectDateRangeResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        projectId:
+          type: string
+          format: uuid
+        dateStart:
+          type: string
+          format: date
+        dateEnd:
+          type: string
+          format: date
+        label:
+          type: string
+        rateMultiplier:
+          type: number
+        notes:
+          type: string
+        displayOrder:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+
+    CreateProjectDateRangeRequest:
+      type: object
+      required:
+        - dateStart
+        - dateEnd
+      properties:
+        dateStart:
+          type: string
+          format: date
+        dateEnd:
+          type: string
+          format: date
+        label:
+          type: string
+        rateMultiplier:
+          type: number
+        notes:
+          type: string
+        displayOrder:
+          type: integer
+
+    UpdateProjectDateRangeRequest:
+      type: object
+      properties:
+        dateStart:
+          type: string
+          format: date
+          nullable: true
+        dateEnd:
+          type: string
+          format: date
+          nullable: true
+        label:
+          type: string
+          nullable: true
+        rateMultiplier:
+          type: number
+          nullable: true
+        notes:
+          type: string
+          nullable: true
+        displayOrder:
+          type: integer
+          nullable: true
+
+    ProjectResourceResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        projectId:
+          type: string
+          format: uuid
+        resourceId:
+          type: string
+          format: uuid
+        resourceName:
+          type: string
+        role:
+          type: string
+        billRate:
+          type: number
+        payRate:
+          type: number
+        rateUnit:
+          type: string
+        perDiem:
+          type: number
+        dateRangeIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+        status:
+          type: string
+        confirmedAt:
+          type: string
+          format: date-time
+        notes:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateProjectResourceRequest:
+      type: object
+      required:
+        - resourceId
+      properties:
+        resourceId:
+          type: string
+          format: uuid
+        role:
+          type: string
+        billRate:
+          type: number
+        payRate:
+          type: number
+        rateUnit:
+          type: string
+        perDiem:
+          type: number
+        dateRangeIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+        notes:
+          type: string
+
+    UpdateProjectResourceRequest:
+      type: object
+      properties:
+        role:
+          type: string
+          nullable: true
+        billRate:
+          type: number
+          nullable: true
+        payRate:
+          type: number
+          nullable: true
+        rateUnit:
+          type: string
+          nullable: true
+        perDiem:
+          type: number
+          nullable: true
+        dateRangeIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+          nullable: true
+        notes:
+          type: string
+          nullable: true
+
+    ProjectProductResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        projectId:
+          type: string
+          format: uuid
+        productId:
+          type: string
+          format: uuid
+        productName:
+          type: string
+        inventoryItemId:
+          type: string
+          format: uuid
+        vendorId:
+          type: string
+          format: uuid
+        vendorName:
+          type: string
+        quantity:
+          type: number
+        billRate:
+          type: number
+        costRate:
+          type: number
+        rateUnit:
+          type: string
+        status:
+          type: string
+        checkedOutAt:
+          type: string
+          format: date-time
+        returnedAt:
+          type: string
+          format: date-time
+        notes:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateProjectProductRequest:
+      type: object
+      required:
+        - productId
+      properties:
+        productId:
+          type: string
+          format: uuid
+        inventoryItemId:
+          type: string
+          format: uuid
+        vendorId:
+          type: string
+          format: uuid
+        quantity:
+          type: number
+        billRate:
+          type: number
+        costRate:
+          type: number
+        rateUnit:
+          type: string
+        notes:
+          type: string
+
+    UpdateProjectProductRequest:
+      type: object
+      properties:
+        vendorId:
+          type: string
+          format: uuid
+          nullable: true
+        quantity:
+          type: number
+          nullable: true
+        billRate:
+          type: number
+          nullable: true
+        costRate:
+          type: number
+          nullable: true
+        rateUnit:
+          type: string
+          nullable: true
+        notes:
+          type: string
+          nullable: true
+
+    ProjectCalendarEntry:
+      type: object
+      properties:
+        projectId:
+          type: string
+          format: uuid
+        projectNumber:
+          type: string
+        title:
+          type: string
+        status:
+          type: string
+        clientName:
+          type: string
+        dateStart:
+          type: string
+          format: date
+        dateEnd:
+          type: string
+          format: date
+        label:
           type: string

@@ -39,3 +39,11 @@ databaseChangeLog:
             path: db/changelog/005-resources.sql
             relativeToChangelogFile: false
             splitStatements: false
+  - changeSet:
+      id: 006-projects
+      author: asap
+      changes:
+        - sqlFile:
+            path: db/changelog/006-projects.sql
+            relativeToChangelogFile: false
+            splitStatements: false
