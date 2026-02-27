@@ -104,6 +104,6 @@ public class OrganizationService {
         List<UUID> orgIds = memberships.stream().map(m -> m.getOrganization().getId()).toList();
 
         Pageable pageable = PaginationUtils.getPageable(page, size, order, sortBy);
-        return organizationRepository.findByIdInAndIsActive(orgIds, name, pageable);
+        return organizationRepository.findByIdInAndIsActive(orgIds, name == null ? "" : name, pageable);
     }
 }

@@ -3,9 +3,6 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useAuthStore } from "@/store/auth-store";
-import { authClient } from "@/lib/auth-client";
-import { isOwner } from "@/lib/permissions";
-import { API_BASE_URL } from "@/lib/utils";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,7 +18,6 @@ import {
   User,
   ChevronDown,
   Building2,
-  Download,
   Settings,
 } from "lucide-react";
 import { usePreferencesDialog } from "@/contexts/user-preferences-context";
@@ -31,62 +27,9 @@ export function ProfileMenu() {
   const { user, logout } = useAuthStore();
   const { openPreferencesDialog } = usePreferencesDialog();
   const [showOrgSwitcher, setShowOrgSwitcher] = useState(false);
-  const [isDownloading, setIsDownloading] = useState(false);
-
   if (!user) {
     return null;
   }
-
-  const canDownloadApp = isOwner(user);
-
-  const handleDownloadApp = async () => {
-    const accessToken = authClient.getAccessToken();
-    if (!accessToken) {
-      console.error("No access token available");
-      return;
-    }
-
-    setIsDownloading(true);
-    try {
-      const response = await fetch(
-        `${API_BASE_URL}/api/admin/client/download`,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Download failed");
-      }
-
-      // Get filename from Content-Disposition header or use default
-      const contentDisposition = response.headers.get("Content-Disposition");
-      let filename = "ASAP-Setup.exe";
-      if (contentDisposition) {
-        const match = /filename="?([^";\n]+)"?/.exec(contentDisposition);
-        if (match) {
-          filename = match[1];
-        }
-      }
-
-      // Create blob and trigger download
-      const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-    } catch (error) {
-      console.error("Download error:", error);
-    } finally {
-      setIsDownloading(false);
-    }
-  };
 
   const getDisplayName = (u: typeof user) => {
     if (!u) return "?";
@@ -169,17 +112,6 @@ export function ProfileMenu() {
           <Building2 className="mr-2 h-4 w-4" />
           <span>Switch Organization</span>
         </DropdownMenuItem>
-        {canDownloadApp && (
-          <DropdownMenuItem
-            onClick={handleDownloadApp}
-            disabled={isDownloading}
-          >
-            <Download className="mr-2 h-4 w-4" />
-            <span>
-              {isDownloading ? "Downloading..." : "Download Desktop App"}
-            </span>
-          </DropdownMenuItem>
-        )}
         <DropdownMenuSeparator />
         <DropdownMenuItem
           className="text-red-600 focus:text-red-600"

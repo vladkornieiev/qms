@@ -29,7 +29,7 @@ public interface OrganizationRepository extends JpaRepository<Organization, UUID
     @Query("""
             SELECT o FROM Organization o
             WHERE o.id IN :ids AND o.isActive = true
-            AND (:name IS NULL OR LOWER(o.name) LIKE LOWER(CONCAT('%', :name, '%')))
+            AND (:name = '' OR LOWER(o.name) LIKE LOWER(CONCAT('%', :name, '%')))
             """)
     Page<Organization> findByIdInAndIsActive(@Param("ids") java.util.List<UUID> ids,
                                               @Param("name") String name,

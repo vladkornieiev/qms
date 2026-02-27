@@ -29,16 +29,16 @@ public interface UserRepository extends JpaRepository<User, UUID> {
             """)
     Page<User> findAllUsers(@Param("query") String query, Pageable pageable);
 
-    @Query(value = """
-            SELECT u.* FROM users u
-            JOIN organization_members om ON om.user_id = u.id
-            WHERE om.organization_id = :organizationId
-            AND om.is_active = true
-            AND u.is_active = true
+    @Query("""
+            SELECT u FROM User u
+            JOIN u.organizationMemberships om
+            WHERE om.organization.id = :organizationId
+            AND om.isActive = true
+            AND u.isActive = true
             AND (:query = '' OR LOWER(u.email) LIKE LOWER(CONCAT('%', :query, '%'))
-                             OR LOWER(u.first_name) LIKE LOWER(CONCAT('%', :query, '%'))
-                             OR LOWER(u.last_name) LIKE LOWER(CONCAT('%', :query, '%')))
-            """, nativeQuery = true)
+                             OR LOWER(u.firstName) LIKE LOWER(CONCAT('%', :query, '%'))
+                             OR LOWER(u.lastName) LIKE LOWER(CONCAT('%', :query, '%')))
+            """)
     Page<User> findUsersByOrganization(@Param("organizationId") UUID organizationId,
                                        @Param("query") String query,
                                        Pageable pageable);
