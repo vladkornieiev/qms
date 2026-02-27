@@ -240,6 +240,35 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  /api/auth/exchange-oauth-code:
+    post:
+      summary: Exchange OAuth code for JWT tokens
+      operationId: exchangeOAuthCode
+      tags:
+        - auth
+      security: []
+      description: Exchange a short-lived OAuth authorization code for JWT access and refresh tokens. The code is single-use and expires after 30 seconds.
+      parameters:
+        - name: code
+          in: query
+          required: true
+          schema:
+            type: string
+          description: The short-lived OAuth exchange code
+      responses:
+        "200":
+          description: Code exchange successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "400":
+          description: Invalid or expired code
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
   # ========= Users =========
 
   /api/users/me:
