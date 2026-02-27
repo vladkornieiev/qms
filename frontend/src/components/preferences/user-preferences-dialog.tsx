@@ -8,15 +8,13 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Settings, FileText, Keyboard, Loader2, Ruler } from "lucide-react";
+import { Settings, Keyboard, Loader2 } from "lucide-react";
 import { useUserPreferences } from "@/contexts/user-preferences-context";
 import { SidebarItem } from "./sidebar-item";
 import { GeneralPreferencesSection } from "./sections/general-section";
-import { ChartsPreferencesSection } from "./sections/charts-section";
 import { KeyboardShortcutsSection } from "./sections/keyboard-shortcuts-section";
-import { UnitsPreferencesSection } from "./sections/units-section";
 
-type PreferenceSection = "general" | "charts" | "units" | "keyboard";
+type PreferenceSection = "general" | "keyboard";
 
 const SECTION_CONFIG: Record<
   PreferenceSection,
@@ -25,14 +23,6 @@ const SECTION_CONFIG: Record<
   general: {
     title: "General",
     description: "Manage general application settings",
-  },
-  charts: {
-    title: "Charts",
-    description: "Configure chart behavior and display options",
-  },
-  units: {
-    title: "Units",
-    description: "Set default units for displaying sensor data",
   },
   keyboard: {
     title: "Keyboard Shortcuts",
@@ -76,18 +66,6 @@ export function UserPreferencesDialog({
                 onClick={() => setActiveSection("general")}
               />
               <SidebarItem
-                icon={<FileText className="h-4 w-4" />}
-                label="Charts"
-                active={activeSection === "charts"}
-                onClick={() => setActiveSection("charts")}
-              />
-              <SidebarItem
-                icon={<Ruler className="h-4 w-4" />}
-                label="Units"
-                active={activeSection === "units"}
-                onClick={() => setActiveSection("units")}
-              />
-              <SidebarItem
                 icon={<Keyboard className="h-4 w-4" />}
                 label="Shortcuts"
                 active={activeSection === "keyboard"}
@@ -120,8 +98,6 @@ export function UserPreferencesDialog({
               ) : (
                 <>
                   {activeSection === "general" && <GeneralPreferencesSection />}
-                  {activeSection === "charts" && <ChartsPreferencesSection />}
-                  {activeSection === "units" && <UnitsPreferencesSection />}
                   {activeSection === "keyboard" && <KeyboardShortcutsSection />}
                 </>
               )}

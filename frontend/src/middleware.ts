@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { jwtDecode } from "jwt-decode";
 
 // Routes that require authentication
-const PROTECTED_ROUTES = ["/profile", "/settings", "/admin", "/users"];
+const PROTECTED_ROUTES = ["/profile", "/admin", "/users"];
 
 // Routes that should redirect to home if already authenticated
 const AUTH_ROUTES = ["/login", "/register", "/auth"];

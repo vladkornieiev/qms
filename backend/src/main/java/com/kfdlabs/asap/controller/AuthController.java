@@ -15,7 +15,6 @@ import java.util.UUID;
 
 @Slf4j
 @Controller
-@PreAuthorize("isAuthenticated()")
 @RequiredArgsConstructor
 public class AuthController implements AuthApi {
 
@@ -51,11 +50,5 @@ public class AuthController implements AuthApi {
     @Override
     public ResponseEntity<ResetPasswordMultiResponse> resetPassword(ResetPasswordRequest resetPasswordRequest) {
         return ResponseEntity.ok(authService.resetPassword(resetPasswordRequest));
-    }
-
-    @PreAuthorize("permitAll()")
-    @PostMapping("/api/auth/exchange-oauth-code")
-    public ResponseEntity<AuthResponse> exchangeOAuthCode(@RequestParam String code) {
-        return ResponseEntity.ok(authService.exchangeOAuthCode(code));
     }
 }

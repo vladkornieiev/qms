@@ -42,18 +42,6 @@
     --radius-lg: var(--radius);
     --radius-xl: calc(var(--radius) + 4px);
 
-    /* Public pages colors */
-    --color-public-primary: #3182ce;
-    --color-public-secondary: #26b34a;
-    --color-background-light: #f7fafc;
-    --color-background-dark: #1a202c;
-    --color-surface-light: #ffffff;
-    --color-surface-dark: #2d3748;
-    --color-foreground-dark: #1a202c;
-    --color-foreground-light: #ffffff;
-    --color-text-muted: #718096;
-    --color-border-light: #edf2f7;
-    --color-border-dark: #2d3748;
 }
 
 :root {
@@ -160,20 +148,4 @@
     .animate-accordion-up {
         animation: accordion-up 0.2s ease-out;
     }
-}
-
-/* Fix Leaflet map z-index to stay behind dialogs and overlays */
-.leaflet-pane,
-.leaflet-top,
-.leaflet-bottom,
-.leaflet-control {
-    z-index: 1 !important;
-}
-
-.leaflet-tooltip-pane {
-    z-index: 2 !important;
-}
-
-.leaflet-popup-pane {
-    z-index: 3 !important;
 }

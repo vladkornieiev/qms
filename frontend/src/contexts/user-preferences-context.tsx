@@ -9,16 +9,9 @@ import {
   type CurrentUserWithAttributes,
 } from "@/hooks/use-current-user-with-attributes";
 import {
-  ChartPreferences,
-  ChartDisplayConfig,
-  DefaultDocumentBehavior,
-  SamplingPreferences,
   TimezonePreferences,
-  defaultChartPreferences,
-  defaultSamplingPreferences,
   defaultTimezonePreferences,
 } from "@/types/saved-charts";
-import type { UnitPreferences } from "@/lib/units";
 
 // Re-export for backwards compatibility
 export { usePreferencesDialog } from "./preferences-dialog-context";
@@ -26,18 +19,6 @@ export { usePreferencesDialog } from "./preferences-dialog-context";
 const API_USERS_ME_ENDPOINT = "/api/users/me";
 
 interface UserPreferencesContextValue {
-  // Chart preferences
-  chartPreferences: ChartPreferences;
-  setDefaultDocumentBehavior: (
-    behavior: DefaultDocumentBehavior
-  ) => Promise<void>;
-  updateDisplayConfig: (updates: Partial<ChartDisplayConfig>) => Promise<void>;
-  updateUnitPreferences: (updates: Partial<UnitPreferences>) => Promise<void>;
-  updateSamplingPreferences: (
-    updates: Partial<SamplingPreferences>
-  ) => Promise<void>;
-  resetChartPreferences: () => Promise<void>;
-
   // Timezone preferences
   timezonePreferences: TimezonePreferences;
   updateTimezonePreferences: (
@@ -64,29 +45,6 @@ export function UserPreferencesProvider({
 
   const { data: userData, isLoading } = useCurrentUserWithAttributes();
 
-  const chartPreferences = useMemo<ChartPreferences>(() => {
-    if (!userData?.attributes) return defaultChartPreferences;
-    const stored = userData.attributes.chartPreferences as
-      | Partial<ChartPreferences>
-      | undefined;
-    return {
-      ...defaultChartPreferences,
-      ...stored,
-      defaultDisplayConfig: {
-        ...defaultChartPreferences.defaultDisplayConfig,
-        ...stored?.defaultDisplayConfig,
-      },
-      unitPreferences: {
-        ...defaultChartPreferences.unitPreferences,
-        ...stored?.unitPreferences,
-      },
-      samplingPreferences: {
-        ...defaultSamplingPreferences,
-        ...stored?.samplingPreferences,
-      },
-    };
-  }, [userData?.attributes]);
-
   const timezonePreferences = useMemo<TimezonePreferences>(() => {
     if (!userData?.attributes) return defaultTimezonePreferences;
     const stored = userData.attributes.timezonePreferences as
@@ -97,36 +55,6 @@ export function UserPreferencesProvider({
       ...stored,
     };
   }, [userData?.attributes]);
-
-  const saveMutation = useMutation({
-    mutationFn: async (newPrefs: ChartPreferences) => {
-      const currentAttributes = userData?.attributes ?? {};
-      const attributes = {
-        ...currentAttributes,
-        chartPreferences: newPrefs,
-      };
-      await authClient.apiRequest(API_USERS_ME_ENDPOINT, {
-        method: "PATCH",
-        body: JSON.stringify({ attributes }),
-      });
-      return newPrefs;
-    },
-    onSuccess: (newPrefs) => {
-      queryClient.setQueryData(
-        CURRENT_USER_QUERY_KEY,
-        (old: CurrentUserWithAttributes | null | undefined) => {
-          if (!old) return old;
-          return {
-            ...old,
-            attributes: {
-              ...old.attributes,
-              chartPreferences: newPrefs,
-            },
-          };
-        }
-      );
-    },
-  });
 
   const saveTimezoneMutation = useMutation({
     mutationFn: async (newPrefs: TimezonePreferences) => {
@@ -158,67 +86,6 @@ export function UserPreferencesProvider({
     },
   });
 
-  const setDefaultDocumentBehavior = useCallback(
-    async (behavior: DefaultDocumentBehavior) => {
-      const prefs = chartPreferences ?? defaultChartPreferences;
-      const newPrefs: ChartPreferences = {
-        ...prefs,
-        defaultDocumentBehavior: behavior,
-      };
-      await saveMutation.mutateAsync(newPrefs);
-    },
-    [chartPreferences, saveMutation]
-  );
-
-  const updateDisplayConfig = useCallback(
-    async (updates: Partial<ChartDisplayConfig>) => {
-      const prefs = chartPreferences ?? defaultChartPreferences;
-      const newPrefs: ChartPreferences = {
-        ...prefs,
-        defaultDisplayConfig: {
-          ...prefs.defaultDisplayConfig,
-          ...updates,
-        },
-      };
-      await saveMutation.mutateAsync(newPrefs);
-    },
-    [chartPreferences, saveMutation]
-  );
-
-  const updateUnitPreferences = useCallback(
-    async (updates: Partial<UnitPreferences>) => {
-      const prefs = chartPreferences ?? defaultChartPreferences;
-      const newPrefs: ChartPreferences = {
-        ...prefs,
-        unitPreferences: {
-          ...prefs.unitPreferences,
-          ...updates,
-        },
-      };
-      await saveMutation.mutateAsync(newPrefs);
-    },
-    [chartPreferences, saveMutation]
-  );
-
-  const updateSamplingPreferences = useCallback(
-    async (updates: Partial<SamplingPreferences>) => {
-      const prefs = chartPreferences ?? defaultChartPreferences;
-      const newPrefs: ChartPreferences = {
-        ...prefs,
-        samplingPreferences: {
-          ...prefs.samplingPreferences,
-          ...updates,
-        },
-      };
-      await saveMutation.mutateAsync(newPrefs);
-    },
-    [chartPreferences, saveMutation]
-  );
-
-  const resetChartPreferences = useCallback(async () => {
-    await saveMutation.mutateAsync(defaultChartPreferences);
-  }, [saveMutation]);
-
   const updateTimezonePreferences = useCallback(
     async (updates: Partial<TimezonePreferences>) => {
       const prefs = timezonePreferences ?? defaultTimezonePreferences;
@@ -242,30 +109,17 @@ export function UserPreferencesProvider({
 
   const preferencesValue: UserPreferencesContextValue = useMemo(
     () => ({
-      chartPreferences: chartPreferences ?? defaultChartPreferences,
-      setDefaultDocumentBehavior,
-      updateDisplayConfig,
-      updateUnitPreferences,
-      updateSamplingPreferences,
-      resetChartPreferences,
       timezonePreferences: timezonePreferences ?? defaultTimezonePreferences,
       updateTimezonePreferences,
       getEffectiveTimezone,
       isLoading,
-      isSaving: saveMutation.isPending || saveTimezoneMutation.isPending,
+      isSaving: saveTimezoneMutation.isPending,
     }),
     [
-      chartPreferences,
-      setDefaultDocumentBehavior,
-      updateDisplayConfig,
-      updateUnitPreferences,
-      updateSamplingPreferences,
-      resetChartPreferences,
       timezonePreferences,
       updateTimezonePreferences,
       getEffectiveTimezone,
       isLoading,
-      saveMutation.isPending,
       saveTimezoneMutation.isPending,
     ]
   );
