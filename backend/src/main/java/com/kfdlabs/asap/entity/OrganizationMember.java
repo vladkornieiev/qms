@@ -31,8 +31,9 @@ public class OrganizationMember {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 50)
-    private String role = "member";
+    private OrganizationRole role = OrganizationRole.MEMBER;
 
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)

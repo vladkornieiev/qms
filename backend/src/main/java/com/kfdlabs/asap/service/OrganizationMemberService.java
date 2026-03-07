@@ -4,6 +4,7 @@ import com.kfdlabs.asap.dto.AddOrganizationMemberRequest;
 import com.kfdlabs.asap.dto.UpdateOrganizationMemberRequest;
 import com.kfdlabs.asap.entity.Organization;
 import com.kfdlabs.asap.entity.OrganizationMember;
+import com.kfdlabs.asap.entity.OrganizationRole;
 import com.kfdlabs.asap.entity.User;
 import com.kfdlabs.asap.repository.OrganizationMemberRepository;
 import com.kfdlabs.asap.repository.OrganizationRepository;
@@ -45,7 +46,7 @@ public class OrganizationMemberService {
         OrganizationMember member = new OrganizationMember();
         member.setOrganization(org);
         member.setUser(user);
-        member.setRole(request.getRole().getValue().toLowerCase());
+        member.setRole(OrganizationRole.fromString(request.getRole().getValue()));
         member.setIsActive(true);
 
         return organizationMemberRepository.save(member);
@@ -57,14 +58,13 @@ public class OrganizationMemberService {
                 .orElseThrow(() -> new HttpClientErrorException(HttpStatus.NOT_FOUND, "error.member.not.found"));
 
         if (request.getRole() != null) {
-            String newRole = request.getRole().getValue().toLowerCase();
+            OrganizationRole newRole = OrganizationRole.fromString(request.getRole().getValue());
             // Protect last admin/owner from demotion
-            if (("owner".equals(member.getRole()) || "admin".equals(member.getRole()))
-                    && !"owner".equals(newRole) && !"admin".equals(newRole)) {
+            if (member.getRole().isAdminOrOwner() && !newRole.isAdminOrOwner()) {
                 long adminCount = organizationMemberRepository.findByOrganizationId(organizationId,
                         org.springframework.data.domain.Pageable.unpaged())
                         .getContent().stream()
-                        .filter(m -> m.getIsActive() && ("owner".equals(m.getRole()) || "admin".equals(m.getRole())))
+                        .filter(m -> m.getIsActive() && m.getRole().isAdminOrOwner())
                         .count();
                 if (adminCount <= 1) {
                     throw new HttpClientErrorException(HttpStatus.BAD_REQUEST,
@@ -86,11 +86,11 @@ public class OrganizationMemberService {
                 .orElseThrow(() -> new HttpClientErrorException(HttpStatus.NOT_FOUND, "error.member.not.found"));
 
         // Prevent removing the last admin/owner
-        if ("owner".equals(member.getRole()) || "admin".equals(member.getRole())) {
+        if (member.getRole().isAdminOrOwner()) {
             long adminCount = organizationMemberRepository.findByOrganizationId(organizationId,
                     org.springframework.data.domain.Pageable.unpaged())
                     .getContent().stream()
-                    .filter(m -> m.getIsActive() && ("owner".equals(m.getRole()) || "admin".equals(m.getRole())))
+                    .filter(m -> m.getIsActive() && m.getRole().isAdminOrOwner())
                     .count();
             if (adminCount <= 1) {
                 throw new HttpClientErrorException(HttpStatus.BAD_REQUEST,

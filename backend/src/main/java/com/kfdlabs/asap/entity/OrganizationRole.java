@@ -11,4 +11,8 @@ public enum OrganizationRole {
     public static OrganizationRole fromString(String value) {
         return OrganizationRole.valueOf(value.toUpperCase());
     }
+
+    public boolean isAdminOrOwner() {
+        return this == OWNER || this == ADMIN;
+    }
 }

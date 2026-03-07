@@ -53,7 +53,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     Optional<OrganizationMember> memberOpt =
                             organizationMemberRepository.findByOrganizationIdAndUserIdAndIsActiveTrue(organizationId, userId);
                     if (memberOpt.isPresent()) {
-                        String role = memberOpt.get().getRole().toUpperCase();
+                        String role = memberOpt.get().getRole().name();
                         authorities = List.of(new SimpleGrantedAuthority("ROLE_" + role));
                     }
                 }

@@ -3,6 +3,7 @@ package com.kfdlabs.asap.mapper;
 import com.kfdlabs.asap.dto.PaginatedOrganizationMemberResponse;
 import com.kfdlabs.asap.dto.UserRole;
 import com.kfdlabs.asap.entity.OrganizationMember;
+import com.kfdlabs.asap.entity.OrganizationRole;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.springframework.data.domain.Page;
@@ -18,8 +19,8 @@ public abstract class OrganizationMemberMapper {
     @Mapping(target = "role", expression = "java(mapRole(entity.getRole()))")
     public abstract com.kfdlabs.asap.dto.OrganizationMember toDTO(OrganizationMember entity);
 
-    protected UserRole mapRole(String role) {
-        return UserRole.fromValue(role.toUpperCase());
+    protected UserRole mapRole(OrganizationRole role) {
+        return UserRole.fromValue(role.name());
     }
 
     public PaginatedOrganizationMemberResponse toPaginatedDTO(Page<OrganizationMember> members) {

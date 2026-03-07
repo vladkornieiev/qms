@@ -45,8 +45,7 @@ export function buildUserUpdates(
   lastName: string,
   email: string,
   phone: string,
-  selectedRoles: string[],
-  filterOwner: boolean = false
+  selectedRoles: string[]
 ): UpdateUserRequest | null {
   const updates: UpdateUserRequest = {};
 
@@ -63,10 +62,7 @@ export function buildUserUpdates(
     updates.phone = phone.trim() || undefined;
   }
 
-  const currentRoles = filterOwner
-    ? (user.roles || []).filter((r) => r !== "OWNER")
-    : user.roles || [];
-
+  const currentRoles = user.roles || [];
   if (
     JSON.stringify(selectedRoles.sort()) !== JSON.stringify(currentRoles.sort())
   ) {

@@ -4,6 +4,7 @@ import com.kfdlabs.asap.dto.CreateUserRequest;
 import com.kfdlabs.asap.dto.UpdateUserRequest;
 import com.kfdlabs.asap.entity.Organization;
 import com.kfdlabs.asap.entity.OrganizationMember;
+import com.kfdlabs.asap.entity.OrganizationRole;
 import com.kfdlabs.asap.entity.User;
 import com.kfdlabs.asap.entity.UserAuthMethods;
 import com.kfdlabs.asap.repository.OrganizationMemberRepository;
@@ -72,6 +73,10 @@ public class UserService {
     }
 
     public User updateUser(UUID id, UpdateUserRequest request) {
+        return updateUser(id, request, null);
+    }
+
+    public User updateUser(UUID id, UpdateUserRequest request, UUID organizationId) {
         User user = getUserById(id);
 
         if (request.getFirstName() != null && !request.getFirstName().equals(undefined())) {
@@ -86,6 +91,17 @@ public class UserService {
         if (request.getAvatarUrl() != null && !request.getAvatarUrl().equals(undefined())) {
             var uri = request.getAvatarUrl().orElse(null);
             user.setAvatarUrl(uri != null ? uri.toString() : null);
+        }
+        if (request.getRoles() != null && !request.getRoles().equals(undefined()) && organizationId != null) {
+            List<com.kfdlabs.asap.dto.UserRole> roles = request.getRoles().orElse(List.of());
+            OrganizationRole newRole = roles.isEmpty()
+                    ? OrganizationRole.MEMBER
+                    : OrganizationRole.fromString(roles.get(0).getValue());
+            organizationMemberRepository.findByOrganizationIdAndUserIdAndIsActiveTrue(organizationId, id)
+                    .ifPresent(member -> {
+                        member.setRole(newRole);
+                        organizationMemberRepository.save(member);
+                    });
         }
 
         return userRepository.save(user);
@@ -108,9 +124,9 @@ public class UserService {
             Organization org = organizationRepository.findById(request.getOrganizationId())
                     .orElseThrow(() -> new HttpClientErrorException(HttpStatus.BAD_REQUEST, "error.organization.not.found"));
 
-            String role = (request.getRoles() != null && !request.getRoles().isEmpty())
-                    ? request.getRoles().get(0).getValue().toLowerCase()
-                    : "member";
+            OrganizationRole role = (request.getRoles() != null && !request.getRoles().isEmpty())
+                    ? OrganizationRole.fromString(request.getRoles().get(0).getValue())
+                    : OrganizationRole.MEMBER;
 
             OrganizationMember member = new OrganizationMember();
             member.setOrganization(org);
@@ -293,7 +309,8 @@ public class UserService {
     public String getUserRoleInOrganization(UUID userId, UUID organizationId) {
         if (organizationId == null) return null;
         return organizationMemberRepository.findByOrganizationIdAndUserIdAndIsActiveTrue(organizationId, userId)
-                .map(OrganizationMember::getRole)
+                .map(m -> m.getRole().name())
                 .orElse(null);
     }
+
 }

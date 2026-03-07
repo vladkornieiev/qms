@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { usersApi } from "@/lib/api-client";
 import { useTimezoneFormat } from "@/hooks/use-timezone-format";
@@ -16,8 +16,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { PaginationControls } from "@/components/ui/pagination-controls";
-import { Users, Loader2, AlertCircle, Shield, ArrowUpDown } from "lucide-react";
-import { UserActionsMenu } from "@/components/users/user-actions-menu";
+import { Users, Loader2, AlertCircle, Shield, ArrowUpDown, Pencil, Trash2 } from "lucide-react";
+import { formatEnum } from "@/lib/utils";
+import { DeleteUserDialog } from "@/components/users/delete-user-dialog";
 import { EditUserDialog } from "./edit-user-dialog";
 
 type SortField = "name" | "email" | "createdAt";
@@ -51,6 +52,8 @@ export function UsersTable({
   onSelectedIndexChange,
 }: UsersTableProps) {
   const { formatDateTime } = useTimezoneFormat();
+  const [editing, setEditing] = useState<any>(null);
+  const [deleting, setDeleting] = useState<any>(null);
 
   const {
     data: usersData,
@@ -217,7 +220,7 @@ export function UsersTable({
                             variant="secondary"
                           >
                             <Shield className="h-3 w-3 mr-1" />
-                            {role.replace("_", " ")}
+                            {formatEnum(role)}
                           </Badge>
                         ))}
                       </div>
@@ -226,7 +229,24 @@ export function UsersTable({
                       {formatDateTime(user.createdAt)}
                     </TableCell>
                     <TableCell>
-                      <UserActionsMenu user={user} onUserUpdated={() => refetch()} EditDialog={EditUserDialog} />
+                      <div className="flex items-center gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={() => setEditing(user)}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-red-500"
+                          onClick={() => setDeleting(user)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -245,6 +265,23 @@ export function UsersTable({
         onPageChange={onPageChange}
         onPageSizeChange={onPageSizeChange}
       />
+
+      {editing && (
+        <EditUserDialog
+          user={editing}
+          open={!!editing}
+          onOpenChange={(o) => !o && setEditing(null)}
+          onUserUpdated={() => refetch()}
+        />
+      )}
+      {deleting && (
+        <DeleteUserDialog
+          user={deleting}
+          open={!!deleting}
+          onOpenChange={(o) => !o && setDeleting(null)}
+          onUserDeleted={() => refetch()}
+        />
+      )}
     </>
   );
 }

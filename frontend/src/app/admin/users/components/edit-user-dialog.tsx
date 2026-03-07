@@ -83,8 +83,7 @@ export function EditUserDialog({
       lastName,
       email,
       phone,
-      [selectedRole],
-      false
+      [selectedRole]
     );
 
     if (!updates) {

@@ -78,7 +78,7 @@ export function EditUserDialog({
       setPhone(user.phone || "");
       const availableRoleValues = availableRoles.map((r) => r.value);
       const userRoles = (user.roles || ["MEMBER"]).filter(
-        (r) => r !== "OWNER" && availableRoleValues.includes(r)
+        (r) => availableRoleValues.includes(r)
       );
       setSelectedRole(userRoles[0] || DEFAULT_ROLE);
     }
@@ -100,8 +100,7 @@ export function EditUserDialog({
       lastName,
       email,
       phone,
-      [selectedRole],
-      true
+      [selectedRole]
     );
 
     if (!updates) {

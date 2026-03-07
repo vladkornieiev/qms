@@ -2,6 +2,7 @@ package com.kfdlabs.asap.repository;
 
 import com.kfdlabs.asap.entity.TagGroupMember;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -20,5 +21,7 @@ public interface TagGroupMemberRepository extends JpaRepository<TagGroupMember, 
             """)
     List<TagGroupMember> findByTagGroupIdOrderByDisplayOrder(@Param("groupId") UUID tagGroupId);
 
-    void deleteByTagGroupId(UUID tagGroupId);
+    @Modifying
+    @Query("DELETE FROM TagGroupMember m WHERE m.tagGroup.id = :groupId")
+    void deleteByTagGroupId(@Param("groupId") UUID groupId);
 }

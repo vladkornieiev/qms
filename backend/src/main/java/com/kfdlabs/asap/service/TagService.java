@@ -19,8 +19,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.HttpClientErrorException;
 
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import static org.openapitools.jackson.nullable.JsonNullable.undefined;
 
@@ -50,7 +53,7 @@ public class TagService {
         group = tagGroupRepository.save(group);
 
         if (request.getTagIds() != null) {
-            saveMembers(group, request.getTagIds(), orgId);
+            syncMembers(group, request.getTagIds(), orgId);
         }
         return group;
     }
@@ -85,9 +88,8 @@ public class TagService {
             group.setDescription(request.getDescription().orElse(null));
         }
         if (request.getTagIds() != null && !request.getTagIds().equals(undefined())) {
-            tagGroupMemberRepository.deleteByTagGroupId(id);
-            List<UUID> tagIds = request.getTagIds().orElse(List.of());
-            saveMembers(group, tagIds, orgId);
+            List<UUID> newTagIds = request.getTagIds().orElse(List.of());
+            syncMembers(group, newTagIds, orgId);
         }
         return tagGroupRepository.save(group);
     }
@@ -162,15 +164,39 @@ public class TagService {
                 PaginationUtils.getPageable(page, size, order, sortBy));
     }
 
-    private void saveMembers(TagGroup group, List<UUID> tagIds, UUID orgId) {
-        for (int i = 0; i < tagIds.size(); i++) {
-            Tag tag = getTagById(tagIds.get(i));
-            TagGroupMember member = new TagGroupMember();
-            member.setOrganizationId(orgId);
-            member.setTagGroup(group);
-            member.setTag(tag);
-            member.setDisplayOrder(i);
-            tagGroupMemberRepository.save(member);
+    private void syncMembers(TagGroup group, List<UUID> desiredTagIds, UUID orgId) {
+        List<TagGroupMember> existing = tagGroupMemberRepository.findByTagGroupIdOrderByDisplayOrder(group.getId());
+        Set<UUID> existingTagIds = existing.stream()
+                .map(m -> m.getTag().getId())
+                .collect(Collectors.toSet());
+        Set<UUID> desiredSet = new LinkedHashSet<>(desiredTagIds);
+
+        // Remove members no longer in the list
+        existing.stream()
+                .filter(m -> !desiredSet.contains(m.getTag().getId()))
+                .forEach(tagGroupMemberRepository::delete);
+
+        // Add new members and update display order
+        for (int i = 0; i < desiredTagIds.size(); i++) {
+            UUID tagId = desiredTagIds.get(i);
+            int displayOrder = i;
+            if (!existingTagIds.contains(tagId)) {
+                Tag tag = getTagById(tagId);
+                TagGroupMember member = new TagGroupMember();
+                member.setOrganizationId(orgId);
+                member.setTagGroup(group);
+                member.setTag(tag);
+                member.setDisplayOrder(displayOrder);
+                tagGroupMemberRepository.save(member);
+            } else {
+                existing.stream()
+                        .filter(m -> m.getTag().getId().equals(tagId))
+                        .findFirst()
+                        .ifPresent(m -> {
+                            m.setDisplayOrder(displayOrder);
+                            tagGroupMemberRepository.save(m);
+                        });
+            }
         }
     }
 }

@@ -21,7 +21,8 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { PaginationControls } from "@/components/ui/pagination-controls";
-import { AccountActionsMenu } from "./account-actions-menu";
+import { EditAccountDialog } from "./edit-account-dialog";
+import { DeleteAccountDialog } from "./delete-account-dialog";
 import {
   Building2,
   Loader2,
@@ -30,6 +31,8 @@ import {
   CheckCircle,
   XCircle,
   ExternalLink,
+  Pencil,
+  Trash2,
 } from "lucide-react";
 
 type SortField = "name" | "createdAt";
@@ -65,6 +68,8 @@ export function AccountsTable({
   const { loadUser } = useAuthStore();
   const { formatDateTime } = useTimezoneFormat();
   const [switchingAccount, setSwitchingAccount] = useState<string | null>(null);
+  const [editing, setEditing] = useState<any>(null);
+  const [deleting, setDeleting] = useState<any>(null);
 
   const {
     data: accountsData,
@@ -233,10 +238,22 @@ export function AccountsTable({
                             <ExternalLink className="h-4 w-4" />
                           )}
                         </Button>
-                        <AccountActionsMenu
-                          account={account}
-                          onAccountUpdated={() => refetch()}
-                        />
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={() => setEditing(account)}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-red-500"
+                          onClick={() => setDeleting(account)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
                     </TableCell>
                   </TableRow>
@@ -256,6 +273,23 @@ export function AccountsTable({
         onPageChange={onPageChange}
         onPageSizeChange={onPageSizeChange}
       />
+
+      {editing && (
+        <EditAccountDialog
+          account={editing}
+          open={!!editing}
+          onOpenChange={(o) => !o && setEditing(null)}
+          onAccountUpdated={() => refetch()}
+        />
+      )}
+      {deleting && (
+        <DeleteAccountDialog
+          account={deleting}
+          open={!!deleting}
+          onOpenChange={(o) => !o && setDeleting(null)}
+          onAccountDeleted={() => refetch()}
+        />
+      )}
     </>
   );
 }

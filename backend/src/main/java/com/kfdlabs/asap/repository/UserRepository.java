@@ -35,8 +35,18 @@ public interface UserRepository extends JpaRepository<User, UUID> {
             """)
     Page<User> findAllUsers(@Param("query") String query, Pageable pageable);
 
-    @Query("""
+    @Query(value = """
             SELECT u FROM User u
+            JOIN FETCH u.organizationMemberships om
+            WHERE om.organization.id = :organizationId
+            AND om.isActive = true
+            AND u.isActive = true
+            AND (:query = '' OR LOWER(u.email) LIKE LOWER(CONCAT('%', :query, '%'))
+                             OR LOWER(u.firstName) LIKE LOWER(CONCAT('%', :query, '%'))
+                             OR LOWER(u.lastName) LIKE LOWER(CONCAT('%', :query, '%')))
+            """,
+            countQuery = """
+            SELECT COUNT(u) FROM User u
             JOIN u.organizationMemberships om
             WHERE om.organization.id = :organizationId
             AND om.isActive = true

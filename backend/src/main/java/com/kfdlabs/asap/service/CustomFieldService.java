@@ -19,8 +19,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.HttpClientErrorException;
 
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import static org.openapitools.jackson.nullable.JsonNullable.undefined;
 
@@ -111,7 +114,7 @@ public class CustomFieldService {
         group = groupRepository.save(group);
 
         if (request.getFieldIds() != null) {
-            saveMembers(group, request.getFieldIds(), orgId);
+            syncMembers(group, request.getFieldIds(), orgId);
         }
         return group;
     }
@@ -143,9 +146,8 @@ public class CustomFieldService {
             group.setDescription(request.getDescription().orElse(null));
         }
         if (request.getFieldIds() != null && !request.getFieldIds().equals(undefined())) {
-            memberRepository.deleteByCustomFieldGroupId(id);
-            List<UUID> fieldIds = request.getFieldIds().orElse(List.of());
-            saveMembers(group, fieldIds, orgId);
+            List<UUID> newFieldIds = request.getFieldIds().orElse(List.of());
+            syncMembers(group, newFieldIds, orgId);
         }
         return groupRepository.save(group);
     }
@@ -165,15 +167,39 @@ public class CustomFieldService {
                 PaginationUtils.getPageable(page, size, order, sortBy));
     }
 
-    private void saveMembers(CustomFieldGroup group, List<UUID> fieldIds, UUID orgId) {
-        for (int i = 0; i < fieldIds.size(); i++) {
-            CustomFieldDefinition def = getDefinitionById(fieldIds.get(i));
-            CustomFieldGroupMember member = new CustomFieldGroupMember();
-            member.setOrganizationId(orgId);
-            member.setCustomFieldGroup(group);
-            member.setCustomFieldDefinition(def);
-            member.setDisplayOrder(i);
-            memberRepository.save(member);
+    private void syncMembers(CustomFieldGroup group, List<UUID> desiredFieldIds, UUID orgId) {
+        List<CustomFieldGroupMember> existing = memberRepository.findByCustomFieldGroupIdOrderByDisplayOrder(group.getId());
+        Set<UUID> existingFieldIds = existing.stream()
+                .map(m -> m.getCustomFieldDefinition().getId())
+                .collect(Collectors.toSet());
+        Set<UUID> desiredSet = new LinkedHashSet<>(desiredFieldIds);
+
+        // Remove members no longer in the list
+        existing.stream()
+                .filter(m -> !desiredSet.contains(m.getCustomFieldDefinition().getId()))
+                .forEach(memberRepository::delete);
+
+        // Add new members and update display order
+        for (int i = 0; i < desiredFieldIds.size(); i++) {
+            UUID fieldId = desiredFieldIds.get(i);
+            int displayOrder = i;
+            if (!existingFieldIds.contains(fieldId)) {
+                CustomFieldDefinition def = getDefinitionById(fieldId);
+                CustomFieldGroupMember member = new CustomFieldGroupMember();
+                member.setOrganizationId(orgId);
+                member.setCustomFieldGroup(group);
+                member.setCustomFieldDefinition(def);
+                member.setDisplayOrder(displayOrder);
+                memberRepository.save(member);
+            } else {
+                existing.stream()
+                        .filter(m -> m.getCustomFieldDefinition().getId().equals(fieldId))
+                        .findFirst()
+                        .ifPresent(m -> {
+                            m.setDisplayOrder(displayOrder);
+                            memberRepository.save(m);
+                        });
+            }
         }
     }
 }

@@ -13,7 +13,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -33,25 +32,13 @@ public class UserController implements UsersApi {
     @Override
     public ResponseEntity<CurrentUser> getCurrentUser() {
         var user = userService.getUserByEmail(getCurrentUserEmail());
-        var dto = userMapper.toCurrentUserDTO(user);
-        dto.setOrganizationId(getCurrentOrganizationId());
-        String role = userService.getUserRoleInOrganization(user.getId(), getCurrentOrganizationId());
-        if (role != null) {
-            dto.setRoles(List.of(UserRole.fromValue(role.toUpperCase())));
-        }
-        return ResponseEntity.ok(dto);
+        return ResponseEntity.ok(userMapper.toCurrentUserDTOWithRole(user, getCurrentOrganizationId()));
     }
 
     @Override
     public ResponseEntity<CurrentUser> updateCurrentUser(UpdateUserRequest updateUserRequest) {
         var user = userService.updateUser(getCurrentUserId(), updateUserRequest);
-        var dto = userMapper.toCurrentUserDTO(user);
-        dto.setOrganizationId(getCurrentOrganizationId());
-        String role = userService.getUserRoleInOrganization(user.getId(), getCurrentOrganizationId());
-        if (role != null) {
-            dto.setRoles(List.of(UserRole.fromValue(role.toUpperCase())));
-        }
-        return ResponseEntity.ok(dto);
+        return ResponseEntity.ok(userMapper.toCurrentUserDTOWithRole(user, getCurrentOrganizationId()));
     }
 
     @Override
@@ -104,11 +91,11 @@ public class UserController implements UsersApi {
         return ResponseEntity.ok(userMapper.toDTO(userService.createUser(createUserRequest)));
     }
 
-    @PreAuthorize("hasAnyRole('ROLE_OWNER', 'ROLE_ADMIN')")
+    @PreAuthorize("hasAnyRole('ROLE_OWNER', 'ROLE_ADMIN', 'ROLE_PLATFORM_ADMIN')")
     @Override
     public ResponseEntity<User> createUser(CreateUserRequest createUserRequest) {
         createUserRequest.setOrganizationId(getCurrentOrganizationId());
-        return ResponseEntity.ok(userMapper.toDTO(userService.createUser(createUserRequest)));
+        return ResponseEntity.ok(userMapper.toDTOWithRole(userService.createUser(createUserRequest), getCurrentOrganizationId()));
     }
 
     @PreAuthorize("hasRole('ROLE_PLATFORM_ADMIN')")
@@ -118,7 +105,7 @@ public class UserController implements UsersApi {
         return ResponseEntity.ok().build();
     }
 
-    @PreAuthorize("hasAnyRole('ROLE_OWNER', 'ROLE_ADMIN')")
+    @PreAuthorize("hasAnyRole('ROLE_OWNER', 'ROLE_ADMIN', 'ROLE_PLATFORM_ADMIN')")
     @Override
     public ResponseEntity<Void> deleteUserById(UUID id) {
         userService.deleteUserById(id);
@@ -134,12 +121,13 @@ public class UserController implements UsersApi {
         return ResponseEntity.ok(userMapper.toPaginatedDTO(users));
     }
 
-    @PreAuthorize("hasAnyRole('ROLE_OWNER', 'ROLE_ADMIN')")
+    @PreAuthorize("hasAnyRole('ROLE_OWNER', 'ROLE_ADMIN', 'ROLE_PLATFORM_ADMIN')")
     @Override
     public ResponseEntity<PaginatedUserResponse> findUsers(
             String query, Integer page, Integer size, String sortBy, String order) {
-        var users = userService.findUsersByOrganization(getCurrentOrganizationId(), query, page, size, sortBy, order);
-        return ResponseEntity.ok(userMapper.toPaginatedDTO(users));
+        UUID orgId = getCurrentOrganizationId();
+        var users = userService.findUsersByOrganization(orgId, query, page, size, sortBy, order);
+        return ResponseEntity.ok(userMapper.toPaginatedDTOWithRoles(users, orgId));
     }
 
     @PreAuthorize("hasRole('ROLE_PLATFORM_ADMIN')")
@@ -148,10 +136,10 @@ public class UserController implements UsersApi {
         return ResponseEntity.ok(userMapper.toDTO(userService.getUserById(id)));
     }
 
-    @PreAuthorize("hasAnyRole('ROLE_OWNER', 'ROLE_ADMIN')")
+    @PreAuthorize("hasAnyRole('ROLE_OWNER', 'ROLE_ADMIN', 'ROLE_PLATFORM_ADMIN')")
     @Override
     public ResponseEntity<User> getUserById(UUID id) {
-        return ResponseEntity.ok(userMapper.toDTO(userService.getUserById(id)));
+        return ResponseEntity.ok(userMapper.toDTOWithRole(userService.getUserById(id), getCurrentOrganizationId()));
     }
 
     @PreAuthorize("hasRole('ROLE_PLATFORM_ADMIN')")
@@ -160,9 +148,10 @@ public class UserController implements UsersApi {
         return ResponseEntity.ok(userMapper.toDTO(userService.updateUser(id, updateUserRequest)));
     }
 
-    @PreAuthorize("hasAnyRole('ROLE_OWNER', 'ROLE_ADMIN')")
+    @PreAuthorize("hasAnyRole('ROLE_OWNER', 'ROLE_ADMIN', 'ROLE_PLATFORM_ADMIN')")
     @Override
     public ResponseEntity<User> updateUser(UUID id, UpdateUserRequest updateUserRequest) {
-        return ResponseEntity.ok(userMapper.toDTO(userService.updateUser(id, updateUserRequest)));
+        UUID orgId = getCurrentOrganizationId();
+        return ResponseEntity.ok(userMapper.toDTOWithRole(userService.updateUser(id, updateUserRequest, orgId), orgId));
     }
 }
