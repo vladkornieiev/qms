@@ -21,7 +21,7 @@
 --   §7  Vendors        vendors
 --   §8  Products       products, inventory_items, stock_levels, inventory_transactions
 --   §9  Resources      resources, resource_availability, resource_payouts
---   §10 Projects       projects, project_date_ranges, project_resources, project_products
+--   §10 Projects       projects, jobs, job_people, job_products
 --   §11 Pipeline       inbound_requests
 --   §12 Quotes         quotes, quote_line_items
 --   §13 Invoices       invoices, invoice_line_items, payments
@@ -31,7 +31,6 @@
 --   §17 Comms          communication_log
 --   §18 Activity       activity_log, notifications
 --   §19 Integrations   integrations, integration_sync_log
--- TODO - jobs (multi-location projects)
 --
 -- ============================================================================
 
@@ -839,10 +838,20 @@ SELECT fn_create_updated_at_trigger('resource_payouts');
 
 
 -- ============================================================================
--- §10. PROJECTS (Gigs / Jobs / Engagements)
+-- §10. PROJECTS & JOBS
 -- ============================================================================
+-- Project = deal/contract container (client, billing, financials).
+-- Job = specific work assignment (where, when, who, what equipment).
+--
 -- Lifecycle: pending → approved → in_progress → completed | cancelled
 -- Financial totals computed via v_project_financials view (no denormalized columns).
+--
+-- Example: Project "Charlie Puth Summer Tour"
+--   ├── Job "MSG Show"      → jobsite: MSG,     Jan 15-16, multiplier 1.0
+--   ├── Job "Off/Travel"    → jobsite: null,     Jan 17-19, multiplier 0.5
+--   └── Job "Staples Show"  → jobsite: Staples,  Jan 20-21, multiplier 1.0
+--
+-- Simple case: 1 project = 1 job (app auto-creates).
 
 CREATE TABLE projects
 (
@@ -856,7 +865,6 @@ CREATE TABLE projects
         CHECK (status IN ('pending', 'approved', 'in_progress', 'completed', 'cancelled')),
     priority               VARCHAR(20)           DEFAULT 'normal'
         CHECK (priority IN ('low', 'normal', 'high', 'urgent')),
-    jobsite_id             UUID         NOT NULL REFERENCES jobsites (id) ON DELETE RESTRICT,
     external_accounting_id VARCHAR(100),
     source                 VARCHAR(50)
         CHECK (source IS NULL OR source IN ('website_form', 'referral', 'repeat_client', 'manual', 'api')),
@@ -868,42 +876,42 @@ CREATE TABLE projects
 
 CREATE INDEX idx_projects_org ON projects (organization_id);
 CREATE INDEX idx_projects_client ON projects (client_id);
-CREATE INDEX idx_projects_jobsite ON projects (jobsite_id);
 CREATE INDEX idx_projects_status ON projects (organization_id, status);
 CREATE INDEX idx_projects_number ON projects (organization_id, project_number);
 
--- Multiple date ranges per project — solves "Charlie Puth problem"
--- Example: 1 project, 3 ranges:
---   {label:"Tour Leg 1",  "01-05"→"01-15", multiplier:1.0}
---   {label:"Off Days",    "01-16"→"01-20", multiplier:0.5}
---   {label:"Tour Leg 2",  "02-01"→"02-10", multiplier:1.0}
-CREATE TABLE project_date_ranges
+-- Jobs: the operational unit — where, when, who, what
+CREATE TABLE jobs
 (
     id              UUID PRIMARY KEY       DEFAULT uuid_generate_v4(),
     organization_id UUID          NOT NULL REFERENCES organizations (id) ON DELETE CASCADE,
     project_id      UUID          NOT NULL REFERENCES projects (id) ON DELETE CASCADE,
+    jobsite_id      UUID          REFERENCES jobsites (id) ON DELETE SET NULL, -- null for travel/off days
+    title           VARCHAR(255)  NOT NULL, -- "MSG Show", "Load-in Day", "Off/Travel"
     date_start      DATE          NOT NULL,
     date_end        DATE          NOT NULL,
-    label           VARCHAR(100),
-    rate_multiplier NUMERIC(5, 2) NOT NULL DEFAULT 1.00,
-    notes           TEXT,
+    rate_multiplier NUMERIC(5, 2) NOT NULL DEFAULT 1.00, -- billing adjustment (0.5 for off days, etc.)
+    status          VARCHAR(30)   NOT NULL DEFAULT 'scheduled'
+        CHECK (status IN ('scheduled', 'in_progress', 'completed', 'cancelled')),
     display_order   INT           NOT NULL DEFAULT 0,
+    notes           TEXT,
     created_at      TIMESTAMP     NOT NULL DEFAULT NOW(),
+    updated_at      TIMESTAMP     NOT NULL DEFAULT NOW(),
     CHECK (date_end >= date_start),
     CHECK (rate_multiplier >= 0)
 );
 
-CREATE INDEX idx_project_dates_project ON project_date_ranges (project_id);
-CREATE INDEX idx_project_dates_range ON project_date_ranges (date_start, date_end);
-CREATE INDEX idx_project_dates_org ON project_date_ranges (organization_id);
+CREATE INDEX idx_jobs_project ON jobs (project_id);
+CREATE INDEX idx_jobs_jobsite ON jobs (jobsite_id);
+CREATE INDEX idx_jobs_dates ON jobs (date_start, date_end);
+CREATE INDEX idx_jobs_org ON jobs (organization_id);
 
--- People assigned to project
--- Example: Jesse as "Playback Engineer", bill $800/day, pay $650/day
-CREATE TABLE project_people
+-- People assigned to a job
+-- Example: Jesse as "Playback Engineer" on MSG Show, bill $800/day, pay $650/day
+CREATE TABLE job_people
 (
     id              UUID PRIMARY KEY     DEFAULT uuid_generate_v4(),
     organization_id UUID        NOT NULL REFERENCES organizations (id) ON DELETE CASCADE,
-    project_id      UUID        NOT NULL REFERENCES projects (id) ON DELETE CASCADE,
+    job_id          UUID        NOT NULL REFERENCES jobs (id) ON DELETE CASCADE,
     resource_id     UUID        NOT NULL REFERENCES people (id) ON DELETE CASCADE,
     role            VARCHAR(100),
     bill_rate       NUMERIC(10, 2),
@@ -911,7 +919,6 @@ CREATE TABLE project_people
     rate_unit       VARCHAR(20)          DEFAULT 'day'
         CHECK (rate_unit IN ('day', 'hour', 'flat', 'week')),
     per_diem        NUMERIC(10, 2),
-    date_range_ids  UUID[], -- which project_date_ranges apply
     status          VARCHAR(30) NOT NULL DEFAULT 'pending'
         CHECK (status IN ('pending', 'confirmed', 'declined', 'cancelled')),
     confirmed_at    TIMESTAMP,
@@ -920,19 +927,19 @@ CREATE TABLE project_people
     updated_at      TIMESTAMP   NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX idx_proj_resources_project ON project_people (project_id);
-CREATE INDEX idx_proj_resources_resource ON project_people (resource_id);
-CREATE INDEX idx_proj_resources_org ON project_people (organization_id);
+CREATE INDEX idx_job_people_job ON job_people (job_id);
+CREATE INDEX idx_job_people_resource ON job_people (resource_id);
+CREATE INDEX idx_job_people_org ON job_people (organization_id);
 
--- Equipment / consumables assigned to project
+-- Equipment / consumables assigned to a job
 -- Serialized: product_id + inventory_item_id → checked_out / returned
 -- Consumable: product_id only → consumed (qty used)
--- vendor_id: sub-rented from this vendor for this specific project
-CREATE TABLE project_products
+-- vendor_id: sub-rented from this vendor for this specific job
+CREATE TABLE job_products
 (
     id                UUID PRIMARY KEY        DEFAULT uuid_generate_v4(),
     organization_id   UUID           NOT NULL REFERENCES organizations (id) ON DELETE CASCADE,
-    project_id        UUID           NOT NULL REFERENCES projects (id) ON DELETE CASCADE,
+    job_id            UUID           NOT NULL REFERENCES jobs (id) ON DELETE CASCADE,
     product_id        UUID           NOT NULL REFERENCES products (id) ON DELETE CASCADE,
     inventory_item_id UUID           REFERENCES inventory_items (id) ON DELETE SET NULL,
     vendor_id         UUID           REFERENCES vendors (id) ON DELETE SET NULL,
@@ -952,15 +959,16 @@ CREATE TABLE project_products
     updated_at        TIMESTAMP      NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX idx_proj_products_project ON project_products (project_id);
-CREATE INDEX idx_proj_products_product ON project_products (product_id);
-CREATE INDEX idx_proj_products_vendor ON project_products (vendor_id);
-CREATE INDEX idx_proj_products_item ON project_products (inventory_item_id);
-CREATE INDEX idx_proj_products_org ON project_products (organization_id);
+CREATE INDEX idx_job_products_job ON job_products (job_id);
+CREATE INDEX idx_job_products_product ON job_products (product_id);
+CREATE INDEX idx_job_products_vendor ON job_products (vendor_id);
+CREATE INDEX idx_job_products_item ON job_products (inventory_item_id);
+CREATE INDEX idx_job_products_org ON job_products (organization_id);
 
 SELECT fn_create_updated_at_trigger('projects');
-SELECT fn_create_updated_at_trigger('project_resources');
-SELECT fn_create_updated_at_trigger('project_products');
+SELECT fn_create_updated_at_trigger('jobs');
+SELECT fn_create_updated_at_trigger('job_people');
+SELECT fn_create_updated_at_trigger('job_products');
 
 
 -- ============================================================================
@@ -1450,7 +1458,7 @@ $$
                 'vendors',
                 'products','inventory_items','stock_levels','inventory_transactions',
                 'people','people_availability','people_payouts',
-                'projects','project_date_ranges','project_people','project_products',
+                'projects','jobs','job_people','job_products',
                 'inbound_requests',
                 'quotes','quote_line_items',
                 'invoices','invoice_line_items','payments',
