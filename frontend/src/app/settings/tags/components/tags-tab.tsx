@@ -1,12 +1,11 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { tagsApi, type Tag, type TagGroup } from "@/lib/api-client";
+import { tagsApi, type Tag } from "@/lib/api-client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -15,13 +14,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { PaginationControls } from "@/components/ui/pagination-controls";
 import { Search, Pencil, Trash2, Loader2, Tags } from "lucide-react";
 import { QUERY_KEYS } from "@/lib/constants/query-keys";
@@ -38,7 +30,6 @@ interface TagsTabProps {
 export function TagsTab({ onChanged, createOpen, onCreateOpenChange }: TagsTabProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [filterGroupId, setFilterGroupId] = useState<string | undefined>();
   const [page, setPage] = useState(0);
   const [pageSize] = useState(20);
   const [editing, setEditing] = useState<Tag | null>(null);
@@ -49,23 +40,15 @@ export function TagsTab({ onChanged, createOpen, onCreateOpenChange }: TagsTabPr
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  useEffect(() => setPage(0), [debouncedSearch, filterGroupId]);
-
-  const { data: groupsData } = useQuery({
-    queryKey: [QUERY_KEYS.TAG_GROUPS, "all"],
-    queryFn: () => tagsApi.listTagGroups({ size: 100 }),
-  });
-
-  const groups = useMemo(() => groupsData?.items || [], [groupsData]);
+  useEffect(() => setPage(0), [debouncedSearch]);
 
   const { data, isLoading } = useQuery({
-    queryKey: [QUERY_KEYS.TAGS, page, pageSize, debouncedSearch, filterGroupId],
+    queryKey: [QUERY_KEYS.TAGS, page, pageSize, debouncedSearch],
     queryFn: () =>
       tagsApi.listTags({
         page,
         size: pageSize,
         query: debouncedSearch || undefined,
-        tagGroupId: filterGroupId,
       }),
   });
 
@@ -73,37 +56,17 @@ export function TagsTab({ onChanged, createOpen, onCreateOpenChange }: TagsTabPr
 
   return (
     <div className="space-y-4">
-      {/* Search + Filter */}
+      {/* Search */}
       <Card className="py-3">
         <CardContent className="px-3">
-          <div className="flex gap-2">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <Input
-                placeholder="Search tags..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-            {groups.length > 0 && (
-              <Select
-                value={filterGroupId ?? "all"}
-                onValueChange={(v) => setFilterGroupId(v === "all" ? undefined : v)}
-              >
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="All groups" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All groups</SelectItem>
-                  {groups.map((g) => (
-                    <SelectItem key={g.id} value={g.id}>
-                      {g.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Input
+              placeholder="Search tags..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10"
+            />
           </div>
         </CardContent>
       </Card>
@@ -136,7 +99,6 @@ export function TagsTab({ onChanged, createOpen, onCreateOpenChange }: TagsTabPr
                   <TableHeader>
                     <TableRow>
                       <TableHead>Name</TableHead>
-                      <TableHead>Group</TableHead>
                       <TableHead className="w-[80px]">Color</TableHead>
                       <TableHead className="w-[100px]">Actions</TableHead>
                     </TableRow>
@@ -154,13 +116,6 @@ export function TagsTab({ onChanged, createOpen, onCreateOpenChange }: TagsTabPr
                             )}
                             {tag.name}
                           </div>
-                        </TableCell>
-                        <TableCell>
-                          {tag.tagGroupName ? (
-                            <Badge variant="outline">{tag.tagGroupName}</Badge>
-                          ) : (
-                            <span className="text-gray-400">-</span>
-                          )}
                         </TableCell>
                         <TableCell>
                           {tag.color ? (
@@ -211,13 +166,11 @@ export function TagsTab({ onChanged, createOpen, onCreateOpenChange }: TagsTabPr
       <CreateTagDialog
         open={createOpen}
         onOpenChange={onCreateOpenChange}
-        groups={groups}
         onCreated={onChanged}
       />
       {editing && (
         <EditTagDialog
           tag={editing}
-          groups={groups}
           open={!!editing}
           onOpenChange={(o) => !o && setEditing(null)}
           onUpdated={onChanged}

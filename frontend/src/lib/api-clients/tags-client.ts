@@ -56,7 +56,6 @@ export class TagsApiClient extends BaseApiClient {
   async listTags(
     params: {
       query?: string;
-      tagGroupId?: string;
       page?: number;
       size?: number;
       sortBy?: string;

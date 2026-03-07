@@ -6,6 +6,7 @@ import { tagsApi, type TagGroup } from "@/lib/api-client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -99,6 +100,7 @@ export function TagGroupsTab({ onChanged, createOpen, onCreateOpenChange }: TagG
                   <TableHeader>
                     <TableRow>
                       <TableHead>Name</TableHead>
+                      <TableHead>Tags</TableHead>
                       <TableHead className="w-[80px]">Color</TableHead>
                       <TableHead className="w-[100px]">Actions</TableHead>
                     </TableRow>
@@ -123,6 +125,29 @@ export function TagGroupsTab({ onChanged, createOpen, onCreateOpenChange }: TagG
                               )}
                             </div>
                           </div>
+                        </TableCell>
+                        <TableCell>
+                          {group.tags && group.tags.length > 0 ? (
+                            <div className="flex flex-wrap gap-1">
+                              {group.tags.map((t) => (
+                                <Badge
+                                  key={t.id}
+                                  variant="secondary"
+                                  className="text-xs gap-1"
+                                >
+                                  {t.color && (
+                                    <div
+                                      className="h-2 w-2 rounded-full shrink-0"
+                                      style={{ backgroundColor: t.color }}
+                                    />
+                                  )}
+                                  {t.name}
+                                </Badge>
+                              ))}
+                            </div>
+                          ) : (
+                            <span className="text-gray-400">No tags</span>
+                          )}
                         </TableCell>
                         <TableCell>
                           {group.color ? (

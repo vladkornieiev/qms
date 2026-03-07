@@ -22,25 +22,30 @@ public class TagController implements TagsApi {
     public ResponseEntity<PaginatedTagGroupResponse> listTagGroups(
             String query, Integer page, Integer size, String sortBy, String order) {
         var groups = tagService.findAllTagGroups(query, page, size, sortBy, order);
-        return ResponseEntity.ok(tagMapper.toPaginatedTagGroupDTO(groups));
+        return ResponseEntity.ok(tagMapper.toPaginatedTagGroupDTO(groups, tagService::getTagGroupMembers));
     }
 
     @PreAuthorize("hasAnyRole('ROLE_OWNER', 'ROLE_ADMIN', 'ROLE_PLATFORM_ADMIN')")
     @Override
     public ResponseEntity<TagGroupResponse> createTagGroup(CreateTagGroupRequest request) {
         var group = tagService.createTagGroup(request);
-        return ResponseEntity.status(201).body(tagMapper.toTagGroupDTO(group));
+        var members = tagService.getTagGroupMembers(group.getId());
+        return ResponseEntity.status(201).body(tagMapper.toTagGroupDTO(group, members));
     }
 
     @Override
     public ResponseEntity<TagGroupResponse> getTagGroup(UUID id) {
-        return ResponseEntity.ok(tagMapper.toTagGroupDTO(tagService.getTagGroupById(id)));
+        var group = tagService.getTagGroupById(id);
+        var members = tagService.getTagGroupMembers(id);
+        return ResponseEntity.ok(tagMapper.toTagGroupDTO(group, members));
     }
 
     @PreAuthorize("hasAnyRole('ROLE_OWNER', 'ROLE_ADMIN', 'ROLE_PLATFORM_ADMIN')")
     @Override
     public ResponseEntity<TagGroupResponse> updateTagGroup(UUID id, UpdateTagGroupRequest request) {
-        return ResponseEntity.ok(tagMapper.toTagGroupDTO(tagService.updateTagGroup(id, request)));
+        var group = tagService.updateTagGroup(id, request);
+        var members = tagService.getTagGroupMembers(id);
+        return ResponseEntity.ok(tagMapper.toTagGroupDTO(group, members));
     }
 
     @PreAuthorize("hasAnyRole('ROLE_OWNER', 'ROLE_ADMIN', 'ROLE_PLATFORM_ADMIN')")
@@ -52,8 +57,8 @@ public class TagController implements TagsApi {
 
     @Override
     public ResponseEntity<PaginatedTagResponse> listTags(
-            String query, UUID tagGroupId, Integer page, Integer size, String sortBy, String order) {
-        var tags = tagService.findAllTags(query, tagGroupId, page, size, sortBy, order);
+            String query, Integer page, Integer size, String sortBy, String order) {
+        var tags = tagService.findAllTags(query, page, size, sortBy, order);
         return ResponseEntity.ok(tagMapper.toPaginatedTagDTO(tags));
     }
 

@@ -29,6 +29,7 @@ export type {
 
 // Tag types
 export type {
+  TagSummary,
   TagGroup,
   Tag,
   CreateTagGroupRequest,

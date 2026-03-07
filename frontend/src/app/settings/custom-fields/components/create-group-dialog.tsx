@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { customFieldsApi } from "@/lib/api-client";
@@ -17,7 +17,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -25,7 +31,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Loader2, AlertCircle } from "lucide-react";
+import { Loader2, AlertCircle, ChevronsUpDown, Search, X } from "lucide-react";
 import { QUERY_KEYS } from "@/lib/constants/query-keys";
 
 const ENTITY_TYPES = [
@@ -55,6 +61,8 @@ export function CreateGroupDialog({
   const [entityType, setEntityType] = useState("");
   const [selectedFieldIds, setSelectedFieldIds] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [fieldSearch, setFieldSearch] = useState("");
+  const [fieldDropdownOpen, setFieldDropdownOpen] = useState(false);
 
   const { data: defsData } = useQuery({
     queryKey: [QUERY_KEYS.CUSTOM_FIELD_DEFINITIONS, "all"],
@@ -63,6 +71,19 @@ export function CreateGroupDialog({
   });
 
   const allDefs = defsData?.items || [];
+
+  const filteredDefs = useMemo(
+    () =>
+      allDefs.filter((def) =>
+        def.fieldLabel.toLowerCase().includes(fieldSearch.toLowerCase())
+      ),
+    [allDefs, fieldSearch]
+  );
+
+  const selectedDefs = useMemo(
+    () => allDefs.filter((def) => selectedFieldIds.includes(def.id)),
+    [allDefs, selectedFieldIds]
+  );
 
   const mutation = useMutation({
     mutationFn: () =>
@@ -88,6 +109,7 @@ export function CreateGroupDialog({
     setDescription("");
     setEntityType("");
     setSelectedFieldIds([]);
+    setFieldSearch("");
     setError(null);
   };
 
@@ -179,24 +201,80 @@ export function CreateGroupDialog({
             {allDefs.length > 0 && (
               <div className="space-y-2">
                 <Label>Fields</Label>
-                <div className="border rounded-md max-h-[200px] overflow-y-auto p-2 space-y-2">
-                  {allDefs.map((def) => (
-                    <label
-                      key={def.id}
-                      className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 rounded p-1"
+                <Popover open={fieldDropdownOpen} onOpenChange={setFieldDropdownOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      role="combobox"
+                      className="w-full justify-between font-normal"
+                      disabled={mutation.isPending}
                     >
-                      <Checkbox
-                        checked={selectedFieldIds.includes(def.id)}
-                        onCheckedChange={() => toggleField(def.id)}
-                        disabled={mutation.isPending}
-                      />
-                      <span className="text-sm">{def.fieldLabel}</span>
-                      <code className="text-xs text-gray-400 ml-auto">
-                        {formatEnum(def.fieldType)}
-                      </code>
-                    </label>
-                  ))}
-                </div>
+                      <span className="text-muted-foreground">
+                        {selectedFieldIds.length > 0
+                          ? `${selectedFieldIds.length} field${selectedFieldIds.length > 1 ? "s" : ""} selected`
+                          : "Select fields..."}
+                      </span>
+                      <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="p-0">
+                    <div className="p-2 border-b">
+                      <div className="relative">
+                        <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          placeholder="Search fields..."
+                          value={fieldSearch}
+                          onChange={(e) => setFieldSearch(e.target.value)}
+                          className="pl-8 h-8"
+                        />
+                      </div>
+                    </div>
+                    <div className="max-h-[200px] overflow-y-auto p-1">
+                      {filteredDefs.length === 0 ? (
+                        <p className="text-sm text-muted-foreground text-center py-4">
+                          No fields found
+                        </p>
+                      ) : (
+                        filteredDefs.map((def) => (
+                          <label
+                            key={def.id}
+                            className="flex items-center gap-2 cursor-pointer hover:bg-accent rounded px-2 py-1.5"
+                          >
+                            <Checkbox
+                              checked={selectedFieldIds.includes(def.id)}
+                              onCheckedChange={() => toggleField(def.id)}
+                            />
+                            <span className="text-sm">{def.fieldLabel}</span>
+                            <code className="text-xs text-muted-foreground ml-auto">
+                              {formatEnum(def.fieldType)}
+                            </code>
+                          </label>
+                        ))
+                      )}
+                    </div>
+                  </PopoverContent>
+                </Popover>
+                {selectedDefs.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 pt-1">
+                    {selectedDefs.map((def) => (
+                      <Badge
+                        key={def.id}
+                        variant="secondary"
+                        className="gap-1 pr-1"
+                      >
+                        {def.fieldLabel}
+                        <button
+                          type="button"
+                          className="rounded-full hover:bg-gray-300 p-0.5"
+                          onClick={() => toggleField(def.id)}
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </Badge>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
             {error && (

@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { tagsApi, type TagGroup } from "@/lib/api-client";
+import { tagsApi } from "@/lib/api-client";
 import {
   Dialog,
   DialogContent,
@@ -15,31 +15,21 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Loader2, AlertCircle } from "lucide-react";
 
 interface CreateTagDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  groups: TagGroup[];
   onCreated: () => void;
 }
 
 export function CreateTagDialog({
   open,
   onOpenChange,
-  groups,
   onCreated,
 }: CreateTagDialogProps) {
   const [name, setName] = useState("");
   const [color, setColor] = useState("");
-  const [groupId, setGroupId] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
 
   const mutation = useMutation({
@@ -47,7 +37,6 @@ export function CreateTagDialog({
       tagsApi.createTag({
         name: name.trim(),
         color: color.trim() || undefined,
-        tagGroupId: groupId || undefined,
       }),
     onSuccess: () => {
       toast.success("Tag created");
@@ -63,7 +52,6 @@ export function CreateTagDialog({
   const resetForm = () => {
     setName("");
     setColor("");
-    setGroupId("");
     setError(null);
   };
 
@@ -126,22 +114,6 @@ export function CreateTagDialog({
                   />
                 )}
               </div>
-            </div>
-            <div className="space-y-2">
-              <Label>Tag Group (optional)</Label>
-              <Select value={groupId} onValueChange={setGroupId} disabled={mutation.isPending}>
-                <SelectTrigger>
-                  <SelectValue placeholder="No group" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">No group</SelectItem>
-                  {groups.map((g) => (
-                    <SelectItem key={g.id} value={g.id}>
-                      {g.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
             </div>
             {error && (
               <div className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-md">

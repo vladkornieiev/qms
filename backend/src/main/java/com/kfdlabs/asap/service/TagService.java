@@ -6,6 +6,8 @@ import com.kfdlabs.asap.dto.UpdateTagGroupRequest;
 import com.kfdlabs.asap.dto.UpdateTagRequest;
 import com.kfdlabs.asap.entity.Tag;
 import com.kfdlabs.asap.entity.TagGroup;
+import com.kfdlabs.asap.entity.TagGroupMember;
+import com.kfdlabs.asap.repository.TagGroupMemberRepository;
 import com.kfdlabs.asap.repository.TagGroupRepository;
 import com.kfdlabs.asap.repository.TagRepository;
 import com.kfdlabs.asap.security.SecurityUtils;
@@ -17,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.HttpClientErrorException;
 
+import java.util.List;
 import java.util.UUID;
 
 import static org.openapitools.jackson.nullable.JsonNullable.undefined;
@@ -28,6 +31,7 @@ public class TagService {
 
     private final TagGroupRepository tagGroupRepository;
     private final TagRepository tagRepository;
+    private final TagGroupMemberRepository tagGroupMemberRepository;
 
     // ---- Tag Groups ----
 
@@ -43,13 +47,22 @@ public class TagService {
         group.setName(request.getName());
         group.setColor(request.getColor());
         group.setDescription(request.getDescription());
-        return tagGroupRepository.save(group);
+        group = tagGroupRepository.save(group);
+
+        if (request.getTagIds() != null) {
+            saveMembers(group, request.getTagIds(), orgId);
+        }
+        return group;
     }
 
     @Transactional(readOnly = true)
     public TagGroup getTagGroupById(UUID id) {
         return tagGroupRepository.findById(id)
                 .orElseThrow(() -> new HttpClientErrorException(HttpStatus.NOT_FOUND, "error.tag_group.not.found"));
+    }
+
+    public List<TagGroupMember> getTagGroupMembers(UUID groupId) {
+        return tagGroupMemberRepository.findByTagGroupIdOrderByDisplayOrder(groupId);
     }
 
     public TagGroup updateTagGroup(UUID id, UpdateTagGroupRequest request) {
@@ -70,6 +83,11 @@ public class TagService {
         }
         if (request.getDescription() != null && !request.getDescription().equals(undefined())) {
             group.setDescription(request.getDescription().orElse(null));
+        }
+        if (request.getTagIds() != null && !request.getTagIds().equals(undefined())) {
+            tagGroupMemberRepository.deleteByTagGroupId(id);
+            List<UUID> tagIds = request.getTagIds().orElse(List.of());
+            saveMembers(group, tagIds, orgId);
         }
         return tagGroupRepository.save(group);
     }
@@ -92,9 +110,8 @@ public class TagService {
 
     public Tag createTag(CreateTagRequest request) {
         UUID orgId = SecurityUtils.getCurrentOrganizationId();
-        UUID groupId = request.getTagGroupId();
 
-        tagRepository.findByOrgAndNameAndGroup(orgId, request.getName(), groupId)
+        tagRepository.findByOrganizationIdAndName(orgId, request.getName())
                 .ifPresent(existing -> {
                     throw new HttpClientErrorException(HttpStatus.CONFLICT, "error.tag.name.conflict");
                 });
@@ -103,9 +120,6 @@ public class TagService {
         tag.setOrganizationId(orgId);
         tag.setName(request.getName());
         tag.setColor(request.getColor());
-        if (groupId != null) {
-            tag.setTagGroup(getTagGroupById(groupId));
-        }
         return tagRepository.save(tag);
     }
 
@@ -121,8 +135,7 @@ public class TagService {
 
         if (request.getName() != null && !request.getName().equals(undefined())) {
             String name = request.getName().orElse("");
-            UUID groupId = tag.getTagGroup() != null ? tag.getTagGroup().getId() : null;
-            tagRepository.findByOrgAndNameAndGroup(orgId, name, groupId)
+            tagRepository.findByOrganizationIdAndName(orgId, name)
                     .filter(existing -> !existing.getId().equals(id))
                     .ifPresent(existing -> {
                         throw new HttpClientErrorException(HttpStatus.CONFLICT, "error.tag.name.conflict");
@@ -131,10 +144,6 @@ public class TagService {
         }
         if (request.getColor() != null && !request.getColor().equals(undefined())) {
             tag.setColor(request.getColor().orElse(null));
-        }
-        if (request.getTagGroupId() != null && !request.getTagGroupId().equals(undefined())) {
-            UUID groupId = request.getTagGroupId().orElse(null);
-            tag.setTagGroup(groupId != null ? getTagGroupById(groupId) : null);
         }
         return tagRepository.save(tag);
     }
@@ -147,9 +156,21 @@ public class TagService {
     }
 
     @Transactional(readOnly = true)
-    public Page<Tag> findAllTags(String query, UUID tagGroupId, Integer page, Integer size, String sortBy, String order) {
+    public Page<Tag> findAllTags(String query, Integer page, Integer size, String sortBy, String order) {
         UUID orgId = SecurityUtils.getCurrentOrganizationId();
-        return tagRepository.findAll(orgId, query == null ? "" : query, tagGroupId,
+        return tagRepository.findAll(orgId, query == null ? "" : query,
                 PaginationUtils.getPageable(page, size, order, sortBy));
+    }
+
+    private void saveMembers(TagGroup group, List<UUID> tagIds, UUID orgId) {
+        for (int i = 0; i < tagIds.size(); i++) {
+            Tag tag = getTagById(tagIds.get(i));
+            TagGroupMember member = new TagGroupMember();
+            member.setOrganizationId(orgId);
+            member.setTagGroup(group);
+            member.setTag(tag);
+            member.setDisplayOrder(i);
+            tagGroupMemberRepository.save(member);
+        }
     }
 }

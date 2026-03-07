@@ -23,10 +23,6 @@ public class Tag {
     @Column(name = "organization_id", nullable = false)
     private UUID organizationId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "tag_group_id")
-    private TagGroup tagGroup;
-
     @Column(nullable = false, length = 100)
     private String name;
 

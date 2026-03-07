@@ -241,14 +241,27 @@ CREATE TABLE tags
 (
     id              UUID PRIMARY KEY      DEFAULT uuid_generate_v4(),
     organization_id UUID         NOT NULL REFERENCES organizations (id) ON DELETE CASCADE,
-    tag_group_id    UUID         REFERENCES tag_groups (id) ON DELETE SET NULL,
     name            VARCHAR(100) NOT NULL,
     color           VARCHAR(7),
     created_at      TIMESTAMP    NOT NULL DEFAULT NOW(),
-    UNIQUE (organization_id, tag_group_id, name)
+    UNIQUE (organization_id, name)
 );
 
 CREATE INDEX idx_tags_org ON tags (organization_id);
+
+-- Which tags belong to which group (mirrors custom_field_group_members)
+CREATE TABLE tag_group_members
+(
+    id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    organization_id UUID NOT NULL REFERENCES organizations (id) ON DELETE CASCADE,
+    tag_group_id    UUID NOT NULL REFERENCES tag_groups (id) ON DELETE CASCADE,
+    tag_id          UUID NOT NULL REFERENCES tags (id) ON DELETE CASCADE,
+    display_order   INT  NOT NULL DEFAULT 0,
+    UNIQUE (tag_group_id, tag_id)
+);
+
+CREATE INDEX idx_tgm_group ON tag_group_members (tag_group_id);
+CREATE INDEX idx_tgm_org ON tag_group_members (organization_id);
 
 CREATE TABLE entity_tags
 (
@@ -1439,7 +1452,7 @@ $$
     BEGIN
         FOR t IN
             SELECT UNNEST(ARRAY [
-                'tag_groups','tags','entity_tags',
+                'tag_groups','tags','tag_group_members','entity_tags',
                 'custom_field_definitions','custom_field_groups','custom_field_group_members',
                 'entity_custom_field_groups','custom_field_values',
                 'categories',

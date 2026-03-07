@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { tagsApi, type Tag, type TagGroup } from "@/lib/api-client";
+import { tagsApi, type Tag } from "@/lib/api-client";
 import {
   Dialog,
   DialogContent,
@@ -15,18 +15,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Loader2, AlertCircle } from "lucide-react";
 
 interface EditTagDialogProps {
   tag: Tag;
-  groups: TagGroup[];
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onUpdated: () => void;
@@ -34,20 +26,17 @@ interface EditTagDialogProps {
 
 export function EditTagDialog({
   tag,
-  groups,
   open,
   onOpenChange,
   onUpdated,
 }: EditTagDialogProps) {
   const [name, setName] = useState("");
   const [color, setColor] = useState("");
-  const [groupId, setGroupId] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     setName(tag.name || "");
     setColor(tag.color || "");
-    setGroupId(tag.tagGroupId || "none");
   }, [tag]);
 
   const mutation = useMutation({
@@ -55,12 +44,6 @@ export function EditTagDialog({
       tagsApi.updateTag(tag.id, {
         name: name.trim() !== tag.name ? name.trim() : undefined,
         color: color.trim() !== (tag.color || "") ? color.trim() || undefined : undefined,
-        tagGroupId:
-          groupId !== (tag.tagGroupId || "none")
-            ? groupId === "none"
-              ? null
-              : groupId
-            : undefined,
       }),
     onSuccess: () => {
       toast.success("Tag updated");
@@ -121,22 +104,6 @@ export function EditTagDialog({
                   />
                 )}
               </div>
-            </div>
-            <div className="space-y-2">
-              <Label>Tag Group</Label>
-              <Select value={groupId} onValueChange={setGroupId} disabled={mutation.isPending}>
-                <SelectTrigger>
-                  <SelectValue placeholder="No group" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">No group</SelectItem>
-                  {groups.map((g) => (
-                    <SelectItem key={g.id} value={g.id}>
-                      {g.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
             </div>
             {error && (
               <div className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-md">
