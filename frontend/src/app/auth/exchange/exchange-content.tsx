@@ -18,8 +18,8 @@ export function ExchangeContent() {
   );
   const [error, setError] = useState<string | null>(null);
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
-  const [showAccountSelection, setShowAccountSelection] = useState(false);
-  const [availableAccounts, setAvailableAccounts] = useState<
+  const [showOrganizationSelection, setShowAccountSelection] = useState(false);
+  const [availableOrganizations, setAvailableOrganizations] = useState<
     AvailableOrganization[]
   >([]);
   const [pendingToken, setPendingToken] = useState<string | null>(null);
@@ -42,7 +42,7 @@ export function ExchangeContent() {
         if (result.requiresOrganizationSelection && result.availableOrganizations) {
           // User has multiple organizations, show selection dialog
           setPendingToken(token);
-          setAvailableAccounts(result.availableOrganizations);
+          setAvailableOrganizations(result.availableOrganizations);
           setShowAccountSelection(true);
           setStatus("loading");
           return;
@@ -125,7 +125,7 @@ export function ExchangeContent() {
   const handleAccountSelectionCancel = () => {
     setShowAccountSelection(false);
     setPendingToken(null);
-    setAvailableAccounts([]);
+    setAvailableOrganizations([]);
     setIsAuthenticating(false);
     setStatus("error");
     setError("Organization selection cancelled");
@@ -195,9 +195,9 @@ export function ExchangeContent() {
       </div>
 
       <AccountSelectionDialog
-        open={showAccountSelection}
-        accounts={availableAccounts}
-        onSelectAccount={handleAccountSelected}
+        open={showOrganizationSelection}
+        organizations={availableOrganizations}
+        onSelectOrganization={handleAccountSelected}
         onCancel={handleAccountSelectionCancel}
         isAuthenticating={isAuthenticating}
       />

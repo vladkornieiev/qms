@@ -14,6 +14,7 @@ import {
   LayoutDashboard,
   Tags,
   SlidersHorizontal,
+  Contact,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSidebar } from "./sidebar-provider";
@@ -36,6 +37,7 @@ interface NavItem {
 }
 
 const mainNavItems: NavItem[] = [
+  { href: "/clients", icon: Contact, label: "Clients" },
   { href: "/users", icon: Users, label: "Users", requireAdmin: true },
   { href: "/settings/tags", icon: Tags, label: "Tags" },
   { href: "/settings/custom-fields", icon: SlidersHorizontal, label: "Custom Fields" },
@@ -43,7 +45,7 @@ const mainNavItems: NavItem[] = [
 
 const adminNavItems: NavItem[] = [
   { href: "/admin/users", icon: Users, label: "Users", requirePlatformAdmin: true },
-  { href: "/admin/accounts", icon: Building2, label: "Organizations", requirePlatformAdmin: true },
+  { href: "/admin/organizations", icon: Building2, label: "Organizations", requirePlatformAdmin: true },
 ];
 
 function isAdminContext(pathname: string | null): boolean {
@@ -99,7 +101,7 @@ export function Sidebar() {
     "global.go-to-accounts",
     () => {
       if (isPlatformAdmin()) {
-        router.push("/admin/accounts");
+        router.push("/admin/organizations");
       }
     },
     {},

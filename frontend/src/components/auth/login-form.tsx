@@ -57,8 +57,8 @@ export function LoginForm({ onSuccess, onSwitch2FA }: LoginFormProps = {}) {
   const [loginMode, setLoginMode] = useState<"magic-link" | "password">(
     LOGIN_MODE_PASSWORD
   );
-  const [showAccountSelection, setShowAccountSelection] = useState(false);
-  const [availableAccounts, setAvailableAccounts] = useState<
+  const [showOrganizationSelection, setShowAccountSelection] = useState(false);
+  const [availableOrganizations, setAvailableOrganizations] = useState<
     AvailableOrganization[]
   >([]);
   const [pendingLoginData, setPendingLoginData] = useState<{
@@ -112,7 +112,7 @@ export function LoginForm({ onSuccess, onSwitch2FA }: LoginFormProps = {}) {
       if (result.requiresOrganizationSelection && result.availableOrganizations) {
         // User has multiple organizations, show selection dialog
         setPendingLoginData({ email: data.email, password: data.password });
-        setAvailableAccounts(result.availableOrganizations);
+        setAvailableOrganizations(result.availableOrganizations);
         setShowAccountSelection(true);
         setIsLoading(false);
         return;
@@ -186,7 +186,7 @@ export function LoginForm({ onSuccess, onSwitch2FA }: LoginFormProps = {}) {
   const handleAccountSelectionCancel = () => {
     setShowAccountSelection(false);
     setPendingLoginData(null);
-    setAvailableAccounts([]);
+    setAvailableOrganizations([]);
     setIsAuthenticating(false);
   };
 
@@ -448,9 +448,9 @@ export function LoginForm({ onSuccess, onSwitch2FA }: LoginFormProps = {}) {
       </Card>
 
       <AccountSelectionDialog
-        open={showAccountSelection}
-        accounts={availableAccounts}
-        onSelectAccount={handleAccountSelected}
+        open={showOrganizationSelection}
+        organizations={availableOrganizations}
+        onSelectOrganization={handleAccountSelected}
         onCancel={handleAccountSelectionCancel}
         isAuthenticating={isAuthenticating}
       />

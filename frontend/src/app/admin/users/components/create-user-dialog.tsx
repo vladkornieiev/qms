@@ -5,7 +5,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
   usersApi,
-  accountsApi,
+  organizationsApi,
   type CreateUserRequest,
 } from "@/lib/api-client";
 import {
@@ -30,6 +30,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Loader2, AlertCircle } from "lucide-react";
 import { ALL_ROLE_OPTIONS, DEFAULT_ROLE } from "@/lib/role-options";
+import { QUERY_KEYS } from "@/lib/constants/query-keys";
 
 interface CreateUserDialogProps {
   open: boolean;
@@ -52,8 +53,8 @@ export function CreateUserDialog({
   const [error, setError] = useState<string | null>(null);
 
   const { data: organizations, isLoading: loadingOrgs } = useQuery({
-    queryKey: ["admin-all-accounts"],
-    queryFn: () => accountsApi.getAllAccounts({ size: 100 }),
+    queryKey: [QUERY_KEYS.ADMIN_ORGANIZATIONS, "all"],
+    queryFn: () => organizationsApi.getAllOrganizations({ size: 100 }),
     enabled: open,
   });
 

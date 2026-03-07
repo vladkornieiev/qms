@@ -16,6 +16,8 @@ export class CustomFieldsApiClient extends BaseApiClient {
   async listDefinitions(
     params: {
       query?: string;
+      entityType?: string;
+      distinct?: boolean;
       page?: number;
       size?: number;
       sortBy?: string;

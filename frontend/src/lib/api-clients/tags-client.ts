@@ -60,6 +60,8 @@ export class TagsApiClient extends BaseApiClient {
       size?: number;
       sortBy?: string;
       order?: string;
+      entityType?: string;
+      distinct?: boolean;
     } = {}
   ): Promise<PaginatedTagsResponse> {
     const qs = this.buildQueryString(params);

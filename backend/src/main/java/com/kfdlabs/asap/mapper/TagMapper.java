@@ -78,6 +78,22 @@ public abstract class TagMapper {
         return response;
     }
 
+    public PaginatedTagResponse toListTagDTO(List<Tag> tags) {
+        List<UUID> tagIds = tags.stream().map(Tag::getId).toList();
+        Map<UUID, Long> refCounts = tagService.getTagReferenceCounts(tagIds);
+        PaginatedTagResponse response = new PaginatedTagResponse();
+        response.setItems(tags.stream().map(t -> {
+            TagResponse dto = toTagDTO(t);
+            dto.setReferenceCount(refCounts.getOrDefault(t.getId(), 0L));
+            return dto;
+        }).toList());
+        response.setPage(0);
+        response.setSize(tags.size());
+        response.setTotalElements((long) tags.size());
+        response.setTotalPages(1);
+        return response;
+    }
+
     public PaginatedTagResponse toPaginatedTagDTO(Page<Tag> page) {
         List<UUID> tagIds = page.getContent().stream().map(Tag::getId).toList();
         Map<UUID, Long> refCounts = tagService.getTagReferenceCounts(tagIds);

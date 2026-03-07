@@ -3,6 +3,7 @@ package com.kfdlabs.asap.controller;
 import com.kfdlabs.asap.api.TagsApi;
 import com.kfdlabs.asap.dto.*;
 import com.kfdlabs.asap.mapper.TagMapper;
+import com.kfdlabs.asap.service.EntityTagService;
 import com.kfdlabs.asap.service.TagService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +17,7 @@ import java.util.UUID;
 public class TagController implements TagsApi {
 
     private final TagService tagService;
+    private final EntityTagService entityTagService;
     private final TagMapper tagMapper;
 
     @Override
@@ -51,7 +53,12 @@ public class TagController implements TagsApi {
 
     @Override
     public ResponseEntity<PaginatedTagResponse> listTags(
-            String query, Integer page, Integer size, String sortBy, String order) {
+            String query, Integer page, Integer size, String sortBy, String order,
+            String entityType, Boolean distinct) {
+        if (Boolean.TRUE.equals(distinct)) {
+            return ResponseEntity.ok(tagMapper.toListTagDTO(
+                    entityTagService.getDistinctTagsInUse(entityType)));
+        }
         return ResponseEntity.ok(tagMapper.toPaginatedTagDTO(
                 tagService.findAllTags(query, page, size, sortBy, order)));
     }

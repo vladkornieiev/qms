@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { accountsApi, type Account } from "@/lib/api-client";
+import { organizationsApi, type Organization } from "@/lib/api-client";
 import { QUERY_KEYS } from "@/lib/constants/query-keys";
 import {
   AlertDialog,
@@ -17,34 +17,31 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Loader2, AlertCircle } from "lucide-react";
 
-interface DeleteAccountDialogProps {
-  account: Account | null;
+interface DeleteOrganizationDialogProps {
+  organization: Organization | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onAccountDeleted: () => void;
+  onOrganizationDeleted: () => void;
 }
 
-export function DeleteAccountDialog({
-  account,
+export function DeleteOrganizationDialog({
+  organization,
   open,
   onOpenChange,
-  onAccountDeleted,
-}: DeleteAccountDialogProps) {
+  onOrganizationDeleted,
+}: DeleteOrganizationDialogProps) {
   const queryClient = useQueryClient();
   const [error, setError] = useState<string | null>(null);
 
   const deleteMutation = useMutation({
-    mutationFn: (id: string) => accountsApi.deleteAccount(id),
+    mutationFn: (id: string) => organizationsApi.deleteOrganization(id),
     onSuccess: () => {
-      // Invalidate queries to trigger refetch
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ADMIN_ACCOUNTS] });
-      queryClient.invalidateQueries({ queryKey: ["admin-all-accounts"] });
-      queryClient.invalidateQueries({ queryKey: ["accounts"] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ADMIN_ORGANIZATIONS] });
 
       toast.success("Organization deleted successfully", {
-        description: `${account?.name} has been permanently deleted.`,
+        description: `${organization?.name} has been permanently deleted.`,
       });
-      onAccountDeleted();
+      onOrganizationDeleted();
       setError(null);
       onOpenChange(false);
     },
@@ -58,13 +55,13 @@ export function DeleteAccountDialog({
   });
 
   const handleDelete = () => {
-    if (account) {
+    if (organization) {
       setError(null);
-      deleteMutation.mutate(account.id);
+      deleteMutation.mutate(organization.id);
     }
   };
 
-  if (!account) return null;
+  if (!organization) return null;
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
@@ -73,7 +70,7 @@ export function DeleteAccountDialog({
           <AlertDialogTitle>Delete Organization</AlertDialogTitle>
           <AlertDialogDescription>
             Are you sure you want to delete organization{" "}
-            <strong>{account.name}</strong>?
+            <strong>{organization.name}</strong>?
             <br />
             <br />
             This action cannot be undone. This will permanently delete the

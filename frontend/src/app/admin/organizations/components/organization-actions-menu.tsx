@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { type Account } from "@/lib/api-client";
+import { type Organization } from "@/lib/api-client";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,18 +12,18 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { MoreVertical, Edit, Trash2 } from "lucide-react";
-import { EditAccountDialog } from "./edit-account-dialog";
-import { DeleteAccountDialog } from "./delete-account-dialog";
+import { EditOrganizationDialog } from "./edit-organization-dialog";
+import { DeleteOrganizationDialog } from "./delete-organization-dialog";
 
-interface AccountActionsMenuProps {
-  account: Account;
-  onAccountUpdated: () => void;
+interface OrganizationActionsMenuProps {
+  organization: Organization;
+  onOrganizationUpdated: () => void;
 }
 
-export function AccountActionsMenu({
-  account,
-  onAccountUpdated,
-}: AccountActionsMenuProps) {
+export function OrganizationActionsMenu({
+  organization,
+  onOrganizationUpdated,
+}: OrganizationActionsMenuProps) {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
@@ -53,18 +53,18 @@ export function AccountActionsMenu({
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <EditAccountDialog
-        account={account}
+      <EditOrganizationDialog
+        organization={organization}
         open={editDialogOpen}
         onOpenChange={setEditDialogOpen}
-        onAccountUpdated={onAccountUpdated}
+        onOrganizationUpdated={onOrganizationUpdated}
       />
 
-      <DeleteAccountDialog
-        account={account}
+      <DeleteOrganizationDialog
+        organization={organization}
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
-        onAccountDeleted={onAccountUpdated}
+        onOrganizationDeleted={onOrganizationUpdated}
       />
     </>
   );

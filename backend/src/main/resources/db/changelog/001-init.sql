@@ -112,7 +112,7 @@ CREATE TABLE organization_members
     organization_id UUID        NOT NULL REFERENCES organizations (id) ON DELETE CASCADE,
     user_id         UUID        NOT NULL REFERENCES users (id) ON DELETE CASCADE,
     role            VARCHAR(50) NOT NULL DEFAULT 'MEMBER'
-        CHECK (role IN ('OWNER', 'ADMIN', 'MEMBER', 'VIEWER', 'ACCOUNTANT')),
+        CHECK (role IN ('OWNER', 'ADMIN', 'MEMBER', 'VIEWER', 'ACCOUNTANT', 'PLATFORM_ADMIN')),
     is_active       BOOLEAN     NOT NULL DEFAULT TRUE,
     created_at    TIMESTAMP    NOT NULL DEFAULT NOW(),
     updated_at    TIMESTAMP    NOT NULL DEFAULT NOW(),

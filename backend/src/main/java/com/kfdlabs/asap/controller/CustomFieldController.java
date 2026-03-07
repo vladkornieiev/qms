@@ -22,7 +22,11 @@ public class CustomFieldController implements CustomFieldsApi {
 
     @Override
     public ResponseEntity<PaginatedCustomFieldDefinitionResponse> listCustomFieldDefinitions(
-            String query, Integer page, Integer size, String sortBy, String order) {
+            String query, String entityType, Boolean distinct, Integer page, Integer size, String sortBy, String order) {
+        if (Boolean.TRUE.equals(distinct)) {
+            return ResponseEntity.ok(customFieldMapper.toListDefinitionDTO(
+                    customFieldService.findDistinctDefinitionsInUse(entityType)));
+        }
         return ResponseEntity.ok(customFieldMapper.toPaginatedDefinitionDTO(
                 customFieldService.findAllDefinitions(query, page, size, sortBy, order)));
     }

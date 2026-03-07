@@ -13,8 +13,4 @@ export interface Organization {
   updatedAt?: string;
 }
 
-// Backward-compatible alias
-export type Account = Organization;
-
 export type PaginatedOrganizationsResponse = PaginatedResponse<Organization>;
-export type PaginatedAccountsResponse = PaginatedOrganizationsResponse;

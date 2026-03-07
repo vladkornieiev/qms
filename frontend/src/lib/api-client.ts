@@ -13,16 +13,14 @@ export type {
   Picture,
   // Organization types
   Organization,
-  Account,
   PaginatedOrganizationsResponse,
-  PaginatedAccountsResponse,
   // User types
   UserWithOrganization,
-  UserWithAccount,
   CreateUserRequest,
   UpdateUserRequest,
   PaginatedUsersResponse,
   // Tag types
+  TagSummary,
   TagGroup,
   Tag,
   CreateTagGroupRequest,
@@ -41,23 +39,34 @@ export type {
   UpdateCustomFieldGroupRequest,
   PaginatedCustomFieldDefinitionsResponse,
   PaginatedCustomFieldGroupsResponse,
+  // Entity extension types
+  CustomFieldValueResponse,
+  CustomFieldFilter,
+  // Client types
+  Address,
+  ClientResponse,
+  ClientListItem,
+  CreateClientRequest,
+  UpdateClientRequest,
+  SearchClientsRequest,
+  PaginatedClientsResponse,
 } from "./api-types";
 
 // Re-export client classes
 export {
   BaseApiClient,
   OrganizationsApiClient,
-  AccountsApiClient,
   UsersApiClient,
   TagsApiClient,
   CustomFieldsApiClient,
+  ClientsApiClient,
 } from "./api-clients";
 
 // Re-export singleton instances
 export {
   organizationsApi,
-  accountsApi,
   usersApi,
   tagsApi,
   customFieldsApi,
+  clientsApi,
 } from "./api-clients";

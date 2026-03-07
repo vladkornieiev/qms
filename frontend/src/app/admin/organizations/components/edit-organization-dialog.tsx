@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { accountsApi, type Account } from "@/lib/api-client";
+import { organizationsApi, type Organization } from "@/lib/api-client";
 import { QUERY_KEYS } from "@/lib/constants/query-keys";
 import {
   Dialog,
@@ -19,19 +19,19 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Loader2, AlertCircle } from "lucide-react";
 
-interface EditAccountDialogProps {
-  account: Account | null;
+interface EditOrganizationDialogProps {
+  organization: Organization | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onAccountUpdated: () => void;
+  onOrganizationUpdated: () => void;
 }
 
-export function EditAccountDialog({
-  account,
+export function EditOrganizationDialog({
+  organization,
   open,
   onOpenChange,
-  onAccountUpdated,
-}: EditAccountDialogProps) {
+  onOrganizationUpdated,
+}: EditOrganizationDialogProps) {
   const queryClient = useQueryClient();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -39,28 +39,25 @@ export function EditAccountDialog({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (account) {
-      setName(account.name || "");
-      setEmail(account.email || "");
-      setIsActive(account.isActive ?? true);
+    if (organization) {
+      setName(organization.name || "");
+      setEmail(organization.email || "");
+      setIsActive(organization.isActive ?? true);
     }
-  }, [account]);
+  }, [organization]);
 
   const updateMutation = useMutation({
     mutationFn: (data: { name?: string; email?: string; isActive?: boolean }) =>
-      accountsApi.updateAccount(account!.id, data),
-    onSuccess: (updatedAccount) => {
-      // Invalidate queries to trigger refetch
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ADMIN_ACCOUNTS] });
-      queryClient.invalidateQueries({ queryKey: ["admin-all-accounts"] });
-      queryClient.invalidateQueries({ queryKey: ["accounts"] });
+      organizationsApi.updateOrganization(organization!.id, data),
+    onSuccess: (updated) => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ADMIN_ORGANIZATIONS] });
 
       toast.success("Organization updated successfully", {
-        description: `${updatedAccount.name} has been updated.`,
+        description: `${updated.name} has been updated.`,
       });
-      onAccountUpdated();
+      onOrganizationUpdated();
       setError(null);
-      onOpenChange(false); // Close dialog on success
+      onOpenChange(false);
     },
     onError: (err: Error) => {
       const errorMessage = err.message || "Failed to update organization";
@@ -76,18 +73,18 @@ export function EditAccountDialog({
     setError(null);
 
     if (!name.trim()) {
-      setError("Account name is required");
+      setError("Organization name is required");
       return;
     }
 
     const updates: { name?: string; email?: string; isActive?: boolean } = {};
-    if (name.trim() !== account?.name) {
+    if (name.trim() !== organization?.name) {
       updates.name = name.trim();
     }
-    if (email.trim() !== (account?.email || "")) {
+    if (email.trim() !== (organization?.email || "")) {
       updates.email = email.trim() || undefined;
     }
-    if (isActive !== (account?.isActive ?? true)) {
+    if (isActive !== (organization?.isActive ?? true)) {
       updates.isActive = isActive;
     }
 
@@ -106,7 +103,7 @@ export function EditAccountDialog({
     }
   };
 
-  if (!account) return null;
+  if (!organization) return null;
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
@@ -118,7 +115,6 @@ export function EditAccountDialog({
 
         <form onSubmit={handleSubmit}>
           <div className="space-y-4 py-4">
-            {/* Organization Name */}
             <div className="space-y-2">
               <Label htmlFor="edit-name">
                 Organization Name <span className="text-red-500">*</span>
@@ -133,7 +129,6 @@ export function EditAccountDialog({
               />
             </div>
 
-            {/* Email (Optional) */}
             <div className="space-y-2">
               <Label htmlFor="edit-email">Email (Optional)</Label>
               <Input
@@ -147,7 +142,6 @@ export function EditAccountDialog({
               />
             </div>
 
-            {/* Active Status */}
             <div className="flex items-center justify-between p-3 border rounded-md">
               <div className="space-y-0.5">
                 <Label htmlFor="edit-isActive">Active Status</Label>
@@ -163,7 +157,6 @@ export function EditAccountDialog({
               />
             </div>
 
-            {/* Error Message */}
             {error && (
               <div className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-md">
                 <AlertCircle className="h-4 w-4 text-red-600 flex-shrink-0 mt-0.5" />

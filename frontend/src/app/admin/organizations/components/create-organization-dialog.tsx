@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { accountsApi } from "@/lib/api-client";
+import { organizationsApi } from "@/lib/api-client";
 import { QUERY_KEYS } from "@/lib/constants/query-keys";
 import {
   Dialog,
@@ -18,17 +18,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2, AlertCircle } from "lucide-react";
 
-interface CreateAccountDialogProps {
+interface CreateOrganizationDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onAccountCreated: () => void;
+  onOrganizationCreated: () => void;
 }
 
-export function CreateAccountDialog({
+export function CreateOrganizationDialog({
   open,
   onOpenChange,
-  onAccountCreated,
-}: CreateAccountDialogProps) {
+  onOrganizationCreated,
+}: CreateOrganizationDialogProps) {
   const queryClient = useQueryClient();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -36,16 +36,14 @@ export function CreateAccountDialog({
 
   const createMutation = useMutation({
     mutationFn: (data: { name: string; email?: string }) =>
-      accountsApi.createAccount(data),
+      organizationsApi.createOrganization(data),
     onSuccess: (organization) => {
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ADMIN_ACCOUNTS] });
-      queryClient.invalidateQueries({ queryKey: ["admin-all-accounts"] });
-      queryClient.invalidateQueries({ queryKey: ["accounts"] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ADMIN_ORGANIZATIONS] });
 
       toast.success("Organization created successfully", {
         description: `${organization.name} has been created.`,
       });
-      onAccountCreated();
+      onOrganizationCreated();
       resetForm();
       onOpenChange(false);
     },
@@ -101,7 +99,6 @@ export function CreateAccountDialog({
 
         <form onSubmit={handleSubmit}>
           <div className="space-y-4 py-4">
-            {/* Organization Name */}
             <div className="space-y-2">
               <Label htmlFor="name">
                 Organization Name <span className="text-red-500">*</span>
@@ -116,7 +113,6 @@ export function CreateAccountDialog({
               />
             </div>
 
-            {/* Email */}
             <div className="space-y-2">
               <Label htmlFor="email">
                 Email <span className="text-red-500">*</span>
@@ -132,7 +128,6 @@ export function CreateAccountDialog({
               />
             </div>
 
-            {/* Error Message */}
             {error && (
               <div className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-md">
                 <AlertCircle className="h-4 w-4 text-red-600 flex-shrink-0 mt-0.5" />

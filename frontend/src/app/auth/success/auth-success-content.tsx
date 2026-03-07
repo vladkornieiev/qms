@@ -20,8 +20,8 @@ export function AuthSuccessContent() {
   );
   const [error, setError] = useState<string | null>(null);
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
-  const [showAccountSelection, setShowAccountSelection] = useState(false);
-  const [availableAccounts, setAvailableAccounts] = useState<
+  const [showOrganizationSelection, setShowAccountSelection] = useState(false);
+  const [availableOrganizations, setAvailableOrganizations] = useState<
     AvailableOrganization[]
   >([]);
   const [pendingTokens, setPendingTokens] = useState<{
@@ -65,7 +65,7 @@ export function AuthSuccessContent() {
           // Fetch available organizations using the tokens
           const accounts = await authClient.getAvailableOrganizations();
           setPendingTokens(tokens);
-          setAvailableAccounts(accounts);
+          setAvailableOrganizations(accounts);
           setShowAccountSelection(true);
           setStatus("loading");
           return;
@@ -173,7 +173,7 @@ export function AuthSuccessContent() {
     }
     setShowAccountSelection(false);
     setPendingTokens(null);
-    setAvailableAccounts([]);
+    setAvailableOrganizations([]);
     setIsAuthenticating(false);
     setStatus("error");
     setError("Organization selection cancelled");
@@ -191,7 +191,7 @@ export function AuthSuccessContent() {
                   <div>
                     <h3 className="text-lg font-semibold">Signing you in...</h3>
                     <p className="text-sm text-muted-foreground">
-                      {showAccountSelection
+                      {showOrganizationSelection
                         ? "Please select an organization to continue."
                         : "Please wait while we authenticate your session."}
                     </p>
@@ -245,9 +245,9 @@ export function AuthSuccessContent() {
       </div>
 
       <AccountSelectionDialog
-        open={showAccountSelection}
-        accounts={availableAccounts}
-        onSelectAccount={handleAccountSelected}
+        open={showOrganizationSelection}
+        organizations={availableOrganizations}
+        onSelectOrganization={handleAccountSelected}
         onCancel={handleAccountSelectionCancel}
         isAuthenticating={isAuthenticating}
       />

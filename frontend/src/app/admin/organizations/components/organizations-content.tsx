@@ -2,12 +2,12 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { CreateAccountDialog } from "./create-account-dialog";
-import { EditAccountDialog } from "./edit-account-dialog";
-import { DeleteAccountDialog } from "./delete-account-dialog";
-import { AccountsTable } from "./accounts-table";
-import { accountsApi } from "@/lib/api-client";
-import type { Account } from "@/lib/api-client";
+import { CreateOrganizationDialog } from "./create-organization-dialog";
+import { EditOrganizationDialog } from "./edit-organization-dialog";
+import { DeleteOrganizationDialog } from "./delete-organization-dialog";
+import { OrganizationsTable } from "./organizations-table";
+import { organizationsApi } from "@/lib/api-client";
+import type { Organization } from "@/lib/api-client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,7 +18,7 @@ import { QUERY_KEYS } from "@/lib/constants/query-keys";
 type SortField = "name" | "createdAt";
 type SortOrder = "asc" | "desc";
 
-export function AccountsContent() {
+export function OrganizationsContent() {
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
@@ -28,13 +28,12 @@ export function AccountsContent() {
   const [sortField, setSortField] = useState<SortField>("createdAt");
   const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const [editingAccount, setEditingAccount] = useState<Account | null>(null);
-  const [deletingAccount, setDeletingAccount] = useState<Account | null>(null);
+  const [editingOrganization, setEditingOrganization] = useState<Organization | null>(null);
+  const [deletingOrganization, setDeletingOrganization] = useState<Organization | null>(null);
 
-  // Query accounts to get the list for navigation
-  const { data: accountsData } = useQuery({
+  const { data: organizationsData } = useQuery({
     queryKey: [
-      QUERY_KEYS.ADMIN_ACCOUNTS,
+      QUERY_KEYS.ADMIN_ORGANIZATIONS,
       page,
       pageSize,
       sortField,
@@ -42,7 +41,7 @@ export function AccountsContent() {
       debouncedSearchQuery,
     ],
     queryFn: () =>
-      accountsApi.getAllAccounts({
+      organizationsApi.getAllOrganizations({
         page,
         size: pageSize,
         sortBy: sortField,
@@ -51,54 +50,50 @@ export function AccountsContent() {
       }),
   });
 
-  const accounts = useMemo(
-    () => accountsData?.items || [],
-    [accountsData?.items]
+  const organizations = useMemo(
+    () => organizationsData?.items || [],
+    [organizationsData?.items]
   );
 
-  // Activate accounts hotkey scope
   useHotkeyScope("accounts");
 
-  // Handle edit selected account
   const handleEditSelected = useCallback(() => {
     if (
-      accounts.length > 0 &&
+      organizations.length > 0 &&
       selectedIndex >= 0 &&
-      selectedIndex < accounts.length
+      selectedIndex < organizations.length
     ) {
-      setEditingAccount(accounts[selectedIndex]);
+      setEditingOrganization(organizations[selectedIndex]);
     }
-  }, [accounts, selectedIndex]);
+  }, [organizations, selectedIndex]);
 
-  // Handle delete selected account
   const handleDeleteSelected = useCallback(() => {
     if (
-      accounts.length > 0 &&
+      organizations.length > 0 &&
       selectedIndex >= 0 &&
-      selectedIndex < accounts.length
+      selectedIndex < organizations.length
     ) {
-      setDeletingAccount(accounts[selectedIndex]);
+      setDeletingOrganization(organizations[selectedIndex]);
     }
-  }, [accounts, selectedIndex]);
+  }, [organizations, selectedIndex]);
 
-  // Register page-specific hotkeys
   useHotkey("accounts.new-account", () => setCreateDialogOpen(true), {}, []);
   useHotkey(
     "accounts.refresh",
     () =>
-      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ADMIN_ACCOUNTS] }),
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.ADMIN_ORGANIZATIONS] }),
     {},
     [queryClient]
   );
   useHotkey(
     "accounts.navigate-down",
     () => {
-      if (accounts.length > 0) {
-        setSelectedIndex((prev) => Math.min(prev + 1, accounts.length - 1));
+      if (organizations.length > 0) {
+        setSelectedIndex((prev) => Math.min(prev + 1, organizations.length - 1));
       }
     },
     {},
-    [accounts.length]
+    [organizations.length]
   );
   useHotkey(
     "accounts.navigate-up",
@@ -115,7 +110,6 @@ export function AccountsContent() {
     handleDeleteSelected,
   ]);
 
-  // Debounce search query (500ms delay)
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearchQuery(searchQuery);
@@ -124,7 +118,6 @@ export function AccountsContent() {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  // Reset to page 0 when search changes
   useEffect(() => {
     setPage(0);
   }, [debouncedSearchQuery]);
@@ -163,7 +156,7 @@ export function AccountsContent() {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             <Input
-              placeholder="Search accounts by name or email..."
+              placeholder="Search organizations by name or email..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10"
@@ -173,7 +166,7 @@ export function AccountsContent() {
       </Card>
 
       {/* Table */}
-      <AccountsTable
+      <OrganizationsTable
         searchQuery={debouncedSearchQuery}
         page={page}
         pageSize={pageSize}
@@ -186,40 +179,40 @@ export function AccountsContent() {
         onSelectedIndexChange={setSelectedIndex}
       />
 
-      <CreateAccountDialog
+      <CreateOrganizationDialog
         open={createDialogOpen}
         onOpenChange={setCreateDialogOpen}
-        onAccountCreated={() => {
+        onOrganizationCreated={() => {
           queryClient.invalidateQueries({
-            queryKey: [QUERY_KEYS.ADMIN_ACCOUNTS],
+            queryKey: [QUERY_KEYS.ADMIN_ORGANIZATIONS],
           });
         }}
       />
 
-      {editingAccount && (
-        <EditAccountDialog
-          account={editingAccount}
-          open={!!editingAccount}
-          onOpenChange={(open) => !open && setEditingAccount(null)}
-          onAccountUpdated={() => {
+      {editingOrganization && (
+        <EditOrganizationDialog
+          organization={editingOrganization}
+          open={!!editingOrganization}
+          onOpenChange={(open) => !open && setEditingOrganization(null)}
+          onOrganizationUpdated={() => {
             queryClient.invalidateQueries({
-              queryKey: [QUERY_KEYS.ADMIN_ACCOUNTS],
+              queryKey: [QUERY_KEYS.ADMIN_ORGANIZATIONS],
             });
-            setEditingAccount(null);
+            setEditingOrganization(null);
           }}
         />
       )}
 
-      {deletingAccount && (
-        <DeleteAccountDialog
-          account={deletingAccount}
-          open={!!deletingAccount}
-          onOpenChange={(open) => !open && setDeletingAccount(null)}
-          onAccountDeleted={() => {
+      {deletingOrganization && (
+        <DeleteOrganizationDialog
+          organization={deletingOrganization}
+          open={!!deletingOrganization}
+          onOpenChange={(open) => !open && setDeletingOrganization(null)}
+          onOrganizationDeleted={() => {
             queryClient.invalidateQueries({
-              queryKey: [QUERY_KEYS.ADMIN_ACCOUNTS],
+              queryKey: [QUERY_KEYS.ADMIN_ORGANIZATIONS],
             });
-            setDeletingAccount(null);
+            setDeletingOrganization(null);
           }}
         />
       )}

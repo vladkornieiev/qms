@@ -14,37 +14,33 @@ import { Badge } from "@/components/ui/badge";
 import { Building2, Search, CheckCircle, ArrowRight, Loader2 } from "lucide-react";
 import type { AvailableOrganization } from "@/lib/auth-client";
 
-interface AccountSelectionDialogProps {
+interface OrganizationSelectionDialogProps {
   open: boolean;
-  accounts: AvailableOrganization[];
-  onSelectAccount: (accountId: string) => void;
+  organizations: AvailableOrganization[];
+  onSelectOrganization: (organizationId: string) => void;
   onCancel: () => void;
   isAuthenticating?: boolean;
 }
 
 export function AccountSelectionDialog({
   open,
-  accounts,
-  onSelectAccount,
+  organizations,
+  onSelectOrganization,
   onCancel,
   isAuthenticating = false,
-}: AccountSelectionDialogProps) {
+}: OrganizationSelectionDialogProps) {
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedAccountId, setSelectedAccountId] = useState<string | null>(
+  const [selectedOrganizationId, setSelectedOrganizationId] = useState<string | null>(
     null
   );
 
-  const filteredAccounts = accounts.filter((account) =>
-    account.name.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredOrganizations = organizations.filter((org) =>
+    org.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleAccountClick = (accountId: string) => {
-    setSelectedAccountId(accountId);
-  };
-
   const handleContinue = () => {
-    if (selectedAccountId) {
-      onSelectAccount(selectedAccountId);
+    if (selectedOrganizationId) {
+      onSelectOrganization(selectedOrganizationId);
     }
   };
 
@@ -75,21 +71,21 @@ export function AccountSelectionDialog({
           </div>
 
           <div className="overflow-y-auto space-y-2 pr-2 max-h-[262px]">
-            {filteredAccounts.length === 0 ? (
+            {filteredOrganizations.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-8 text-center">
                 <Building2 className="h-12 w-12 text-gray-300 mb-3" />
                 <p className="text-gray-600">No organizations found</p>
               </div>
             ) : (
-              filteredAccounts.map((account) => (
+              filteredOrganizations.map((org) => (
                 <button
-                  key={account.id}
-                  onClick={() => handleAccountClick(account.id)}
+                  key={org.id}
+                  onClick={() => setSelectedOrganizationId(org.id)}
                   disabled={isAuthenticating}
                   className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
                     isAuthenticating
                       ? "opacity-50 cursor-not-allowed"
-                      : selectedAccountId === account.id
+                      : selectedOrganizationId === org.id
                       ? "border-primary bg-primary/5"
                       : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
                   }`}
@@ -99,14 +95,14 @@ export function AccountSelectionDialog({
                       <Building2 className="h-5 w-5 text-gray-500 flex-shrink-0" />
                       <div className="flex-1 min-w-0">
                         <h4 className="font-medium text-sm truncate">
-                          {account.name}
+                          {org.name}
                         </h4>
                         <Badge variant="secondary" className="text-xs mt-1">
                           Organization
                         </Badge>
                       </div>
                     </div>
-                    {selectedAccountId === account.id && (
+                    {selectedOrganizationId === org.id && (
                       <CheckCircle className="h-5 w-5 text-primary flex-shrink-0 ml-2" />
                     )}
                   </div>
@@ -127,7 +123,7 @@ export function AccountSelectionDialog({
           </Button>
           <Button
             onClick={handleContinue}
-            disabled={!selectedAccountId || isAuthenticating}
+            disabled={!selectedOrganizationId || isAuthenticating}
             className="flex-1"
           >
             {isAuthenticating ? (

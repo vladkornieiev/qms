@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { usersApi } from "@/lib/api-client";
+import type { UserWithOrganization } from "@/lib/api-client";
 import { useTimezoneFormat } from "@/hooks/use-timezone-format";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -50,8 +51,8 @@ export function UsersListTable({
   onSelectedIndexChange,
 }: UsersListTableProps) {
   const { formatDateTime } = useTimezoneFormat();
-  const [editing, setEditing] = useState<any>(null);
-  const [deleting, setDeleting] = useState<any>(null);
+  const [editing, setEditing] = useState<UserWithOrganization | null>(null);
+  const [deleting, setDeleting] = useState<UserWithOrganization | null>(null);
 
   const {
     data: usersData,

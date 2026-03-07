@@ -19,9 +19,6 @@ export interface UserWithOrganization {
   organization?: Organization;
 }
 
-// Backward-compatible alias
-export type UserWithAccount = UserWithOrganization;
-
 export interface CreateUserRequest {
   organizationId: string;
   email: string;

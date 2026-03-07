@@ -6,8 +6,9 @@ import { CreateUserDialog } from "./create-user-dialog";
 import { EditUserDialog } from "./edit-user-dialog";
 import { UsersTable } from "./users-table";
 import { DeleteUserDialog } from "@/components/users/delete-user-dialog";
-import { accountsApi, usersApi } from "@/lib/api-client";
-import type { UserWithAccount } from "@/lib/api-client";
+import { organizationsApi, usersApi } from "@/lib/api-client";
+import type { UserWithOrganization } from "@/lib/api-client";
+import { QUERY_KEYS } from "@/lib/constants/query-keys";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,8 +38,8 @@ export function UsersContent() {
   const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
   const [accountFilter, setAccountFilter] = useState<string>("all");
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const [editingUser, setEditingUser] = useState<UserWithAccount | null>(null);
-  const [deletingUser, setDeletingUser] = useState<UserWithAccount | null>(
+  const [editingUser, setEditingUser] = useState<UserWithOrganization | null>(null);
+  const [deletingUser, setDeletingUser] = useState<UserWithOrganization | null>(
     null
   );
 
@@ -139,8 +140,8 @@ export function UsersContent() {
   }, [debouncedSearchQuery, accountFilter]);
 
   const { data: accountsData } = useQuery({
-    queryKey: ["admin-all-accounts"],
-    queryFn: () => accountsApi.getAllAccounts({ size: 100 }),
+    queryKey: [QUERY_KEYS.ADMIN_ORGANIZATIONS, "all"],
+    queryFn: () => organizationsApi.getAllOrganizations({ size: 100 }),
   });
 
   const handleSort = (field: SortField) => {

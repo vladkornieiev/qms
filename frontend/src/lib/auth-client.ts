@@ -41,11 +41,6 @@ export function isAvailableOrganizationsResponse(
   return "organizations" in response;
 }
 
-// Backward-compatible aliases
-export type AvailableAccount = AvailableOrganization;
-export type AvailableAccountsResponse = AvailableOrganizationsResponse;
-export const isAvailableAccountsResponse = isAvailableOrganizationsResponse;
-
 export interface LoginRequest {
   email: string;
   password: string;
@@ -126,11 +121,6 @@ class AuthClient {
     } catch {
       return null;
     }
-  }
-
-  // Backward-compatible alias
-  getAccountIdFromToken(token: string): string | null {
-    return this.getOrganizationIdFromToken(token);
   }
 
   private scheduleTokenRefresh(token: string) {
@@ -406,15 +396,6 @@ class AuthClient {
     );
     this.setTokens(response);
     return response;
-  }
-
-  // Backward-compatible aliases
-  async getAvailableAccounts(): Promise<AvailableOrganization[]> {
-    return this.getAvailableOrganizations();
-  }
-
-  async switchAccount(organizationId: string): Promise<AuthResponse> {
-    return this.switchOrganization(organizationId);
   }
 
   // Utility methods

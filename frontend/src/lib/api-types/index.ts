@@ -13,15 +13,12 @@ export type {
 // Organization types
 export type {
   Organization,
-  Account,
   PaginatedOrganizationsResponse,
-  PaginatedAccountsResponse,
 } from "./organization.types";
 
 // User types
 export type {
   UserWithOrganization,
-  UserWithAccount,
   CreateUserRequest,
   UpdateUserRequest,
   PaginatedUsersResponse,
@@ -52,3 +49,20 @@ export type {
   PaginatedCustomFieldDefinitionsResponse,
   PaginatedCustomFieldGroupsResponse,
 } from "./custom-field.types";
+
+// Entity extension types
+export type {
+  CustomFieldValueResponse,
+  CustomFieldFilter,
+} from "./entity-extensions.types";
+
+// Client types
+export type {
+  Address,
+  ClientResponse,
+  ClientListItem,
+  CreateClientRequest,
+  UpdateClientRequest,
+  SearchClientsRequest,
+  PaginatedClientsResponse,
+} from "./client.types";

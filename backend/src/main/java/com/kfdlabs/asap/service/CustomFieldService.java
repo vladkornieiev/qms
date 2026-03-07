@@ -10,6 +10,7 @@ import com.kfdlabs.asap.entity.CustomFieldGroupMember;
 import com.kfdlabs.asap.repository.CustomFieldDefinitionRepository;
 import com.kfdlabs.asap.repository.CustomFieldGroupMemberRepository;
 import com.kfdlabs.asap.repository.CustomFieldGroupRepository;
+import com.kfdlabs.asap.repository.CustomFieldValueRepository;
 import com.kfdlabs.asap.security.SecurityUtils;
 import com.kfdlabs.asap.util.PaginationUtils;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +33,7 @@ public class CustomFieldService {
     private final CustomFieldDefinitionRepository definitionRepository;
     private final CustomFieldGroupRepository groupRepository;
     private final CustomFieldGroupMemberRepository memberRepository;
+    private final CustomFieldValueRepository cfvRepository;
 
     // ---- Definitions ----
 
@@ -92,6 +94,36 @@ public class CustomFieldService {
         UUID orgId = SecurityUtils.getCurrentOrganizationId();
         return definitionRepository.findAll(orgId, query == null ? "" : query,
                 PaginationUtils.getPageable(page, size, order, sortBy));
+    }
+
+    /**
+     * Returns definitions that have at least one value stored,
+     * optionally filtered by entity type (through group membership).
+     */
+    @Transactional(readOnly = true)
+    public List<CustomFieldDefinition> findDistinctDefinitionsInUse(String entityType) {
+        UUID orgId = SecurityUtils.getCurrentOrganizationId();
+        Set<UUID> inUseIds = new HashSet<>(cfvRepository.findDistinctFieldIdsInUse(orgId));
+        if (inUseIds.isEmpty()) return List.of();
+
+        // If entityType specified, restrict to fields belonging to groups of that type
+        if (entityType != null && !entityType.isBlank()) {
+            Set<UUID> fieldIdsForEntityType = new HashSet<>();
+            Page<CustomFieldGroup> groups = groupRepository.findAll(orgId, "", entityType,
+                    PaginationUtils.getPageable(0, 500, null));
+            for (CustomFieldGroup group : groups.getContent()) {
+                List<CustomFieldGroupMember> members = memberRepository.findByCustomFieldGroupIdOrderByDisplayOrder(group.getId());
+                for (CustomFieldGroupMember m : members) {
+                    fieldIdsForEntityType.add(m.getCustomFieldDefinition().getId());
+                }
+            }
+            inUseIds.retainAll(fieldIdsForEntityType);
+            if (inUseIds.isEmpty()) return List.of();
+        }
+
+        return definitionRepository.findAllById(inUseIds).stream()
+                .sorted(Comparator.comparing(CustomFieldDefinition::getFieldLabel))
+                .toList();
     }
 
     // ---- Groups ----

@@ -66,31 +66,4 @@ export class OrganizationsApiClient extends BaseApiClient {
     });
   }
 
-  // Backward-compatible aliases
-  async getAllAccounts(
-    params: {
-      query?: string;
-      page?: number;
-      size?: number;
-      sortBy?: string;
-      order?: string;
-    } = {}
-  ): Promise<PaginatedOrganizationsResponse> {
-    return this.getAllOrganizations(params);
-  }
-
-  async createAccount(data: { name: string; email?: string }): Promise<Organization> {
-    return this.createOrganization(data);
-  }
-
-  async updateAccount(
-    id: string,
-    data: { name?: string; email?: string; isActive?: boolean }
-  ): Promise<Organization> {
-    return this.updateOrganization(id, data);
-  }
-
-  async deleteAccount(id: string): Promise<void> {
-    return this.deleteOrganization(id);
-  }
 }

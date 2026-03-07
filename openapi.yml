@@ -1854,6 +1854,16 @@ paths:
           in: query
           schema:
             type: string
+        - name: entityType
+          in: query
+          description: Filter to tags used by this entity type (e.g. CLIENT, VENDOR)
+          schema:
+            type: string
+        - name: distinct
+          in: query
+          description: When true with entityType, returns only distinct tags in use
+          schema:
+            type: boolean
       responses:
         "200":
           description: List of tags
@@ -1974,6 +1984,135 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  # ========= Clients =========
+
+  /api/clients/search:
+    post:
+      summary: Search clients with filters
+      operationId: searchClients
+      tags:
+        - clients
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SearchClientsRequest"
+      responses:
+        "200":
+          description: Paginated client list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedClientResponse"
+
+  /api/clients:
+    post:
+      summary: Create client
+      operationId: createClient
+      tags:
+        - clients
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateClientRequest"
+      responses:
+        "201":
+          description: Client created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClientResponse"
+        "409":
+          description: Client name conflict
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/clients/{id}:
+    get:
+      summary: Get client by ID
+      operationId: getClient
+      tags:
+        - clients
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Client details with tags and custom fields
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClientResponse"
+        "404":
+          description: Client not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    patch:
+      summary: Update client
+      operationId: updateClient
+      tags:
+        - clients
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateClientRequest"
+      responses:
+        "200":
+          description: Client updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClientResponse"
+        "404":
+          description: Client not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    delete:
+      summary: Delete client
+      operationId: deleteClient
+      tags:
+        - clients
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Client deleted
+        "404":
+          description: Client not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
   # ========= Custom Field Definitions =========
 
   /api/custom-field-definitions:
@@ -1987,6 +2126,16 @@ paths:
           in: query
           schema:
             type: string
+        - name: entityType
+          in: query
+          schema:
+            type: string
+          description: Filter by entity type (via group membership)
+        - name: distinct
+          in: query
+          schema:
+            type: boolean
+          description: When true, returns only definitions that have at least one value stored
         - name: page
           in: query
           schema:
@@ -3177,3 +3326,258 @@ components:
               type: array
               items:
                 $ref: "#/components/schemas/CustomFieldGroupResponse"
+
+    # ========= Client Schemas =========
+
+    Address:
+      type: object
+      properties:
+        street:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        zip:
+          type: string
+        country:
+          type: string
+
+    ClientResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        type:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        website:
+          type: string
+        billingAddress:
+          $ref: "#/components/schemas/Address"
+        shippingAddress:
+          $ref: "#/components/schemas/Address"
+        notes:
+          type: string
+        externalAccountingId:
+          type: string
+        pricingTier:
+          type: string
+        isActive:
+          type: boolean
+        tags:
+          type: array
+          items:
+            $ref: "#/components/schemas/TagSummary"
+        customFieldValues:
+          type: array
+          items:
+            $ref: "#/components/schemas/CustomFieldValueResponse"
+        createdAt:
+          $ref: "#/components/schemas/Timestamp"
+        updatedAt:
+          $ref: "#/components/schemas/Timestamp"
+
+    ClientListItem:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        type:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        isActive:
+          type: boolean
+        tags:
+          type: array
+          items:
+            $ref: "#/components/schemas/TagSummary"
+        createdAt:
+          $ref: "#/components/schemas/Timestamp"
+
+    CreateClientRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          maxLength: 255
+        type:
+          type: string
+          enum:
+            - COMPANY
+            - INDIVIDUAL
+          default: COMPANY
+        email:
+          type: string
+        phone:
+          type: string
+        website:
+          type: string
+        billingAddress:
+          $ref: "#/components/schemas/Address"
+        shippingAddress:
+          $ref: "#/components/schemas/Address"
+        notes:
+          type: string
+        externalAccountingId:
+          type: string
+        pricingTier:
+          type: string
+        tagIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+        customFieldValues:
+          type: array
+          items:
+            type: object
+            properties:
+              customFieldId:
+                type: string
+                format: uuid
+              value:
+                type: object
+
+    UpdateClientRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          nullable: true
+          maxLength: 255
+        type:
+          type: string
+          nullable: true
+          enum:
+            - COMPANY
+            - INDIVIDUAL
+        email:
+          type: string
+          nullable: true
+        phone:
+          type: string
+          nullable: true
+        website:
+          type: string
+          nullable: true
+        billingAddress:
+          nullable: true
+          allOf:
+            - $ref: "#/components/schemas/Address"
+        shippingAddress:
+          nullable: true
+          allOf:
+            - $ref: "#/components/schemas/Address"
+        notes:
+          type: string
+          nullable: true
+        externalAccountingId:
+          type: string
+          nullable: true
+        pricingTier:
+          type: string
+          nullable: true
+        isActive:
+          type: boolean
+          nullable: true
+        tagIds:
+          type: array
+          nullable: true
+          items:
+            type: string
+            format: uuid
+        customFieldValues:
+          type: array
+          nullable: true
+          items:
+            type: object
+            properties:
+              customFieldId:
+                type: string
+                format: uuid
+              value:
+                type: object
+
+    SearchClientsRequest:
+      type: object
+      properties:
+        query:
+          type: string
+        type:
+          type: string
+        isActive:
+          type: boolean
+        tagIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+        customFieldFilters:
+          type: array
+          items:
+            $ref: "#/components/schemas/CustomFieldFilter"
+        page:
+          type: integer
+          format: int32
+        size:
+          type: integer
+          format: int32
+        sortBy:
+          type: string
+        order:
+          type: string
+          enum: [asc, desc]
+
+    CustomFieldFilter:
+      type: object
+      properties:
+        fieldId:
+          type: string
+          format: uuid
+        op:
+          type: string
+          enum: [eq, gte, lte, gt, lt, contains]
+        value:
+          type: object
+
+    PaginatedClientResponse:
+      allOf:
+        - $ref: "#/components/schemas/PaginatedResponse"
+        - type: object
+          properties:
+            items:
+              type: array
+              items:
+                $ref: "#/components/schemas/ClientListItem"
+
+    # ========= Entity Extension Schemas =========
+
+    CustomFieldValueResponse:
+      type: object
+      properties:
+        customFieldId:
+          type: string
+          format: uuid
+        fieldKey:
+          type: string
+        fieldLabel:
+          type: string
+        fieldType:
+          type: string
+        value:
+          type: object

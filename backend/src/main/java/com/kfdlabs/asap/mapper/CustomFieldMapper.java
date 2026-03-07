@@ -59,6 +59,16 @@ public abstract class CustomFieldMapper {
         return response;
     }
 
+    public PaginatedCustomFieldDefinitionResponse toListDefinitionDTO(List<CustomFieldDefinition> definitions) {
+        PaginatedCustomFieldDefinitionResponse response = new PaginatedCustomFieldDefinitionResponse();
+        response.setItems(definitions.stream().map(this::toDefinitionDTO).toList());
+        response.setPage(0);
+        response.setSize(definitions.size());
+        response.setTotalElements((long) definitions.size());
+        response.setTotalPages(1);
+        return response;
+    }
+
     public PaginatedCustomFieldGroupResponse toPaginatedGroupDTO(Page<CustomFieldGroup> page) {
         List<UUID> groupIds = page.getContent().stream().map(CustomFieldGroup::getId).toList();
         Map<UUID, Long> refCounts = customFieldService.getGroupReferenceCounts(groupIds);

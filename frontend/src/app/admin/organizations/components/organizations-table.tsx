@@ -4,7 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { accountsApi } from "@/lib/api-client";
+import { organizationsApi } from "@/lib/api-client";
+import type { Organization } from "@/lib/api-client";
 import { useTimezoneFormat } from "@/hooks/use-timezone-format";
 import { authClient } from "@/lib/auth-client";
 import { useAuthStore } from "@/store/auth-store";
@@ -21,8 +22,8 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { PaginationControls } from "@/components/ui/pagination-controls";
-import { EditAccountDialog } from "./edit-account-dialog";
-import { DeleteAccountDialog } from "./delete-account-dialog";
+import { EditOrganizationDialog } from "./edit-organization-dialog";
+import { DeleteOrganizationDialog } from "./delete-organization-dialog";
 import {
   Building2,
   Loader2,
@@ -38,7 +39,7 @@ import {
 type SortField = "name" | "createdAt";
 type SortOrder = "asc" | "desc";
 
-interface AccountsTableProps {
+interface OrganizationsTableProps {
   searchQuery: string;
   page: number;
   pageSize: number;
@@ -51,7 +52,7 @@ interface AccountsTableProps {
   onSelectedIndexChange: (index: number) => void;
 }
 
-export function AccountsTable({
+export function OrganizationsTable({
   searchQuery,
   page,
   pageSize,
@@ -62,24 +63,24 @@ export function AccountsTable({
   onPageChange,
   onPageSizeChange,
   onSelectedIndexChange,
-}: AccountsTableProps) {
+}: OrganizationsTableProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { loadUser } = useAuthStore();
   const { formatDateTime } = useTimezoneFormat();
-  const [switchingAccount, setSwitchingAccount] = useState<string | null>(null);
-  const [editing, setEditing] = useState<any>(null);
-  const [deleting, setDeleting] = useState<any>(null);
+  const [switchingOrganization, setSwitchingOrganization] = useState<string | null>(null);
+  const [editing, setEditing] = useState<Organization | null>(null);
+  const [deleting, setDeleting] = useState<Organization | null>(null);
 
   const {
-    data: accountsData,
+    data: organizationsData,
     isLoading,
     error,
     refetch,
   } = useQuery({
-    queryKey: [QUERY_KEYS.ADMIN_ACCOUNTS, page, pageSize, sortField, sortOrder, searchQuery],
+    queryKey: [QUERY_KEYS.ADMIN_ORGANIZATIONS, page, pageSize, sortField, sortOrder, searchQuery],
     queryFn: () =>
-      accountsApi.getAllAccounts({
+      organizationsApi.getAllOrganizations({
         page,
         size: pageSize,
         sortBy: sortField,
@@ -88,21 +89,21 @@ export function AccountsTable({
       }),
   });
 
-  const accounts = accountsData?.items || [];
+  const organizations = organizationsData?.items || [];
 
-  const handleSwitchAccount = async (accountId: string) => {
-    setSwitchingAccount(accountId);
+  const handleSwitchOrganization = async (organizationId: string) => {
+    setSwitchingOrganization(organizationId);
     try {
-      await authClient.switchAccount(accountId);
+      await authClient.switchOrganization(organizationId);
       await loadUser();
       queryClient.clear();
-      router.push("/projects");
+      router.push("/");
     } catch (err) {
       toast.error("Failed to switch organization", {
         description:
           err instanceof Error ? err.message : "Could not switch to organization",
       });
-      setSwitchingAccount(null);
+      setSwitchingOrganization(null);
     }
   };
 
@@ -146,7 +147,7 @@ export function AccountsTable({
     <>
       <Card className="py-0">
         <CardContent className="p-0">
-          {accounts.length === 0 ? (
+          {organizations.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16">
               <Building2 className="h-16 w-16 text-gray-300 mb-4" />
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
@@ -188,9 +189,9 @@ export function AccountsTable({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {accounts.map((account, index) => (
+                {organizations.map((organization, index) => (
                   <TableRow
-                    key={account.id}
+                    key={organization.id}
                     className={`shadow-[inset_3px_0_0_0_transparent] ${
                       selectedIndex === index
                         ? "bg-primary/10 !shadow-[inset_3px_0_0_0_hsl(var(--primary))]"
@@ -201,14 +202,14 @@ export function AccountsTable({
                     <TableCell className="font-medium">
                       <div className="flex items-center gap-2">
                         <Building2 className="h-4 w-4 text-gray-400" />
-                        {account.name}
+                        {organization.name}
                       </div>
                     </TableCell>
                     <TableCell className="text-gray-600">
-                      {account.email || "-"}
+                      {organization.email || "-"}
                     </TableCell>
                     <TableCell>
-                      {account.isActive ? (
+                      {organization.isActive ? (
                         <Badge className="bg-green-100 text-green-800">
                           <CheckCircle className="h-3 w-3 mr-1" />
                           Active
@@ -221,18 +222,18 @@ export function AccountsTable({
                       )}
                     </TableCell>
                     <TableCell className="text-gray-500 text-sm">
-                      {account.createdAt ? formatDateTime(account.createdAt) : "N/A"}
+                      {organization.createdAt ? formatDateTime(organization.createdAt) : "N/A"}
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1">
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => handleSwitchAccount(account.id)}
-                          disabled={switchingAccount === account.id}
+                          onClick={() => handleSwitchOrganization(organization.id)}
+                          disabled={switchingOrganization === organization.id}
                           className="h-8"
                         >
-                          {switchingAccount === account.id ? (
+                          {switchingOrganization === organization.id ? (
                             <Loader2 className="h-4 w-4 animate-spin" />
                           ) : (
                             <ExternalLink className="h-4 w-4" />
@@ -242,7 +243,7 @@ export function AccountsTable({
                           variant="ghost"
                           size="icon"
                           className="h-8 w-8"
-                          onClick={() => setEditing(account)}
+                          onClick={() => setEditing(organization)}
                         >
                           <Pencil className="h-4 w-4" />
                         </Button>
@@ -250,7 +251,7 @@ export function AccountsTable({
                           variant="ghost"
                           size="icon"
                           className="h-8 w-8 text-red-500"
-                          onClick={() => setDeleting(account)}
+                          onClick={() => setDeleting(organization)}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -264,30 +265,29 @@ export function AccountsTable({
         </CardContent>
       </Card>
 
-      {/* Pagination */}
       <PaginationControls
         page={page}
         pageSize={pageSize}
-        totalItems={accountsData?.totalElements || 0}
+        totalItems={organizationsData?.totalElements || 0}
         itemName="organizations"
         onPageChange={onPageChange}
         onPageSizeChange={onPageSizeChange}
       />
 
       {editing && (
-        <EditAccountDialog
-          account={editing}
+        <EditOrganizationDialog
+          organization={editing}
           open={!!editing}
           onOpenChange={(o) => !o && setEditing(null)}
-          onAccountUpdated={() => refetch()}
+          onOrganizationUpdated={() => refetch()}
         />
       )}
       {deleting && (
-        <DeleteAccountDialog
-          account={deleting}
+        <DeleteOrganizationDialog
+          organization={deleting}
           open={!!deleting}
           onOpenChange={(o) => !o && setDeleting(null)}
-          onAccountDeleted={() => refetch()}
+          onOrganizationDeleted={() => refetch()}
         />
       )}
     </>

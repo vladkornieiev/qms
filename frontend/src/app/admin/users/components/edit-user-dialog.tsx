@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { type UserWithAccount } from "@/lib/api-client";
+import { type UserWithOrganization } from "@/lib/api-client";
 import {
   Dialog,
   DialogContent,
@@ -23,7 +23,7 @@ import {
 import { ALL_ROLE_OPTIONS, DEFAULT_ROLE } from "@/lib/role-options";
 
 interface EditUserDialogProps {
-  user: UserWithAccount | null;
+  user: UserWithOrganization | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onUserUpdated: () => void;
