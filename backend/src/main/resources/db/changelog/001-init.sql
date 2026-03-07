@@ -20,7 +20,7 @@
 --   §6  CRM            clients, contacts, jobsites
 --   §7  Vendors        vendors
 --   §8  Products       products, inventory_items, stock_levels, inventory_transactions
---   §9  Resources      resources, resource_availability, resource_payouts
+--   §9  People         people, people_availability, people_payouts
 --   §10 Projects       projects, jobs, job_people, job_products
 --   §11 Pipeline       inbound_requests
 --   §12 Quotes         quotes, quote_line_items
@@ -766,9 +766,9 @@ CREATE TABLE people
     updated_at        TIMESTAMP    NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX idx_resources_org ON people (organization_id);
-CREATE INDEX idx_resources_type ON people (organization_id, type);
-CREATE INDEX idx_resources_location ON people (organization_id, location_country, location_state, location_city);
+CREATE INDEX idx_people_org ON people (organization_id);
+CREATE INDEX idx_people_type ON people (organization_id, type);
+CREATE INDEX idx_people_location ON people (organization_id, location_country, location_state, location_city);
 
 -- Availability calendar blocks
 -- Example: Jesse unavailable Dec 20-Jan 5 (vacation); booked Jan 10-17 (Moby Tour)
@@ -791,13 +791,13 @@ CREATE INDEX idx_resource_avail_resource ON people_availability (resource_id);
 CREATE INDEX idx_resource_avail_dates ON people_availability (date_start, date_end);
 CREATE INDEX idx_resource_avail_org ON people_availability (organization_id);
 
--- Payments TO resources (contractor invoices / payroll).
+-- Payments TO people (contractor invoices / payroll).
 -- Example: Jesse worked Moby Tour (7d × $650 = $4,550) — paid via bank transfer
 -- Example: Jesse worked Charlie Puth (3d × $700 = $2,100) — pending
 --
 -- Query: "Total owed to all contractors"
 --   SELECT r.first_name, r.last_name, SUM(rp.amount) AS owed
---   FROM resource_payouts rp JOIN resources r ON r.id = rp.resource_id
+--   FROM people_payouts rp JOIN people r ON r.id = rp.resource_id
 --   WHERE rp.organization_id = '<org>' AND rp.status = 'pending'
 --   GROUP BY r.id, r.first_name, r.last_name;
 
@@ -833,8 +833,8 @@ CREATE INDEX idx_payouts_project ON people_payouts (project_id);
 CREATE INDEX idx_payouts_status ON people_payouts (organization_id, status);
 CREATE INDEX idx_payouts_paid ON people_payouts (organization_id, paid_at);
 
-SELECT fn_create_updated_at_trigger('resources');
-SELECT fn_create_updated_at_trigger('resource_payouts');
+SELECT fn_create_updated_at_trigger('people');
+SELECT fn_create_updated_at_trigger('people_payouts');
 
 
 -- ============================================================================
