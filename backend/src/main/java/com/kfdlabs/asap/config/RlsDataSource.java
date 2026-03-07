@@ -40,13 +40,10 @@ public class RlsDataSource extends DelegatingDataSource {
 
     private void setOrgId(Connection conn) throws SQLException {
         UUID orgId = resolveOrgId();
-        if (orgId != null) {
-            try (var stmt = conn.prepareStatement("SET app.current_org_id = ?")) {
-                stmt.setString(1, orgId.toString());
-                stmt.execute();
-            }
-        } else {
-            try (var stmt = conn.createStatement()) {
+        try (var stmt = conn.createStatement()) {
+            if (orgId != null) {
+                stmt.execute("SET app.current_org_id = '" + orgId + "'");
+            } else {
                 stmt.execute("RESET app.current_org_id");
             }
         }

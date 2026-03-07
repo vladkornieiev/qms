@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
@@ -12,30 +11,28 @@ import java.util.UUID;
 
 @Data
 @Entity
-@Table(name = "user_details")
+@Table(name = "tag_groups")
 @EqualsAndHashCode(of = "id")
 @EntityListeners(AuditingEntityListener.class)
-public class UserDetails {
+public class TagGroup {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(name = "email", nullable = false)
-    private String email;
+    @Column(name = "organization_id", nullable = false)
+    private UUID organizationId;
 
-    private String password;
+    @Column(nullable = false, length = 100)
+    private String name;
 
-    private String twoFactorAuthSecret;
+    @Column(length = 7)
+    private String color;
 
-    @Column(name = "two_factor_auth_enabled", nullable = false)
-    private Boolean twoFactorAuthEnabled = false;
+    @Column
+    private String description;
 
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
-
-    @LastModifiedDate
-    @Column(name = "updated_at", nullable = false)
-    private LocalDateTime updatedAt;
 }

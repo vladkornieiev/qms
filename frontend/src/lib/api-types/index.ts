@@ -26,3 +26,28 @@ export type {
   UpdateUserRequest,
   PaginatedUsersResponse,
 } from "./user.types";
+
+// Tag types
+export type {
+  TagGroup,
+  Tag,
+  CreateTagGroupRequest,
+  UpdateTagGroupRequest,
+  CreateTagRequest,
+  UpdateTagRequest,
+  PaginatedTagGroupsResponse,
+  PaginatedTagsResponse,
+} from "./tag.types";
+
+// Custom field types
+export type {
+  CustomFieldType,
+  CustomFieldDefinition,
+  CustomFieldGroup,
+  CreateCustomFieldDefinitionRequest,
+  UpdateCustomFieldDefinitionRequest,
+  CreateCustomFieldGroupRequest,
+  UpdateCustomFieldGroupRequest,
+  PaginatedCustomFieldDefinitionsResponse,
+  PaginatedCustomFieldGroupsResponse,
+} from "./custom-field.types";

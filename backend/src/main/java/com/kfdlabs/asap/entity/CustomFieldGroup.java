@@ -12,27 +12,26 @@ import java.util.UUID;
 
 @Data
 @Entity
-@Table(name = "organization_members", uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"organization_id", "user_id"})
-})
+@Table(name = "custom_field_groups")
 @EqualsAndHashCode(of = "id")
 @EntityListeners(AuditingEntityListener.class)
-public class OrganizationMember {
+public class CustomFieldGroup {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "organization_id", nullable = false)
-    private Organization organization;
+    @Column(name = "organization_id", nullable = false)
+    private UUID organizationId;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    @Column(nullable = false, length = 255)
+    private String name;
 
-    @Column(nullable = false, length = 50)
-    private String role = "member";
+    @Column
+    private String description;
+
+    @Column(name = "entity_type", nullable = false, length = 50)
+    private String entityType;
 
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -41,7 +40,4 @@ public class OrganizationMember {
     @LastModifiedDate
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
-
-    @Column(name = "is_active", nullable = false)
-    private Boolean isActive = true;
 }

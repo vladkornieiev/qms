@@ -91,17 +91,19 @@ CREATE TABLE organizations
 
 CREATE TABLE users
 (
-    id            UUID PRIMARY KEY      DEFAULT uuid_generate_v4(),
-    email         VARCHAR(320) NOT NULL UNIQUE,
-    password_hash TEXT, -- NULL for SSO-only users
-    first_name    VARCHAR(100),
-    last_name     VARCHAR(100),
-    phone         VARCHAR(50),
-    avatar_url    TEXT,
-    is_active     BOOLEAN      NOT NULL DEFAULT TRUE,
-    last_login_at TIMESTAMP,
-    created_at    TIMESTAMP    NOT NULL DEFAULT NOW(),
-    updated_at    TIMESTAMP    NOT NULL DEFAULT NOW()
+    id                      UUID PRIMARY KEY      DEFAULT uuid_generate_v4(),
+    email                   VARCHAR(320) NOT NULL UNIQUE,
+    password_hash           TEXT, -- NULL for SSO-only users
+    first_name              VARCHAR(100),
+    last_name               VARCHAR(100),
+    phone                   VARCHAR(50),
+    avatar_url              TEXT,
+    two_factor_auth_secret  VARCHAR(255),
+    two_factor_auth_enabled BOOLEAN      NOT NULL DEFAULT FALSE,
+    is_active               BOOLEAN      NOT NULL DEFAULT TRUE,
+    last_login_at           TIMESTAMP,
+    created_at              TIMESTAMP    NOT NULL DEFAULT NOW(),
+    updated_at              TIMESTAMP    NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE organization_members
@@ -109,11 +111,11 @@ CREATE TABLE organization_members
     id              UUID PRIMARY KEY     DEFAULT uuid_generate_v4(),
     organization_id UUID        NOT NULL REFERENCES organizations (id) ON DELETE CASCADE,
     user_id         UUID        NOT NULL REFERENCES users (id) ON DELETE CASCADE,
-    role            VARCHAR(50) NOT NULL DEFAULT 'member'
-        CHECK (role IN ('owner', 'admin', 'member', 'viewer', 'accountant')),
-    invited_at      TIMESTAMP,
-    joined_at       TIMESTAMP   NOT NULL DEFAULT NOW(),
+    role            VARCHAR(50) NOT NULL DEFAULT 'MEMBER'
+        CHECK (role IN ('OWNER', 'ADMIN', 'MEMBER', 'VIEWER', 'ACCOUNTANT')),
     is_active       BOOLEAN     NOT NULL DEFAULT TRUE,
+    created_at    TIMESTAMP    NOT NULL DEFAULT NOW(),
+    updated_at    TIMESTAMP    NOT NULL DEFAULT NOW(),
     UNIQUE (organization_id, user_id)
 );
 
@@ -173,18 +175,6 @@ CREATE TABLE password_reset_tokens
 CREATE UNIQUE INDEX idx_password_reset_tokens_token ON password_reset_tokens (token);
 CREATE INDEX idx_password_reset_tokens_email ON password_reset_tokens (email);
 
-CREATE TABLE user_details
-(
-    id                      UUID PRIMARY KEY NOT NULL,
-    email                   TEXT             NOT NULL UNIQUE,
-    password                VARCHAR(255),
-    two_factor_auth_secret  VARCHAR(255),
-    two_factor_auth_enabled BOOLEAN          NOT NULL DEFAULT FALSE,
-    created_at              TIMESTAMP        NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at              TIMESTAMP        NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE INDEX idx_two_factor_auth_email ON user_details (email);
 
 CREATE TABLE user_auth_methods
 (
@@ -220,7 +210,6 @@ SELECT fn_create_updated_at_trigger('organizations');
 SELECT fn_create_updated_at_trigger('users');
 SELECT fn_create_updated_at_trigger('one_time_passwords');
 SELECT fn_create_updated_at_trigger('login_links');
-SELECT fn_create_updated_at_trigger('user_details');
 SELECT fn_create_updated_at_trigger('user_email_preferences');
 SELECT fn_create_updated_at_trigger('user_auth_methods');
 
@@ -267,7 +256,7 @@ CREATE TABLE entity_tags
     organization_id UUID        NOT NULL REFERENCES organizations (id) ON DELETE CASCADE,
     tag_id          UUID        NOT NULL REFERENCES tags (id) ON DELETE CASCADE,
     entity_type     VARCHAR(50) NOT NULL
-        CHECK (entity_type IN ('client', 'vendor', 'product', 'resource', 'project', 'quote', 'invoice', 'contract')),
+        CHECK (entity_type IN ('CLIENT', 'VENDOR', 'PRODUCT', 'RESOURCE', 'PROJECT', 'QUOTE', 'INVOICE', 'CONTRACT')),
     entity_id       UUID        NOT NULL,
     created_at      TIMESTAMP   NOT NULL DEFAULT NOW(),
     UNIQUE (tag_id, entity_type, entity_id)
@@ -306,8 +295,8 @@ CREATE TABLE custom_field_definitions
     field_key       VARCHAR(100) NOT NULL,
     field_label     VARCHAR(255) NOT NULL,
     field_type      VARCHAR(30)  NOT NULL
-        CHECK (field_type IN ('text', 'number', 'boolean', 'date', 'url',
-                              'email', 'phone', 'select', 'multi_select', 'file')),
+        CHECK (field_type IN ('TEXT', 'NUMBER', 'BOOLEAN', 'DATE', 'URL',
+                              'EMAIL', 'PHONE', 'SELECT', 'MULTI_SELECT', 'FILE')),
     is_required     BOOLEAN      NOT NULL DEFAULT FALSE,
     -- For select/multi_select: ["8GB","16GB","32GB"] or ["beginner","intermediate","expert"]
     options         JSONB,
@@ -330,8 +319,8 @@ CREATE TABLE custom_field_groups
     name            VARCHAR(255) NOT NULL,
     description     TEXT,
     entity_type     VARCHAR(50)  NOT NULL
-        CHECK (entity_type IN ('client', 'vendor', 'product', 'resource', 'project',
-                               'quote', 'invoice', 'inventory_item')),
+        CHECK (entity_type IN ('CLIENT', 'VENDOR', 'PRODUCT', 'RESOURCE', 'PROJECT',
+                               'QUOTE', 'INVOICE', 'INVENTORY_ITEM')),
     created_at      TIMESTAMP    NOT NULL DEFAULT NOW(),
     updated_at      TIMESTAMP    NOT NULL DEFAULT NOW(),
     UNIQUE (organization_id, name)
@@ -362,8 +351,8 @@ CREATE TABLE entity_custom_field_groups
     organization_id UUID        NOT NULL REFERENCES organizations (id) ON DELETE CASCADE,
     custom_field_group_id UUID  NOT NULL REFERENCES custom_field_groups (id) ON DELETE CASCADE,
     entity_type     VARCHAR(50) NOT NULL
-        CHECK (entity_type IN ('client', 'vendor', 'product', 'resource', 'project',
-                               'quote', 'invoice', 'inventory_item')),
+        CHECK (entity_type IN ('CLIENT', 'VENDOR', 'PRODUCT', 'RESOURCE', 'PROJECT',
+                               'QUOTE', 'INVOICE', 'INVENTORY_ITEM')),
     entity_id       UUID        NOT NULL,
     created_at      TIMESTAMP   NOT NULL DEFAULT NOW(),
     UNIQUE (custom_field_group_id, entity_type, entity_id)
@@ -414,8 +403,8 @@ CREATE TABLE categories
     parent_id       UUID         REFERENCES categories (id) ON DELETE SET NULL,
     name            VARCHAR(255) NOT NULL,
     code            VARCHAR(50), -- "4010" (accounting code)
-    type            VARCHAR(30)  NOT NULL DEFAULT 'income'
-        CHECK (type IN ('income', 'expense', 'both')),
+    type            VARCHAR(30)  NOT NULL DEFAULT 'INCOME'
+        CHECK (type IN ('INCOME', 'EXPENSE', 'BOTH')),
     description     TEXT,
     is_active       BOOLEAN      NOT NULL DEFAULT TRUE,
     display_order   INT          NOT NULL DEFAULT 0,
@@ -439,8 +428,8 @@ CREATE TABLE clients
     id                     UUID PRIMARY KEY      DEFAULT uuid_generate_v4(),
     organization_id        UUID         NOT NULL REFERENCES organizations (id) ON DELETE CASCADE,
     name                   VARCHAR(255) NOT NULL,
-    type                   VARCHAR(30)  NOT NULL DEFAULT 'company'
-        CHECK (type IN ('company', 'individual')),
+    type                   VARCHAR(30)  NOT NULL DEFAULT 'COMPANY'
+        CHECK (type IN ('COMPANY', 'INDIVIDUAL')),
     email                  VARCHAR(320),
     phone                  VARCHAR(50),
     website                TEXT,
@@ -466,7 +455,7 @@ CREATE TABLE contacts
     id              UUID PRIMARY KEY      DEFAULT uuid_generate_v4(),
     organization_id UUID         NOT NULL REFERENCES organizations (id) ON DELETE CASCADE,
     entity_type     VARCHAR(30)  NOT NULL
-        CHECK (entity_type IN ('client', 'vendor')),
+        CHECK (entity_type IN ('CLIENT', 'VENDOR')),
     entity_id       UUID         NOT NULL, -- FK to clients.id or vendors.id
     first_name      VARCHAR(100) NOT NULL,
     last_name       VARCHAR(100),
@@ -532,8 +521,8 @@ CREATE TABLE vendors
     id                     UUID PRIMARY KEY      DEFAULT uuid_generate_v4(),
     organization_id        UUID         NOT NULL REFERENCES organizations (id) ON DELETE CASCADE,
     name                   VARCHAR(255) NOT NULL,
-    type                   VARCHAR(30)  NOT NULL DEFAULT 'company'
-        CHECK (type IN ('company', 'individual')),
+    type                   VARCHAR(30)  NOT NULL DEFAULT 'COMPANY'
+        CHECK (type IN ('COMPANY', 'INDIVIDUAL')),
     email                  VARCHAR(320),
     phone                  VARCHAR(50),
     website                TEXT,
@@ -582,17 +571,17 @@ CREATE TABLE products
     category_id         UUID         REFERENCES categories (id) ON DELETE SET NULL,
     name                VARCHAR(255) NOT NULL,
     sku                 VARCHAR(100),
-    product_type        VARCHAR(30)  NOT NULL DEFAULT 'physical'
-        CHECK (product_type IN ('physical', 'service', 'package', 'fee')),
+    product_type        VARCHAR(30)  NOT NULL DEFAULT 'PHYSICAL'
+        CHECK (product_type IN ('PHYSICAL', 'SERVICE', 'PACKAGE', 'FEE')),
     description         TEXT,
     -- Pricing defaults (overridable per quote/invoice line)
     unit_price          NUMERIC(12, 2), -- NULL = negotiated per deal
-    price_unit          VARCHAR(30)           DEFAULT 'each'
-        CHECK (price_unit IN ('each', 'day', 'hour', 'week', 'month', 'flat')),
+    price_unit          VARCHAR(30)           DEFAULT 'EACH'
+        CHECK (price_unit IN ('EACH', 'DAY', 'HOUR', 'WEEK', 'MONTH', 'FLAT')),
     cost_price          NUMERIC(12, 2), -- internal cost / vendor rate
     -- Inventory tracking strategy
-    tracking_type       VARCHAR(20)  NOT NULL DEFAULT 'non_tracked'
-        CHECK (tracking_type IN ('serialized', 'consumable', 'non_tracked')),
+    tracking_type       VARCHAR(20)  NOT NULL DEFAULT 'NON_TRACKED'
+        CHECK (tracking_type IN ('SERIALIZED', 'CONSUMABLE', 'NON_TRACKED')),
     -- Consumable-specific (NULL for serialized / non_tracked)
     unit_of_measure     VARCHAR(30),    -- "rolls", "meters", "boxes", "liters"
     reorder_point       INT,            -- alert when total stock ≤ this
@@ -626,12 +615,12 @@ CREATE TABLE inventory_items
     vendor_id       UUID        REFERENCES vendors (id) ON DELETE SET NULL,
     serial_number   VARCHAR(255),
     barcode         VARCHAR(255),
-    status          VARCHAR(30) NOT NULL DEFAULT 'available'
-        CHECK (status IN ('available', 'reserved', 'checked_out', 'maintenance', 'retired')),
-    condition       VARCHAR(30)          DEFAULT 'good'
-        CHECK (condition IN ('new', 'good', 'fair', 'damaged')),
-    ownership       VARCHAR(20) NOT NULL DEFAULT 'owned'
-        CHECK (ownership IN ('owned', 'rented', 'loaned')),
+    status          VARCHAR(30) NOT NULL DEFAULT 'AVAILABLE'
+        CHECK (status IN ('AVAILABLE', 'RESERVED', 'CHECKED_OUT', 'MAINTENANCE', 'RETIRED')),
+    condition       VARCHAR(30)          DEFAULT 'GOOD'
+        CHECK (condition IN ('NEW', 'GOOD', 'FAIR', 'DAMAGED')),
+    ownership       VARCHAR(20) NOT NULL DEFAULT 'OWNED'
+        CHECK (ownership IN ('OWNED', 'RENTED', 'LOANED')),
     location        VARCHAR(255), -- "Warehouse A, Shelf 3"
     notes           TEXT,
     purchase_price  NUMERIC(12, 2),
@@ -712,8 +701,8 @@ CREATE TABLE inventory_transactions
     project_id        UUID, -- FK deferred (§20)
     transaction_type  VARCHAR(30) NOT NULL
         CHECK (transaction_type IN (
-                                    'check_out', 'check_in', 'transfer', 'maintenance', 'retire',
-                                    'consume', 'restock', 'adjust', 'transfer_in', 'transfer_out'
+                                    'CHECK_OUT', 'CHECK_IN', 'TRANSFER', 'MAINTENANCE', 'RETIRE',
+                                    'CONSUME', 'RESTOCK', 'ADJUST', 'TRANSFER_IN', 'TRANSFER_OUT'
             )),
     performed_by      UUID        REFERENCES users (id) ON DELETE SET NULL,
     notes             TEXT,
@@ -748,8 +737,8 @@ CREATE TABLE people
     id                UUID PRIMARY KEY      DEFAULT uuid_generate_v4(),
     organization_id   UUID         NOT NULL REFERENCES organizations (id) ON DELETE CASCADE,
     user_id           UUID         REFERENCES users (id) ON DELETE SET NULL,
-    type              VARCHAR(30)  NOT NULL DEFAULT 'contractor'
-        CHECK (type IN ('contractor', 'employee')),
+    type              VARCHAR(30)  NOT NULL DEFAULT 'CONTRACTOR'
+        CHECK (type IN ('CONTRACTOR', 'EMPLOYEE')),
     first_name        VARCHAR(100) NOT NULL,
     last_name         VARCHAR(100) NOT NULL,
     email             VARCHAR(320),
@@ -779,8 +768,8 @@ CREATE TABLE people_availability
     resource_id     UUID        NOT NULL REFERENCES people (id) ON DELETE CASCADE,
     date_start      DATE        NOT NULL,
     date_end        DATE        NOT NULL,
-    status          VARCHAR(30) NOT NULL DEFAULT 'available'
-        CHECK (status IN ('available', 'unavailable', 'tentative', 'booked')),
+    status          VARCHAR(30) NOT NULL DEFAULT 'AVAILABLE'
+        CHECK (status IN ('AVAILABLE', 'UNAVAILABLE', 'TENTATIVE', 'BOOKED')),
     reason          TEXT,
     project_id      UUID, -- FK deferred (§20)
     created_at      TIMESTAMP   NOT NULL DEFAULT NOW(),
@@ -810,13 +799,13 @@ CREATE TABLE people_payouts
     description            VARCHAR(500),
     amount                 NUMERIC(12, 2) NOT NULL CHECK (amount > 0),
     currency               VARCHAR(3)     NOT NULL DEFAULT 'USD',
-    status                 VARCHAR(30)    NOT NULL DEFAULT 'pending'
-        CHECK (status IN ('pending', 'approved', 'paid', 'cancelled')),
+    status                 VARCHAR(30)    NOT NULL DEFAULT 'PENDING'
+        CHECK (status IN ('PENDING', 'APPROVED', 'PAID', 'CANCELLED')),
     approved_at            TIMESTAMP,
     approved_by            UUID           REFERENCES users (id) ON DELETE SET NULL,
     payment_method         VARCHAR(50)
         CHECK (payment_method IS NULL OR
-               payment_method IN ('bank_transfer', 'check', 'cash', 'paypal', 'payroll', 'other')),
+               payment_method IN ('BANK_TRANSFER', 'CHECK', 'CASH', 'PAYPAL', 'PAYROLL', 'OTHER')),
     payment_reference      VARCHAR(255),
     paid_at                TIMESTAMP,
     period_start           DATE,
@@ -861,13 +850,13 @@ CREATE TABLE projects
     project_number         VARCHAR(50)  NOT NULL, -- "GIG-2025-0042"
     title                  VARCHAR(255) NOT NULL,
     description            TEXT,
-    status                 VARCHAR(30)  NOT NULL DEFAULT 'pending'
-        CHECK (status IN ('pending', 'approved', 'in_progress', 'completed', 'cancelled')),
-    priority               VARCHAR(20)           DEFAULT 'normal'
-        CHECK (priority IN ('low', 'normal', 'high', 'urgent')),
+    status                 VARCHAR(30)  NOT NULL DEFAULT 'PENDING'
+        CHECK (status IN ('PENDING', 'APPROVED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED')),
+    priority               VARCHAR(20)           DEFAULT 'NORMAL'
+        CHECK (priority IN ('LOW', 'NORMAL', 'HIGH', 'URGENT')),
     external_accounting_id VARCHAR(100),
     source                 VARCHAR(50)
-        CHECK (source IS NULL OR source IN ('website_form', 'referral', 'repeat_client', 'manual', 'api')),
+        CHECK (source IS NULL OR source IN ('WEBSITE_FORM', 'REFERRAL', 'REPEAT_CLIENT', 'MANUAL', 'API')),
     inbound_request_id     UUID,                  -- FK deferred (§20)
     created_by             UUID         REFERENCES users (id) ON DELETE SET NULL,
     created_at             TIMESTAMP    NOT NULL DEFAULT NOW(),
@@ -890,8 +879,8 @@ CREATE TABLE jobs
     date_start      DATE          NOT NULL,
     date_end        DATE          NOT NULL,
     rate_multiplier NUMERIC(5, 2) NOT NULL DEFAULT 1.00, -- billing adjustment (0.5 for off days, etc.)
-    status          VARCHAR(30)   NOT NULL DEFAULT 'scheduled'
-        CHECK (status IN ('scheduled', 'in_progress', 'completed', 'cancelled')),
+    status          VARCHAR(30)   NOT NULL DEFAULT 'SCHEDULED'
+        CHECK (status IN ('SCHEDULED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED')),
     display_order   INT           NOT NULL DEFAULT 0,
     notes           TEXT,
     created_at      TIMESTAMP     NOT NULL DEFAULT NOW(),
@@ -916,11 +905,11 @@ CREATE TABLE job_people
     role            VARCHAR(100),
     bill_rate       NUMERIC(10, 2),
     pay_rate        NUMERIC(10, 2),
-    rate_unit       VARCHAR(20)          DEFAULT 'day'
-        CHECK (rate_unit IN ('day', 'hour', 'flat', 'week')),
+    rate_unit       VARCHAR(20)          DEFAULT 'DAY'
+        CHECK (rate_unit IN ('DAY', 'HOUR', 'FLAT', 'WEEK')),
     per_diem        NUMERIC(10, 2),
-    status          VARCHAR(30) NOT NULL DEFAULT 'pending'
-        CHECK (status IN ('pending', 'confirmed', 'declined', 'cancelled')),
+    status          VARCHAR(30) NOT NULL DEFAULT 'PENDING'
+        CHECK (status IN ('PENDING', 'CONFIRMED', 'DECLINED', 'CANCELLED')),
     confirmed_at    TIMESTAMP,
     notes           TEXT,
     created_at      TIMESTAMP   NOT NULL DEFAULT NOW(),
@@ -944,14 +933,14 @@ CREATE TABLE job_products
     inventory_item_id UUID           REFERENCES inventory_items (id) ON DELETE SET NULL,
     vendor_id         UUID           REFERENCES vendors (id) ON DELETE SET NULL,
     quantity          NUMERIC(10, 2) NOT NULL DEFAULT 1 CHECK (quantity > 0),
-    billing_type      VARCHAR(20)    NOT NULL DEFAULT 'rental'
-        CHECK (billing_type IN ('rental', 'sale', 'internal', 'sub_rental')),
+    billing_type      VARCHAR(20)    NOT NULL DEFAULT 'RENTAL'
+        CHECK (billing_type IN ('RENTAL', 'SALE', 'INTERNAL', 'SUB_RENTAL')),
     bill_rate         NUMERIC(10, 2),
     cost_rate         NUMERIC(10, 2),
-    rate_unit         VARCHAR(20)             DEFAULT 'day'
-        CHECK (rate_unit IN ('day', 'each', 'flat', 'week')),
-    status            VARCHAR(30)    NOT NULL DEFAULT 'requested'
-        CHECK (status IN ('requested', 'reserved', 'checked_out', 'returned', 'lost', 'consumed', 'sold')),
+    rate_unit         VARCHAR(20)             DEFAULT 'DAY'
+        CHECK (rate_unit IN ('DAY', 'EACH', 'FLAT', 'WEEK')),
+    status            VARCHAR(30)    NOT NULL DEFAULT 'REQUESTED'
+        CHECK (status IN ('REQUESTED', 'RESERVED', 'CHECKED_OUT', 'RETURNED', 'LOST', 'CONSUMED', 'SOLD')),
     checked_out_at    TIMESTAMP,
     returned_at       TIMESTAMP,
     notes             TEXT,
@@ -990,8 +979,8 @@ CREATE TABLE inbound_requests
     client_id         UUID        REFERENCES clients (id) ON DELETE SET NULL,
     template_id       UUID, -- FK deferred (§20)
     form_data         JSONB       NOT NULL DEFAULT '{}',
-    status            VARCHAR(30) NOT NULL DEFAULT 'pending'
-        CHECK (status IN ('pending', 'reviewing', 'approved', 'denied')),
+    status            VARCHAR(30) NOT NULL DEFAULT 'PENDING'
+        CHECK (status IN ('PENDING', 'REVIEWING', 'APPROVED', 'DENIED')),
     reviewed_by       UUID        REFERENCES users (id) ON DELETE SET NULL,
     reviewed_at       TIMESTAMP,
     denial_reason     TEXT,
@@ -1022,8 +1011,8 @@ CREATE TABLE quotes
     quote_number           VARCHAR(50)    NOT NULL,
     version                INT            NOT NULL DEFAULT 1,
     title                  VARCHAR(255),
-    status                 VARCHAR(30)    NOT NULL DEFAULT 'draft'
-        CHECK (status IN ('draft', 'sent', 'viewed', 'approved', 'declined', 'expired', 'converted')),
+    status                 VARCHAR(30)    NOT NULL DEFAULT 'DRAFT'
+        CHECK (status IN ('DRAFT', 'SENT', 'VIEWED', 'APPROVED', 'DECLINED', 'EXPIRED', 'CONVERTED')),
     issued_date            DATE,
     valid_until            DATE,
     approved_at            TIMESTAMP,
@@ -1060,8 +1049,8 @@ CREATE TABLE quote_line_items
     date_end         DATE,
     quantity         NUMERIC(10, 2) NOT NULL DEFAULT 1,
     unit_price       NUMERIC(12, 2) NOT NULL DEFAULT 0,
-    unit             VARCHAR(30)             DEFAULT 'each'
-        CHECK (unit IN ('each', 'day', 'hour', 'week', 'month', 'flat')),
+    unit             VARCHAR(30)             DEFAULT 'EACH'
+        CHECK (unit IN ('EACH', 'DAY', 'HOUR', 'WEEK', 'MONTH', 'FLAT')),
     discount_percent NUMERIC(5, 2)  NOT NULL DEFAULT 0 CHECK (discount_percent BETWEEN 0 AND 100),
     discount_amount  NUMERIC(12, 2) NOT NULL DEFAULT 0,
     tax_rate         NUMERIC(5, 2)  NOT NULL DEFAULT 0 CHECK (tax_rate >= 0),
@@ -1095,8 +1084,8 @@ CREATE TABLE invoices
     project_id             UUID           REFERENCES projects (id) ON DELETE SET NULL,
     client_id              UUID           NOT NULL REFERENCES clients (id) ON DELETE SET NULL,
     invoice_number         VARCHAR(50)    NOT NULL,
-    status                 VARCHAR(30)    NOT NULL DEFAULT 'draft'
-        CHECK (status IN ('draft', 'sent', 'viewed', 'partially_paid', 'paid', 'overdue', 'void')),
+    status                 VARCHAR(30)    NOT NULL DEFAULT 'DRAFT'
+        CHECK (status IN ('DRAFT', 'SENT', 'VIEWED', 'PARTIALLY_PAID', 'PAID', 'OVERDUE', 'VOID')),
     issued_date            DATE,
     due_date               DATE,
     paid_at                TIMESTAMP,
@@ -1135,8 +1124,8 @@ CREATE TABLE invoice_line_items
     date_end           DATE,
     quantity           NUMERIC(10, 2) NOT NULL DEFAULT 1,
     unit_price         NUMERIC(12, 2) NOT NULL DEFAULT 0,
-    unit               VARCHAR(30)             DEFAULT 'each'
-        CHECK (unit IN ('each', 'day', 'hour', 'week', 'month', 'flat')),
+    unit               VARCHAR(30)             DEFAULT 'EACH'
+        CHECK (unit IN ('EACH', 'DAY', 'HOUR', 'WEEK', 'MONTH', 'FLAT')),
     discount_percent   NUMERIC(5, 2)  NOT NULL DEFAULT 0,
     discount_amount    NUMERIC(12, 2) NOT NULL DEFAULT 0,
     tax_rate           NUMERIC(5, 2)  NOT NULL DEFAULT 0,
@@ -1160,7 +1149,7 @@ CREATE TABLE payments
     currency            VARCHAR(3)     NOT NULL DEFAULT 'USD',
     payment_method      VARCHAR(50)
         CHECK (payment_method IS NULL OR
-               payment_method IN ('credit_card', 'bank_transfer', 'check', 'cash', 'paypal', 'other')),
+               payment_method IN ('CREDIT_CARD', 'BANK_TRANSFER', 'CHECK', 'CASH', 'PAYPAL', 'OTHER')),
     payment_reference   VARCHAR(255),
     payment_date        DATE           NOT NULL,
     notes               TEXT,
@@ -1187,12 +1176,12 @@ CREATE TABLE contracts
     people_id           UUID         REFERENCES people (id) ON DELETE SET NULL,
     vendor_id           UUID         REFERENCES vendors (id) ON DELETE SET NULL,
     contract_type       VARCHAR(50)  NOT NULL
-        CHECK (contract_type IN ('service_agreement', 'rental_agreement', 'subcontractor', 'nda', 'other')),
+        CHECK (contract_type IN ('SERVICE_AGREEMENT', 'RENTAL_AGREEMENT', 'SUBCONTRACTOR', 'NDA', 'OTHER')),
     title               VARCHAR(255) NOT NULL,
     template_content    TEXT,
     generated_file_url  TEXT,
-    status              VARCHAR(30)  NOT NULL DEFAULT 'draft'
-        CHECK (status IN ('draft', 'sent', 'viewed', 'signed', 'expired', 'cancelled')),
+    status              VARCHAR(30)  NOT NULL DEFAULT 'DRAFT'
+        CHECK (status IN ('DRAFT', 'SENT', 'VIEWED', 'SIGNED', 'EXPIRED', 'CANCELLED')),
     sent_at             TIMESTAMP,
     signed_at           TIMESTAMP,
     signed_file_url     TEXT,
@@ -1254,7 +1243,7 @@ CREATE TABLE templates
     name             VARCHAR(255) NOT NULL,
     description      TEXT,
     template_type    VARCHAR(30)  NOT NULL
-        CHECK (template_type IN ('inbound_form', 'quote', 'project', 'contract')),
+        CHECK (template_type IN ('INBOUND_FORM', 'QUOTE', 'PROJECT', 'CONTRACT')),
     is_client_facing BOOLEAN      NOT NULL DEFAULT FALSE,
     is_active        BOOLEAN      NOT NULL DEFAULT TRUE,
     settings         JSONB        NOT NULL DEFAULT '{}',
@@ -1272,7 +1261,7 @@ CREATE TABLE template_items
     organization_id    UUID         NOT NULL REFERENCES organizations (id) ON DELETE CASCADE,
     template_id        UUID         NOT NULL REFERENCES templates (id) ON DELETE CASCADE,
     item_type          VARCHAR(30)  NOT NULL
-        CHECK (item_type IN ('product', 'resource_role', 'line_item', 'form_field', 'date_range', 'fee')),
+        CHECK (item_type IN ('PRODUCT', 'RESOURCE_ROLE', 'LINE_ITEM', 'FORM_FIELD', 'DATE_RANGE', 'FEE')),
     product_id         UUID         REFERENCES products (id) ON DELETE SET NULL,
     category_id        UUID         REFERENCES categories (id) ON DELETE SET NULL,
     label              VARCHAR(255) NOT NULL,
@@ -1309,16 +1298,16 @@ CREATE TABLE communication_log
     entity_type         VARCHAR(50),
     entity_id           UUID,
     channel             VARCHAR(30) NOT NULL
-        CHECK (channel IN ('email', 'sms', 'push', 'in_app', 'webhook')),
-    direction           VARCHAR(10) NOT NULL DEFAULT 'outbound'
-        CHECK (direction IN ('outbound', 'inbound')),
+        CHECK (channel IN ('EMAIL', 'SMS', 'PUSH', 'IN_APP', 'WEBHOOK')),
+    direction           VARCHAR(10) NOT NULL DEFAULT 'OUTBOUND'
+        CHECK (direction IN ('OUTBOUND', 'INBOUND')),
     recipient_name      VARCHAR(255),
     recipient_email     VARCHAR(320),
     recipient_phone     VARCHAR(50),
     subject             VARCHAR(500),
     body_preview        TEXT,
-    status              VARCHAR(30) NOT NULL DEFAULT 'sent'
-        CHECK (status IN ('queued', 'sent', 'delivered', 'opened', 'bounced', 'failed')),
+    status              VARCHAR(30) NOT NULL DEFAULT 'SENT'
+        CHECK (status IN ('QUEUED', 'SENT', 'DELIVERED', 'OPENED', 'BOUNCED', 'FAILED')),
     external_message_id VARCHAR(255),
     sent_by             UUID        REFERENCES users (id) ON DELETE SET NULL,
     sent_at             TIMESTAMP   NOT NULL DEFAULT NOW(),
@@ -1363,8 +1352,8 @@ CREATE TABLE notifications
     entity_id       UUID,
     is_read         BOOLEAN      NOT NULL DEFAULT FALSE,
     read_at         TIMESTAMP,
-    channel         VARCHAR(30)  NOT NULL DEFAULT 'in_app'
-        CHECK (channel IN ('in_app', 'email', 'sms', 'push')),
+    channel         VARCHAR(30)  NOT NULL DEFAULT 'IN_APP'
+        CHECK (channel IN ('IN_APP', 'EMAIL', 'SMS', 'PUSH')),
     created_at      TIMESTAMP    NOT NULL DEFAULT NOW()
 );
 
@@ -1381,8 +1370,8 @@ CREATE TABLE integrations
     id              UUID PRIMARY KEY     DEFAULT uuid_generate_v4(),
     organization_id UUID        NOT NULL REFERENCES organizations (id) ON DELETE CASCADE,
     provider        VARCHAR(50) NOT NULL,
-    status          VARCHAR(30) NOT NULL DEFAULT 'connected'
-        CHECK (status IN ('connected', 'disconnected', 'error')),
+    status          VARCHAR(30) NOT NULL DEFAULT 'CONNECTED'
+        CHECK (status IN ('CONNECTED', 'DISCONNECTED', 'ERROR')),
     credentials     JSONB       NOT NULL DEFAULT '{}',
     settings        JSONB       NOT NULL DEFAULT '{}',
     last_synced_at  TIMESTAMP,
@@ -1396,12 +1385,12 @@ CREATE TABLE integration_sync_log
     id              UUID PRIMARY KEY     DEFAULT uuid_generate_v4(),
     organization_id UUID        NOT NULL REFERENCES organizations (id) ON DELETE CASCADE,
     integration_id  UUID        NOT NULL REFERENCES integrations (id) ON DELETE CASCADE,
-    direction       VARCHAR(10) NOT NULL CHECK (direction IN ('push', 'pull')),
+    direction       VARCHAR(10) NOT NULL CHECK (direction IN ('PUSH', 'PULL')),
     entity_type     VARCHAR(50) NOT NULL,
     entity_id       UUID,
     external_id     VARCHAR(255),
     status          VARCHAR(30) NOT NULL
-        CHECK (status IN ('success', 'error', 'skipped')),
+        CHECK (status IN ('SUCCESS', 'ERROR', 'SKIPPED')),
     error_message   TEXT,
     payload         JSONB,
     created_at      TIMESTAMP   NOT NULL DEFAULT NOW()

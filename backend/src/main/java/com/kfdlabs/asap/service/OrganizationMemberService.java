@@ -46,8 +46,6 @@ public class OrganizationMemberService {
         member.setOrganization(org);
         member.setUser(user);
         member.setRole(request.getRole().getValue().toLowerCase());
-        member.setInvitedAt(LocalDateTime.now());
-        member.setJoinedAt(LocalDateTime.now());
         member.setIsActive(true);
 
         return organizationMemberRepository.save(member);

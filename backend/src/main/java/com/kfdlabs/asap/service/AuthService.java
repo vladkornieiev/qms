@@ -5,11 +5,9 @@ import com.kfdlabs.asap.entity.LoginLink;
 import com.kfdlabs.asap.entity.OrganizationMember;
 import com.kfdlabs.asap.entity.PasswordResetToken;
 import com.kfdlabs.asap.entity.User;
-import com.kfdlabs.asap.entity.UserDetails;
 import com.kfdlabs.asap.repository.LoginLinkRepository;
 import com.kfdlabs.asap.repository.OrganizationMemberRepository;
 import com.kfdlabs.asap.repository.PasswordResetTokenRepository;
-import com.kfdlabs.asap.repository.UserDetailsRepository;
 import com.kfdlabs.asap.security.JwtUtil;
 import com.kfdlabs.asap.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
@@ -41,7 +39,6 @@ public class AuthService {
     private final LoginLinkRepository loginLinkRepository;
     private final PasswordResetTokenRepository passwordResetTokenRepository;
     private final UserService userService;
-    private final UserDetailsRepository userDetailsRepository;
     private final EmailService emailService;
     private final TwoFactorService twoFactorService;
     private final JwtUtil jwtUtil;
@@ -140,9 +137,8 @@ public class AuthService {
             if (StringUtils.isBlank(twoFactorAuthCode)) {
                 throw new HttpClientErrorException(BAD_REQUEST, "error.2fa.code.required");
             }
-            UserDetails userDetails = userDetailsRepository.findByEmail(loginLink.getEmail())
-                    .orElseThrow(() -> new HttpClientErrorException(NOT_FOUND, "error.user.not.found"));
-            if (!twoFactorService.verifyCode(userDetails.getTwoFactorAuthSecret(), twoFactorAuthCode)) {
+            User user = userService.getUserByEmail(loginLink.getEmail());
+            if (!twoFactorService.verifyCode(user.getTwoFactorAuthSecret(), twoFactorAuthCode)) {
                 throw new HttpClientErrorException(BAD_REQUEST, "error.2fa.invalid.verification.code");
             }
         }
@@ -202,13 +198,8 @@ public class AuthService {
         return buildAuthResponse(accessToken, refreshToken);
     }
 
-    /**
-     * Creates a short-lived, single-use OAuth exchange code.
-     * Used to avoid passing JWT tokens directly in redirect URLs.
-     */
     @Transactional
     public String createOAuthExchangeCode(String email) {
-        // Reuse LoginLink entity as a short-lived exchange code (30 seconds)
         loginLinkRepository.deleteByEmail(email);
         LoginLink link = new LoginLink();
         link.setEmail(email);
@@ -218,9 +209,6 @@ public class AuthService {
         return link.getToken();
     }
 
-    /**
-     * Exchanges a short-lived OAuth code for JWT tokens.
-     */
     @Transactional
     public AuthResponse exchangeOAuthCode(String code) {
         LoginLink link = loginLinkRepository.findByToken(code)
@@ -239,7 +227,7 @@ public class AuthService {
 
         checkLoginAttempts(request.getEmail());
 
-        UserDetails userDetails = userDetailsRepository.findByEmailWithPassword(request.getEmail())
+        User user = userService.findUserByEmailWithPassword(request.getEmail())
                 .orElseThrow(() -> {
                     recordFailedAttempt(request.getEmail());
                     return new HttpClientErrorException(NOT_FOUND, "error.user.not.found");
@@ -250,7 +238,7 @@ public class AuthService {
             throw new HttpClientErrorException(BAD_REQUEST, "error.password.auth.disabled");
         }
 
-        Optional<String> userPassword = Optional.ofNullable(userDetails.getPassword());
+        Optional<String> userPassword = Optional.ofNullable(user.getPasswordHash());
         if (userPassword.isEmpty() || !passwordEncoder.matches(request.getPassword(), userPassword.get())) {
             recordFailedAttempt(request.getEmail());
             throw new HttpClientErrorException(BAD_REQUEST, "error.credentials.invalid");
@@ -260,14 +248,13 @@ public class AuthService {
             if (StringUtils.isBlank(request.getTwoFactorAuthCode())) {
                 throw new HttpClientErrorException(BAD_REQUEST, "error.2fa.code.required");
             }
-            if (!twoFactorService.verifyCode(userDetails.getTwoFactorAuthSecret(), request.getTwoFactorAuthCode())) {
+            if (!twoFactorService.verifyCode(user.getTwoFactorAuthSecret(), request.getTwoFactorAuthCode())) {
                 recordFailedAttempt(request.getEmail());
                 throw new HttpClientErrorException(BAD_REQUEST, "error.2fa.invalid.verification.code");
             }
         }
 
         clearLoginAttempts(request.getEmail());
-        User user = userService.getUserByEmail(request.getEmail());
 
         if (request.getOrganizationId() == null && userService.isMultiOrganizationUser(request.getEmail())) {
             return buildAvailableOrganizationsResponse(user);

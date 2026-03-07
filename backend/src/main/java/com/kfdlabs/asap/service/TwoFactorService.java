@@ -2,9 +2,9 @@ package com.kfdlabs.asap.service;
 
 import com.kfdlabs.asap.dto.TwoFactorStatusResponse;
 import com.kfdlabs.asap.entity.OneTimePassword;
-import com.kfdlabs.asap.entity.UserDetails;
+import com.kfdlabs.asap.entity.User;
 import com.kfdlabs.asap.repository.OneTimePasswordRepository;
-import com.kfdlabs.asap.repository.UserDetailsRepository;
+import com.kfdlabs.asap.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,7 +23,7 @@ import static org.springframework.http.HttpStatus.BAD_REQUEST;
 @RequiredArgsConstructor
 public class TwoFactorService {
 
-    private final UserDetailsRepository userDetailsRepository;
+    private final UserRepository userRepository;
     private final OneTimePasswordRepository oneTimePasswordRepository;
 
 //    private final SecretGenerator secretGenerator = new DefaultSecretGenerator(32); // 32 bytes = 256 bits
@@ -113,15 +113,15 @@ public class TwoFactorService {
     public void disableTwoFactor(String email, String code) {
         log.info("Disabling 2FA for email: {}", email);
 
-        UserDetails userDetails = userDetailsRepository.findByEmailAnd2FAEnabled(email)
+        User user = userRepository.findByEmailAnd2FAEnabled(email)
                 .orElseThrow(() -> new HttpClientErrorException(BAD_REQUEST, "error.2fa.not.enabled"));
 
-        if (!verifyCode(userDetails.getTwoFactorAuthSecret(), code)) {
+        if (!verifyCode(user.getTwoFactorAuthSecret(), code)) {
             throw new HttpClientErrorException(BAD_REQUEST, "error.2fa.invalid.verification.code");
         }
 
-        userDetails.setTwoFactorAuthEnabled(false);
-        userDetailsRepository.save(userDetails);
+        user.setTwoFactorAuthEnabled(false);
+        userRepository.save(user);
 
         log.info("2FA disabled successfully for email: {}", email);
     }
@@ -129,10 +129,10 @@ public class TwoFactorService {
     public TwoFactorStatusResponse getTwoFactorStatus(String email) {
         log.info("Getting 2FA status for email: {}", email);
 
-        Optional<UserDetails> userDetails = userDetailsRepository.findByEmail(email);
+        Optional<User> user = userRepository.findByEmailIgnoreCase(email);
 
         TwoFactorStatusResponse response = new TwoFactorStatusResponse();
-        response.setEnabled(userDetails.isPresent() && userDetails.get().getTwoFactorAuthEnabled());
+        response.setEnabled(user.isPresent() && Boolean.TRUE.equals(user.get().getTwoFactorAuthEnabled()));
 
         return response;
     }
@@ -210,7 +210,7 @@ public class TwoFactorService {
     }
 
     public boolean isTwoFactorEnabled(String email) {
-        return userDetailsRepository.findByEmailAnd2FAEnabled(email).isPresent();
+        return userRepository.findByEmailAnd2FAEnabled(email).isPresent();
     }
 
     public boolean verifyCode(String secret, String code) {
@@ -272,7 +272,7 @@ public class TwoFactorService {
         return output;
     }
 
-    public Optional<UserDetails> getUserDetails(String email) {
-        return userDetailsRepository.findByEmail(email);
+    public Optional<User> getUserByEmail(String email) {
+        return userRepository.findByEmailIgnoreCase(email);
     }
 }

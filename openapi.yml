@@ -1676,6 +1676,611 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  # ========= Tag Groups =========
+
+  /api/tag-groups:
+    get:
+      summary: List tag groups
+      operationId: listTagGroups
+      tags:
+        - tags
+      parameters:
+        - name: query
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: size
+          in: query
+          schema:
+            type: integer
+        - name: sortBy
+          in: query
+          schema:
+            type: string
+        - name: order
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of tag groups
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedTagGroupResponse"
+
+    post:
+      summary: Create tag group
+      operationId: createTagGroup
+      tags:
+        - tags
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTagGroupRequest"
+      responses:
+        "201":
+          description: Tag group created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TagGroupResponse"
+        "409":
+          description: Tag group name conflict
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/tag-groups/{id}:
+    get:
+      summary: Get tag group by ID
+      operationId: getTagGroup
+      tags:
+        - tags
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Tag group details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TagGroupResponse"
+        "404":
+          description: Tag group not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    patch:
+      summary: Update tag group
+      operationId: updateTagGroup
+      tags:
+        - tags
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateTagGroupRequest"
+      responses:
+        "200":
+          description: Tag group updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TagGroupResponse"
+        "404":
+          description: Tag group not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Tag group name conflict
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    delete:
+      summary: Delete tag group
+      operationId: deleteTagGroup
+      tags:
+        - tags
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Tag group deleted
+        "404":
+          description: Tag group not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  # ========= Tags =========
+
+  /api/tags:
+    get:
+      summary: List tags
+      operationId: listTags
+      tags:
+        - tags
+      parameters:
+        - name: query
+          in: query
+          schema:
+            type: string
+        - name: tagGroupId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: size
+          in: query
+          schema:
+            type: integer
+        - name: sortBy
+          in: query
+          schema:
+            type: string
+        - name: order
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of tags
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedTagResponse"
+
+    post:
+      summary: Create tag
+      operationId: createTag
+      tags:
+        - tags
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTagRequest"
+      responses:
+        "201":
+          description: Tag created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TagResponse"
+        "409":
+          description: Tag name conflict
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/tags/{id}:
+    get:
+      summary: Get tag by ID
+      operationId: getTag
+      tags:
+        - tags
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Tag details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TagResponse"
+        "404":
+          description: Tag not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    patch:
+      summary: Update tag
+      operationId: updateTag
+      tags:
+        - tags
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateTagRequest"
+      responses:
+        "200":
+          description: Tag updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TagResponse"
+        "404":
+          description: Tag not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Tag name conflict
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    delete:
+      summary: Delete tag
+      operationId: deleteTag
+      tags:
+        - tags
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Tag deleted
+        "404":
+          description: Tag not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  # ========= Custom Field Definitions =========
+
+  /api/custom-field-definitions:
+    get:
+      summary: List custom field definitions
+      operationId: listCustomFieldDefinitions
+      tags:
+        - custom-fields
+      parameters:
+        - name: query
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: size
+          in: query
+          schema:
+            type: integer
+        - name: sortBy
+          in: query
+          schema:
+            type: string
+        - name: order
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of custom field definitions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedCustomFieldDefinitionResponse"
+
+    post:
+      summary: Create custom field definition
+      operationId: createCustomFieldDefinition
+      tags:
+        - custom-fields
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCustomFieldDefinitionRequest"
+      responses:
+        "201":
+          description: Custom field definition created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CustomFieldDefinitionResponse"
+        "409":
+          description: Field key conflict
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/custom-field-definitions/{id}:
+    get:
+      summary: Get custom field definition
+      operationId: getCustomFieldDefinition
+      tags:
+        - custom-fields
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Custom field definition details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CustomFieldDefinitionResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    patch:
+      summary: Update custom field definition
+      operationId: updateCustomFieldDefinition
+      tags:
+        - custom-fields
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateCustomFieldDefinitionRequest"
+      responses:
+        "200":
+          description: Custom field definition updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CustomFieldDefinitionResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Field key conflict
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    delete:
+      summary: Delete custom field definition
+      operationId: deleteCustomFieldDefinition
+      tags:
+        - custom-fields
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Custom field definition deleted
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  # ========= Custom Field Groups =========
+
+  /api/custom-field-groups:
+    get:
+      summary: List custom field groups
+      operationId: listCustomFieldGroups
+      tags:
+        - custom-fields
+      parameters:
+        - name: query
+          in: query
+          schema:
+            type: string
+        - name: entityType
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: size
+          in: query
+          schema:
+            type: integer
+        - name: sortBy
+          in: query
+          schema:
+            type: string
+        - name: order
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of custom field groups
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedCustomFieldGroupResponse"
+
+    post:
+      summary: Create custom field group
+      operationId: createCustomFieldGroup
+      tags:
+        - custom-fields
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCustomFieldGroupRequest"
+      responses:
+        "201":
+          description: Custom field group created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CustomFieldGroupResponse"
+        "409":
+          description: Group name conflict
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/custom-field-groups/{id}:
+    get:
+      summary: Get custom field group
+      operationId: getCustomFieldGroup
+      tags:
+        - custom-fields
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Custom field group with member fields
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CustomFieldGroupResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    patch:
+      summary: Update custom field group
+      operationId: updateCustomFieldGroup
+      tags:
+        - custom-fields
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateCustomFieldGroupRequest"
+      responses:
+        "200":
+          description: Custom field group updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CustomFieldGroupResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Group name conflict
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    delete:
+      summary: Delete custom field group
+      operationId: deleteCustomFieldGroup
+      tags:
+        - custom-fields
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Custom field group deleted
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
 components:
   securitySchemes:
     bearerAuth:
@@ -2251,3 +2856,303 @@ components:
               items:
                 $ref: "#/components/schemas/OrganizationMember"
               description: List of organization members
+
+    # ========= Tag Schemas =========
+
+    TagGroupResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        color:
+          type: string
+        description:
+          type: string
+        createdAt:
+          $ref: "#/components/schemas/Timestamp"
+
+    TagResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        color:
+          type: string
+        tagGroupId:
+          type: string
+          format: uuid
+        tagGroupName:
+          type: string
+        createdAt:
+          $ref: "#/components/schemas/Timestamp"
+
+    CreateTagGroupRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          maxLength: 100
+        color:
+          type: string
+          maxLength: 7
+        description:
+          type: string
+
+    UpdateTagGroupRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          nullable: true
+          maxLength: 100
+        color:
+          type: string
+          nullable: true
+          maxLength: 7
+        description:
+          type: string
+          nullable: true
+
+    CreateTagRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          maxLength: 100
+        color:
+          type: string
+          maxLength: 7
+        tagGroupId:
+          type: string
+          format: uuid
+
+    UpdateTagRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          nullable: true
+          maxLength: 100
+        color:
+          type: string
+          nullable: true
+          maxLength: 7
+        tagGroupId:
+          type: string
+          format: uuid
+          nullable: true
+
+    PaginatedTagGroupResponse:
+      allOf:
+        - $ref: "#/components/schemas/PaginatedResponse"
+        - type: object
+          properties:
+            items:
+              type: array
+              items:
+                $ref: "#/components/schemas/TagGroupResponse"
+
+    PaginatedTagResponse:
+      allOf:
+        - $ref: "#/components/schemas/PaginatedResponse"
+        - type: object
+          properties:
+            items:
+              type: array
+              items:
+                $ref: "#/components/schemas/TagResponse"
+
+    # ========= Custom Field Schemas =========
+
+    CustomFieldDefinitionResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        fieldKey:
+          type: string
+        fieldLabel:
+          type: string
+        fieldType:
+          type: string
+          enum:
+            - TEXT
+            - NUMBER
+            - BOOLEAN
+            - DATE
+            - URL
+            - EMAIL
+            - PHONE
+            - SELECT
+            - MULTI_SELECT
+            - FILE
+        isRequired:
+          type: boolean
+        options:
+          type: array
+          items:
+            type: string
+        displayOrder:
+          type: integer
+        createdAt:
+          $ref: "#/components/schemas/Timestamp"
+        updatedAt:
+          $ref: "#/components/schemas/Timestamp"
+
+    CustomFieldGroupResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        entityType:
+          type: string
+        fields:
+          type: array
+          items:
+            $ref: "#/components/schemas/CustomFieldDefinitionResponse"
+        createdAt:
+          $ref: "#/components/schemas/Timestamp"
+        updatedAt:
+          $ref: "#/components/schemas/Timestamp"
+
+    CreateCustomFieldDefinitionRequest:
+      type: object
+      required:
+        - fieldKey
+        - fieldLabel
+        - fieldType
+      properties:
+        fieldKey:
+          type: string
+          maxLength: 100
+        fieldLabel:
+          type: string
+          maxLength: 255
+        fieldType:
+          type: string
+          enum:
+            - TEXT
+            - NUMBER
+            - BOOLEAN
+            - DATE
+            - URL
+            - EMAIL
+            - PHONE
+            - SELECT
+            - MULTI_SELECT
+            - FILE
+        isRequired:
+          type: boolean
+          default: false
+        options:
+          type: array
+          items:
+            type: string
+        displayOrder:
+          type: integer
+          default: 0
+
+    UpdateCustomFieldDefinitionRequest:
+      type: object
+      properties:
+        fieldLabel:
+          type: string
+          nullable: true
+          maxLength: 255
+        fieldType:
+          type: string
+          nullable: true
+          enum:
+            - TEXT
+            - NUMBER
+            - BOOLEAN
+            - DATE
+            - URL
+            - EMAIL
+            - PHONE
+            - SELECT
+            - MULTI_SELECT
+            - FILE
+        isRequired:
+          type: boolean
+          nullable: true
+        options:
+          type: array
+          nullable: true
+          items:
+            type: string
+        displayOrder:
+          type: integer
+          nullable: true
+
+    CreateCustomFieldGroupRequest:
+      type: object
+      required:
+        - name
+        - entityType
+      properties:
+        name:
+          type: string
+          maxLength: 255
+        description:
+          type: string
+        entityType:
+          type: string
+        fieldIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+
+    UpdateCustomFieldGroupRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          nullable: true
+          maxLength: 255
+        description:
+          type: string
+          nullable: true
+        fieldIds:
+          type: array
+          nullable: true
+          items:
+            type: string
+            format: uuid
+
+    PaginatedCustomFieldDefinitionResponse:
+      allOf:
+        - $ref: "#/components/schemas/PaginatedResponse"
+        - type: object
+          properties:
+            items:
+              type: array
+              items:
+                $ref: "#/components/schemas/CustomFieldDefinitionResponse"
+
+    PaginatedCustomFieldGroupResponse:
+      allOf:
+        - $ref: "#/components/schemas/PaginatedResponse"
+        - type: object
+          properties:
+            items:
+              type: array
+              items:
+                $ref: "#/components/schemas/CustomFieldGroupResponse"

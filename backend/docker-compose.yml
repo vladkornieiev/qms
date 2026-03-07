@@ -8,14 +8,14 @@ services:
       - 'POSTGRES_PASSWORD=asap'
       - 'POSTGRES_USER=asap'
     ports:
-      - '5432:5432'
+      - '5434:5432'
 
   minio-asap:
     image: minio/minio:latest
     container_name: minio-asap
     ports:
-      - "9000:9000"   # S3 API
-      - "9001:9001"   # Web UI
+      - "9003:9000"   # S3 API
+      - "9004:9001"   # Web UI
     environment:
       MINIO_ROOT_USER: asap-local
       MINIO_ROOT_PASSWORD: asap-local

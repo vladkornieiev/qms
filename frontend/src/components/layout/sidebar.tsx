@@ -12,6 +12,8 @@ import {
   Building2,
   Shield,
   LayoutDashboard,
+  Tags,
+  SlidersHorizontal,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSidebar } from "./sidebar-provider";
@@ -35,6 +37,8 @@ interface NavItem {
 
 const mainNavItems: NavItem[] = [
   { href: "/users", icon: Users, label: "Users", requireAdmin: true },
+  { href: "/settings/tags", icon: Tags, label: "Tags" },
+  { href: "/settings/custom-fields", icon: SlidersHorizontal, label: "Custom Fields" },
 ];
 
 const adminNavItems: NavItem[] = [

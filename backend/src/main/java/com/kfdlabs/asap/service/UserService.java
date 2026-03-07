@@ -2,8 +2,14 @@ package com.kfdlabs.asap.service;
 
 import com.kfdlabs.asap.dto.CreateUserRequest;
 import com.kfdlabs.asap.dto.UpdateUserRequest;
-import com.kfdlabs.asap.entity.*;
-import com.kfdlabs.asap.repository.*;
+import com.kfdlabs.asap.entity.Organization;
+import com.kfdlabs.asap.entity.OrganizationMember;
+import com.kfdlabs.asap.entity.User;
+import com.kfdlabs.asap.entity.UserAuthMethods;
+import com.kfdlabs.asap.repository.OrganizationMemberRepository;
+import com.kfdlabs.asap.repository.OrganizationRepository;
+import com.kfdlabs.asap.repository.UserAuthMethodsRepository;
+import com.kfdlabs.asap.repository.UserRepository;
 import com.kfdlabs.asap.security.SecurityUtils;
 import com.kfdlabs.asap.util.PaginationUtils;
 import lombok.RequiredArgsConstructor;
@@ -29,7 +35,6 @@ import static org.openapitools.jackson.nullable.JsonNullable.undefined;
 public class UserService {
 
     private final UserRepository userRepository;
-    private final UserDetailsRepository userDetailsRepository;
     private final OrganizationMemberRepository organizationMemberRepository;
     private final OrganizationRepository organizationRepository;
     private final TwoFactorService twoFactorService;
@@ -111,7 +116,6 @@ public class UserService {
             member.setOrganization(org);
             member.setUser(user);
             member.setRole(role);
-            member.setJoinedAt(LocalDateTime.now());
             member.setIsActive(true);
             organizationMemberRepository.save(member);
         }
@@ -127,23 +131,14 @@ public class UserService {
         return user;
     }
 
-    public Optional<String> getUserPassword(String email) {
-        return userDetailsRepository.findByEmailWithPassword(email)
-                .map(UserDetails::getPassword);
+    public Optional<User> findUserByEmailWithPassword(String email) {
+        return userRepository.findByEmailWithPassword(email);
     }
 
     public void setUserPassword(String email, String encodedPassword) {
-        UserDetails userDetails = userDetailsRepository.findByEmail(email)
-                .orElseGet(() -> createUserDetails(email));
-        userDetails.setPassword(encodedPassword);
-        userDetailsRepository.save(userDetails);
-    }
-
-    private UserDetails createUserDetails(String email) {
-        UserDetails userDetails = new UserDetails();
-        userDetails.setEmail(email);
-        userDetails.setTwoFactorAuthEnabled(false);
-        return userDetailsRepository.save(userDetails);
+        User user = getUserByEmail(email);
+        user.setPasswordHash(encodedPassword);
+        userRepository.save(user);
     }
 
     private void validatePasswordComplexity(String password) {
@@ -176,23 +171,22 @@ public class UserService {
 
         validatePasswordComplexity(request.getNewPassword());
 
+        User user = getUserByEmail(email);
+
         if (twoFactorService.isTwoFactorEnabled(email)) {
             var code = request.getTwoFactorAuthCode();
             if (code == null || code.isBlank()) {
                 throw new HttpClientErrorException(HttpStatus.BAD_REQUEST, "error.2fa.code.required");
             }
-            var ud = userDetailsRepository.findByEmail(email)
-                    .orElseThrow(() -> new HttpClientErrorException(HttpStatus.BAD_REQUEST, "error.user.details.not.found"));
-            var secret = ud.getTwoFactorAuthSecret();
+            var secret = user.getTwoFactorAuthSecret();
             if (secret == null || !twoFactorService.verifyCode(secret, code)) {
                 throw new HttpClientErrorException(HttpStatus.BAD_REQUEST, "error.2fa.invalid.verification.code");
             }
         }
 
-        var currentPasswordOpt = getUserPassword(email);
-        if (currentPasswordOpt.isPresent()) {
+        if (user.getPasswordHash() != null) {
             var oldPassword = request.getOldPassword();
-            if (oldPassword == null || !passwordEncoder.matches(oldPassword, currentPasswordOpt.get())) {
+            if (oldPassword == null || !passwordEncoder.matches(oldPassword, user.getPasswordHash())) {
                 throw new HttpClientErrorException(HttpStatus.BAD_REQUEST, "error.password.incorrect");
             }
         }
@@ -239,9 +233,8 @@ public class UserService {
             if (code == null || code.isBlank()) {
                 throw new HttpClientErrorException(HttpStatus.BAD_REQUEST, "error.2fa.code.required");
             }
-            var ud = userDetailsRepository.findByEmail(email)
-                    .orElseThrow(() -> new HttpClientErrorException(HttpStatus.BAD_REQUEST, "error.user.details.not.found"));
-            var secret = ud.getTwoFactorAuthSecret();
+            User user = getUserByEmail(email);
+            var secret = user.getTwoFactorAuthSecret();
             if (secret == null || !twoFactorService.verifyCode(secret, code)) {
                 throw new HttpClientErrorException(HttpStatus.BAD_REQUEST, "error.2fa.invalid.verification.code");
             }

@@ -20,6 +20,12 @@ public interface UserRepository extends JpaRepository<User, UUID> {
 
     boolean existsByEmailIgnoreCase(String email);
 
+    @Query("SELECT u FROM User u WHERE LOWER(u.email) = LOWER(:email) AND u.twoFactorAuthEnabled = true")
+    Optional<User> findByEmailAnd2FAEnabled(@Param("email") String email);
+
+    @Query("SELECT u FROM User u WHERE LOWER(u.email) = LOWER(:email) AND u.passwordHash IS NOT NULL")
+    Optional<User> findByEmailWithPassword(@Param("email") String email);
+
     @Query("""
             SELECT u FROM User u
             WHERE u.isActive = true

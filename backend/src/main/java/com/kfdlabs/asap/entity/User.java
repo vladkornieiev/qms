@@ -40,6 +40,12 @@ public class User {
     @Column(name = "avatar_url")
     private String avatarUrl;
 
+    @Column(name = "two_factor_auth_secret")
+    private String twoFactorAuthSecret;
+
+    @Column(name = "two_factor_auth_enabled", nullable = false)
+    private Boolean twoFactorAuthEnabled = false;
+
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
 

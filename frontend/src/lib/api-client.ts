@@ -22,6 +22,25 @@ export type {
   CreateUserRequest,
   UpdateUserRequest,
   PaginatedUsersResponse,
+  // Tag types
+  TagGroup,
+  Tag,
+  CreateTagGroupRequest,
+  UpdateTagGroupRequest,
+  CreateTagRequest,
+  UpdateTagRequest,
+  PaginatedTagGroupsResponse,
+  PaginatedTagsResponse,
+  // Custom field types
+  CustomFieldType,
+  CustomFieldDefinition,
+  CustomFieldGroup,
+  CreateCustomFieldDefinitionRequest,
+  UpdateCustomFieldDefinitionRequest,
+  CreateCustomFieldGroupRequest,
+  UpdateCustomFieldGroupRequest,
+  PaginatedCustomFieldDefinitionsResponse,
+  PaginatedCustomFieldGroupsResponse,
 } from "./api-types";
 
 // Re-export client classes
@@ -30,6 +49,8 @@ export {
   OrganizationsApiClient,
   AccountsApiClient,
   UsersApiClient,
+  TagsApiClient,
+  CustomFieldsApiClient,
 } from "./api-clients";
 
 // Re-export singleton instances
@@ -37,4 +58,6 @@ export {
   organizationsApi,
   accountsApi,
   usersApi,
+  tagsApi,
+  customFieldsApi,
 } from "./api-clients";

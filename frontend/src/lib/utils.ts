@@ -10,3 +10,7 @@ export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost
 export function formatCurrency(val: number, currency = "USD") {
     return new Intl.NumberFormat("en-US", { style: "currency", currency }).format(val);
 }
+
+export function formatEnum(value: string): string {
+    return value.replace(/_/g, " ").toLowerCase().replace(/^\w/, c => c.toUpperCase());
+}
