@@ -15,10 +15,9 @@
 -- DOMAIN MAP:
 --   §1  Core           organizations, users, organization_members
 --   §2  Tags           tag_groups, tags, entity_tags
---   §3  Lookups        lookup_lists, lookup_list_items
---   §4  Custom fields  custom_field_definitions, entity_collection_entries
+--   §3  Custom fields  custom_field_definitions, custom_field_groups, custom_field_values
 --   §5  Categories     categories
---   §6  CRM            clients, contacts
+--   §6  CRM            clients, contacts, jobsites
 --   §7  Vendors        vendors
 --   §8  Products       products, inventory_items, stock_levels, inventory_transactions
 --   §9  Resources      resources, resource_availability, resource_payouts
@@ -32,6 +31,7 @@
 --   §17 Comms          communication_log
 --   §18 Activity       activity_log, notifications
 --   §19 Integrations   integrations, integration_sync_log
+-- TODO - jobs (multi-location projects)
 --
 -- ============================================================================
 
@@ -279,155 +279,121 @@ CREATE INDEX idx_entity_tags_org ON entity_tags (organization_id);
 
 
 -- ============================================================================
--- §3. LOOKUP LISTS — Org-Managed Dictionaries
+-- §4. CUSTOM FIELDS (Definitions, Groups, Values)
 -- ============================================================================
--- Example (ASAP Sound): list "skills" → "ProTools","Ableton","Monitors","FOH"
--- Example (GreenScape): list "equipment-licenses" → "Excavator","Bulldozer","Crane"
--- Items support hierarchy via parent_id: "Audio" → "ProTools", "Ableton"
+-- Generic custom field system for any entity type.
+--
+-- GROUPS assign sets of fields to specific entity instances.
+-- A group can be shared across entities (e.g., "Color" group on both cables and laptops).
+-- One-off fields: create a single-field group.
+--
+-- FLOW:
+--   1. Define fields:  RAM (select), CPU (text), Length (number), Color (select)
+--   2. Create groups:  "Laptop Specs" → [RAM, CPU, Storage], "Cable Props" → [Length, Color]
+--   3. Assign groups:  Product "MacBook Pro" → group "Laptop Specs"
+--                      Product "XLR Cable"   → group "Cable Props"
+--   4. Store values:   MacBook Pro / RAM → "16GB"
+--
+-- QUERY: "What fields does this product have?"
+--   SELECT cfd.* FROM custom_field_definitions cfd
+--   JOIN custom_field_group_members gm ON gm.custom_field_id = cfd.id
+--   JOIN entity_custom_field_groups ecfg ON ecfg.custom_field_group_id = gm.custom_field_group_id
+--   WHERE ecfg.entity_type = 'product' AND ecfg.entity_id = <product_id>;
 
-CREATE TABLE lookup_lists
+CREATE TABLE custom_field_definitions
+(
+    id              UUID PRIMARY KEY      DEFAULT uuid_generate_v4(),
+    organization_id UUID         NOT NULL REFERENCES organizations (id) ON DELETE CASCADE,
+    field_key       VARCHAR(100) NOT NULL,
+    field_label     VARCHAR(255) NOT NULL,
+    field_type      VARCHAR(30)  NOT NULL
+        CHECK (field_type IN ('text', 'number', 'boolean', 'date', 'url',
+                              'email', 'phone', 'select', 'multi_select', 'file')),
+    is_required     BOOLEAN      NOT NULL DEFAULT FALSE,
+    -- For select/multi_select: ["8GB","16GB","32GB"] or ["beginner","intermediate","expert"]
+    options         JSONB,
+    display_order   INT          NOT NULL DEFAULT 0,
+    -- UI presentation hints
+    -- Example: {"show_on_form":true,"show_on_card":false,"is_filterable":true}
+    ui_config       JSONB        NOT NULL DEFAULT '{}',
+    created_at      TIMESTAMP    NOT NULL DEFAULT NOW(),
+    updated_at      TIMESTAMP    NOT NULL DEFAULT NOW(),
+    UNIQUE (organization_id, field_key)
+);
+
+CREATE INDEX idx_cfd_org ON custom_field_definitions (organization_id);
+
+-- Named groups of fields: "Laptop Specs", "Cable Props", "Audio Skills"
+CREATE TABLE custom_field_groups
 (
     id              UUID PRIMARY KEY      DEFAULT uuid_generate_v4(),
     organization_id UUID         NOT NULL REFERENCES organizations (id) ON DELETE CASCADE,
     name            VARCHAR(255) NOT NULL,
-    slug            VARCHAR(100) NOT NULL,
     description     TEXT,
-    is_system       BOOLEAN      NOT NULL DEFAULT FALSE,
-    is_active       BOOLEAN      NOT NULL DEFAULT TRUE,
-    created_at      TIMESTAMP    NOT NULL DEFAULT NOW(),
-    updated_at      TIMESTAMP    NOT NULL DEFAULT NOW(),
-    UNIQUE (organization_id, slug)
-);
-
-CREATE INDEX idx_lookup_lists_org ON lookup_lists (organization_id);
-
-CREATE TABLE lookup_list_items
-(
-    id             UUID PRIMARY KEY      DEFAULT uuid_generate_v4(),
-    lookup_list_id UUID         NOT NULL REFERENCES lookup_lists (id) ON DELETE CASCADE,
-    value          VARCHAR(255) NOT NULL, -- "protools" (machine key)
-    label          VARCHAR(255) NOT NULL, -- "ProTools" (display)
-    color          VARCHAR(7),
-    icon           VARCHAR(50),
-    -- Example: {"category":"Software"} or {"code":"es","region":"Latin America"}
-    metadata       JSONB        NOT NULL DEFAULT '{}',
-    parent_id      UUID         REFERENCES lookup_list_items (id) ON DELETE SET NULL,
-    is_active      BOOLEAN      NOT NULL DEFAULT TRUE,
-    display_order  INT          NOT NULL DEFAULT 0,
-    created_at     TIMESTAMP    NOT NULL DEFAULT NOW(),
-    UNIQUE (lookup_list_id, value)
-);
-
-CREATE INDEX idx_lli_list ON lookup_list_items (lookup_list_id);
-CREATE INDEX idx_lli_parent ON lookup_list_items (parent_id);
-
-SELECT fn_create_updated_at_trigger('lookup_lists');
-
-
--- ============================================================================
--- §4. CUSTOM FIELD DEFINITIONS + ENTITY COLLECTIONS
--- ============================================================================
--- SIMPLE fields (stored in entity's custom_fields JSONB):
---   text | number | boolean | date | datetime | url | email | phone | select | multi_select
---
--- COLLECTION fields (stored as rows in entity_collection_entries):
---   collection       — repeatable structured entries (skills, certs, licenses)
---   file_collection  — repeatable file uploads with metadata (W9, passport)
---
--- ┌─────────────────────────────────────────────────────────────────────────┐
--- │ EXAMPLE: ASAP Sound for entity_type = 'resource':                     │
--- │  field_key="skills"       type=collection      → skill + proficiency  │
--- │  field_key="languages"    type=collection      → language + level     │
--- │  field_key="documents"    type=file_collection → W9, passport, resume │
--- │  field_key="years_exp"    type=number          → stored in JSONB      │
--- │  field_key="has_passport" type=boolean         → stored in JSONB      │
--- ├─────────────────────────────────────────────────────────────────────────┤
--- │ EXAMPLE: GreenScape for entity_type = 'resource':                     │
--- │  field_key="equipment_licenses" type=collection  → license + expiry   │
--- │  field_key="vehicle_class"      type=multi_select→ from lookup list   │
--- │  field_key="safety_certs"       type=file_collection → cert + expiry  │
--- └─────────────────────────────────────────────────────────────────────────┘
-
-CREATE TABLE custom_field_definitions
-(
-    id                UUID PRIMARY KEY      DEFAULT uuid_generate_v4(),
-    organization_id   UUID         NOT NULL REFERENCES organizations (id) ON DELETE CASCADE,
-    entity_type       VARCHAR(50)  NOT NULL
+    entity_type     VARCHAR(50)  NOT NULL
         CHECK (entity_type IN ('client', 'vendor', 'product', 'resource', 'project',
                                'quote', 'invoice', 'inventory_item')),
-    field_key         VARCHAR(100) NOT NULL,
-    field_label       VARCHAR(255) NOT NULL,
-    field_type        VARCHAR(30)  NOT NULL
-        CHECK (field_type IN ('text', 'number', 'boolean', 'date', 'datetime',
-                              'url', 'email', 'phone',
-                              'select', 'multi_select',
-                              'collection', 'file_collection')),
-    -- For select/multi_select with inline options: ["beginner","intermediate","expert"]
-    options           JSONB,
-    -- For select/multi_select/collection referencing a managed dictionary
-    lookup_list_id    UUID         REFERENCES lookup_lists (id) ON DELETE SET NULL,
-    -- For collection/file_collection: JSON schema of each entry
-    -- Example (skills):
-    --   [{"key":"skill","label":"Skill","type":"lookup","required":true},
-    --    {"key":"proficiency","label":"Level","type":"select","options":["beginner","intermediate","expert"]}]
-    collection_schema JSONB,
-    min_entries       INT,
-    max_entries       INT,
-    is_required       BOOLEAN      NOT NULL DEFAULT FALSE,
-    default_value     TEXT,
-    display_order     INT          NOT NULL DEFAULT 0,
-    -- UI presentation hints — flexible JSONB to avoid schema changes when UI evolves
-    -- Example: {"section":"Professional Info","show_on_form":true,"show_on_card":false,
-    --           "is_filterable":true,"depends_on":{"field_id":"<uuid>","value":"autotune"}}
-    ui_config         JSONB        NOT NULL DEFAULT '{}',
-    created_at        TIMESTAMP    NOT NULL DEFAULT NOW(),
-    updated_at        TIMESTAMP    NOT NULL DEFAULT NOW(),
-    UNIQUE (organization_id, entity_type, field_key)
+    created_at      TIMESTAMP    NOT NULL DEFAULT NOW(),
+    updated_at      TIMESTAMP    NOT NULL DEFAULT NOW(),
+    UNIQUE (organization_id, name)
 );
 
-CREATE INDEX idx_cfd_org_entity ON custom_field_definitions (organization_id, entity_type);
+CREATE INDEX idx_cfg_org ON custom_field_groups (organization_id);
+CREATE INDEX idx_cfg_entity_type ON custom_field_groups (organization_id, entity_type);
 
--- Storage for collection entries. One row per entry per entity per field.
---
--- Example: Resource "Jesse" — 2 skills, 1 language, 1 document:
---   (field=skills, entity=jesse, data={"skill":"<protools-id>","proficiency":"expert"}, lookup_item_id=<protools>)
---   (field=skills, entity=jesse, data={"skill":"<monitors-id>","proficiency":"expert"}, lookup_item_id=<monitors>)
---   (field=languages, entity=jesse, data={"language":"<es-id>","proficiency":"fluent"}, lookup_item_id=<es>)
---   (field=documents, entity=jesse, data={"doc_type":"w9","name":"W9 2025","file_url":"https://…"})
---
--- Query: "Find Spanish-speaking monitor engineer in LA"
---   SELECT DISTINCT r.first_name, r.last_name
---   FROM resources r
---   JOIN entity_collection_entries lang ON lang.entity_id = r.id AND lang.entity_type = 'resource'
---   JOIN lookup_list_items lli_lang ON lli_lang.id = lang.lookup_item_id AND lli_lang.value = 'es'
---   JOIN entity_collection_entries skill ON skill.entity_id = r.id AND skill.entity_type = 'resource'
---   JOIN lookup_list_items lli_skill ON lli_skill.id = skill.lookup_item_id AND lli_skill.value = 'monitors'
---   WHERE r.organization_id = '<org>' AND r.location_city ILIKE '%los angeles%' AND r.is_active = TRUE;
-
-CREATE TABLE entity_collection_entries
+-- Which fields belong to which group
+CREATE TABLE custom_field_group_members
 (
-    id                  UUID PRIMARY KEY     DEFAULT uuid_generate_v4(),
-    organization_id     UUID        NOT NULL REFERENCES organizations (id) ON DELETE CASCADE,
-    field_definition_id UUID        NOT NULL REFERENCES custom_field_definitions (id) ON DELETE CASCADE,
-    entity_type         VARCHAR(50) NOT NULL,
-    entity_id           UUID        NOT NULL,
-    data                JSONB       NOT NULL DEFAULT '{}',
-    -- Denormalized lookup FK for fast filtering without JSONB parsing
-    lookup_item_id      UUID        REFERENCES lookup_list_items (id) ON DELETE SET NULL,
-    display_order       INT         NOT NULL DEFAULT 0,
-    created_at          TIMESTAMP   NOT NULL DEFAULT NOW(),
-    updated_at          TIMESTAMP   NOT NULL DEFAULT NOW()
+    id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    organization_id UUID NOT NULL REFERENCES organizations (id) ON DELETE CASCADE,
+    custom_field_group_id UUID NOT NULL REFERENCES custom_field_groups (id) ON DELETE CASCADE,
+    custom_field_id       UUID NOT NULL REFERENCES custom_field_definitions (id) ON DELETE CASCADE,
+    display_order   INT     NOT NULL DEFAULT 0,
+    UNIQUE (custom_field_group_id, custom_field_id)
 );
 
-CREATE INDEX idx_ece_org ON entity_collection_entries (organization_id);
-CREATE INDEX idx_ece_field ON entity_collection_entries (field_definition_id);
-CREATE INDEX idx_ece_entity ON entity_collection_entries (entity_type, entity_id);
-CREATE INDEX idx_ece_lookup ON entity_collection_entries (lookup_item_id);
-CREATE INDEX idx_ece_data ON entity_collection_entries USING GIN (data);
-CREATE INDEX idx_ece_field_lookup ON entity_collection_entries (field_definition_id, lookup_item_id);
+CREATE INDEX idx_cfgm_group ON custom_field_group_members (custom_field_group_id);
+CREATE INDEX idx_cfgm_org ON custom_field_group_members (organization_id);
+
+-- Which groups are assigned to which entity instances
+-- Example: Product "MacBook Pro" uses group "Laptop Specs"
+CREATE TABLE entity_custom_field_groups
+(
+    id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    organization_id UUID        NOT NULL REFERENCES organizations (id) ON DELETE CASCADE,
+    custom_field_group_id UUID  NOT NULL REFERENCES custom_field_groups (id) ON DELETE CASCADE,
+    entity_type     VARCHAR(50) NOT NULL
+        CHECK (entity_type IN ('client', 'vendor', 'product', 'resource', 'project',
+                               'quote', 'invoice', 'inventory_item')),
+    entity_id       UUID        NOT NULL,
+    created_at      TIMESTAMP   NOT NULL DEFAULT NOW(),
+    UNIQUE (custom_field_group_id, entity_type, entity_id)
+);
+
+CREATE INDEX idx_ecfg_entity ON entity_custom_field_groups (entity_type, entity_id);
+CREATE INDEX idx_ecfg_org ON entity_custom_field_groups (organization_id);
+
+-- One row per field per entity (EAV pattern)
+-- value examples: "16GB", 42, true, ["red","blue"], {"url":"...","name":"w9.pdf"}
+CREATE TABLE custom_field_values
+(
+    id              UUID PRIMARY KEY   DEFAULT uuid_generate_v4(),
+    organization_id UUID      NOT NULL REFERENCES organizations (id) ON DELETE CASCADE,
+    custom_field_id UUID      NOT NULL REFERENCES custom_field_definitions (id) ON DELETE CASCADE,
+    entity_id       UUID      NOT NULL,
+    value           JSONB     NOT NULL,
+    created_at      TIMESTAMP NOT NULL DEFAULT NOW(),
+    updated_at      TIMESTAMP NOT NULL DEFAULT NOW(),
+    UNIQUE (custom_field_id, entity_id)
+);
+
+CREATE INDEX idx_cfv_org ON custom_field_values (organization_id);
+CREATE INDEX idx_cfv_entity ON custom_field_values (entity_id);
+CREATE INDEX idx_cfv_value ON custom_field_values USING GIN (value);
 
 SELECT fn_create_updated_at_trigger('custom_field_definitions');
-SELECT fn_create_updated_at_trigger('entity_collection_entries');
+SELECT fn_create_updated_at_trigger('custom_field_groups');
+SELECT fn_create_updated_at_trigger('custom_field_values');
 
 
 -- ============================================================================
@@ -485,7 +451,6 @@ CREATE TABLE clients
     notes                  TEXT,
     external_accounting_id VARCHAR(100),
     pricing_tier           VARCHAR(50),
-    custom_fields          JSONB        NOT NULL DEFAULT '{}',
     is_active              BOOLEAN      NOT NULL DEFAULT TRUE,
     created_at             TIMESTAMP    NOT NULL DEFAULT NOW(),
     updated_at             TIMESTAMP    NOT NULL DEFAULT NOW()
@@ -493,7 +458,6 @@ CREATE TABLE clients
 
 CREATE INDEX idx_clients_org ON clients (organization_id);
 CREATE INDEX idx_clients_name ON clients (organization_id, name);
-CREATE INDEX idx_clients_custom ON clients USING GIN (custom_fields);
 
 -- Unified contacts for clients AND vendors (identical structure, polymorphic).
 -- Example: Charlie Puth → Tour Manager, Production Manager, Business Manager
@@ -519,6 +483,36 @@ CREATE INDEX idx_contacts_entity ON contacts (entity_type, entity_id);
 CREATE INDEX idx_contacts_org ON contacts (organization_id);
 
 SELECT fn_create_updated_at_trigger('clients');
+
+-- Reusable physical locations tied to a client.
+-- Every project requires a jobsite — single source of truth for "where."
+--
+-- Example (ASAP Sound):
+--   Client "Live Nation" → "Madison Square Garden", "Staples Center", "Red Rocks"
+-- Example (GreenScape):
+--   Client "Marriott Hotels" → "Downtown Location", "Airport Location"
+-- Example (Party Rental):
+--   Client "Smith Family" → "123 Oak St (residence)", "St. Mary's Church"
+CREATE TABLE jobsites
+(
+    id                   UUID PRIMARY KEY      DEFAULT uuid_generate_v4(),
+    organization_id      UUID         NOT NULL REFERENCES organizations (id) ON DELETE CASCADE,
+    client_id            UUID         REFERENCES clients (id) ON DELETE SET NULL,
+    name                 VARCHAR(255) NOT NULL, -- "Madison Square Garden", "Johnson Main House"
+    -- Example: {"street":"4 Pennsylvania Plaza","city":"New York","state":"NY","zip":"10001","country":"US","lat":40.750,"lng":-73.993}
+    address              JSONB        NOT NULL DEFAULT '{}',
+    onsite_contact_id    UUID         REFERENCES contacts (id) ON DELETE SET NULL,
+    access_instructions  TEXT,         -- "Load-in via 33rd St loading dock, badge required"
+    notes                TEXT,
+    is_active            BOOLEAN      NOT NULL DEFAULT TRUE,
+    created_at           TIMESTAMP    NOT NULL DEFAULT NOW(),
+    updated_at           TIMESTAMP    NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX idx_jobsites_org ON jobsites (organization_id);
+CREATE INDEX idx_jobsites_client ON jobsites (client_id);
+
+SELECT fn_create_updated_at_trigger('jobsites');
 
 
 -- ============================================================================
@@ -549,7 +543,6 @@ CREATE TABLE vendors
     external_accounting_id VARCHAR(100),
     -- Example: {"payment_terms":"net_30","preferred_method":"bank_transfer","tax_id":"XX-XXXXXXX"}
     payment_info           JSONB        NOT NULL DEFAULT '{}',
-    custom_fields          JSONB        NOT NULL DEFAULT '{}',
     is_active              BOOLEAN      NOT NULL DEFAULT TRUE,
     created_at             TIMESTAMP    NOT NULL DEFAULT NOW(),
     updated_at             TIMESTAMP    NOT NULL DEFAULT NOW()
@@ -557,7 +550,6 @@ CREATE TABLE vendors
 
 CREATE INDEX idx_vendors_org ON vendors (organization_id);
 CREATE INDEX idx_vendors_name ON vendors (organization_id, name);
-CREATE INDEX idx_vendors_custom ON vendors USING GIN (custom_fields);
 
 SELECT fn_create_updated_at_trigger('vendors');
 
@@ -582,33 +574,33 @@ SELECT fn_create_updated_at_trigger('vendors');
 --       ├── 🔌 XLR Cable ×4 (consumable)
 --       └── 🔌 USB-C Cable ×2 (consumable)
 
+
 CREATE TABLE products
 (
-    id              UUID PRIMARY KEY      DEFAULT uuid_generate_v4(),
-    organization_id UUID         NOT NULL REFERENCES organizations (id) ON DELETE CASCADE,
-    parent_id       UUID         REFERENCES products (id) ON DELETE SET NULL,
-    category_id     UUID         REFERENCES categories (id) ON DELETE SET NULL,
-    name            VARCHAR(255) NOT NULL,
-    sku             VARCHAR(100),
-    product_type    VARCHAR(30)  NOT NULL DEFAULT 'physical'
+    id                  UUID PRIMARY KEY      DEFAULT uuid_generate_v4(),
+    organization_id     UUID         NOT NULL REFERENCES organizations (id) ON DELETE CASCADE,
+    parent_id           UUID         REFERENCES products (id) ON DELETE SET NULL,
+    category_id         UUID         REFERENCES categories (id) ON DELETE SET NULL,
+    name                VARCHAR(255) NOT NULL,
+    sku                 VARCHAR(100),
+    product_type        VARCHAR(30)  NOT NULL DEFAULT 'physical'
         CHECK (product_type IN ('physical', 'service', 'package', 'fee')),
-    description     TEXT,
+    description         TEXT,
     -- Pricing defaults (overridable per quote/invoice line)
-    unit_price      NUMERIC(12, 2), -- NULL = negotiated per deal
-    price_unit      VARCHAR(30)           DEFAULT 'each'
+    unit_price          NUMERIC(12, 2), -- NULL = negotiated per deal
+    price_unit          VARCHAR(30)           DEFAULT 'each'
         CHECK (price_unit IN ('each', 'day', 'hour', 'week', 'month', 'flat')),
-    cost_price      NUMERIC(12, 2), -- internal cost / vendor rate
+    cost_price          NUMERIC(12, 2), -- internal cost / vendor rate
     -- Inventory tracking strategy
-    tracking_type   VARCHAR(20)  NOT NULL DEFAULT 'non_tracked'
+    tracking_type       VARCHAR(20)  NOT NULL DEFAULT 'non_tracked'
         CHECK (tracking_type IN ('serialized', 'consumable', 'non_tracked')),
     -- Consumable-specific (NULL for serialized / non_tracked)
-    unit_of_measure VARCHAR(30),    -- "rolls", "meters", "boxes", "liters"
-    reorder_point   INT,            -- alert when total stock ≤ this
-    custom_fields   JSONB        NOT NULL DEFAULT '{}',
-    is_active       BOOLEAN      NOT NULL DEFAULT TRUE,
-    display_order   INT          NOT NULL DEFAULT 0,
-    created_at      TIMESTAMP    NOT NULL DEFAULT NOW(),
-    updated_at      TIMESTAMP    NOT NULL DEFAULT NOW()
+    unit_of_measure     VARCHAR(30),    -- "rolls", "meters", "boxes", "liters"
+    reorder_point       INT,            -- alert when total stock ≤ this
+    is_active           BOOLEAN      NOT NULL DEFAULT TRUE,
+    display_order       INT          NOT NULL DEFAULT 0,
+    created_at          TIMESTAMP    NOT NULL DEFAULT NOW(),
+    updated_at          TIMESTAMP    NOT NULL DEFAULT NOW()
 );
 
 CREATE INDEX idx_products_org ON products (organization_id);
@@ -617,7 +609,6 @@ CREATE INDEX idx_products_category ON products (category_id);
 CREATE INDEX idx_products_type ON products (organization_id, product_type);
 CREATE INDEX idx_products_sku ON products (organization_id, sku);
 CREATE INDEX idx_products_tracking ON products (organization_id, tracking_type);
-CREATE INDEX idx_products_custom ON products USING GIN (custom_fields);
 
 -- ── SERIALIZED INVENTORY ────────────────────────────────────────────────
 -- Individual serial-numbered units. Only for tracking_type = 'serialized'.
@@ -625,6 +616,9 @@ CREATE INDEX idx_products_custom ON products USING GIN (custom_fields);
 --
 -- Example: Product "MacBook Pro 16" → items SN-001, SN-002, SN-003
 
+-- Cable A, 10m, SN 001
+-- Cable A, 10m, SN 002
+-- Cable B, 20m, SN 003
 CREATE TABLE inventory_items
 (
     id              UUID PRIMARY KEY     DEFAULT uuid_generate_v4(),
@@ -643,7 +637,6 @@ CREATE TABLE inventory_items
     notes           TEXT,
     purchase_price  NUMERIC(12, 2),
     purchase_date   DATE,
-    custom_fields   JSONB       NOT NULL DEFAULT '{}',
     created_at      TIMESTAMP   NOT NULL DEFAULT NOW(),
     updated_at      TIMESTAMP   NOT NULL DEFAULT NOW()
 );
@@ -672,6 +665,9 @@ CREATE INDEX idx_inv_items_serial ON inventory_items (organization_id, serial_nu
 --   WHERE p.organization_id = '<org>' AND p.tracking_type = 'consumable'
 --   GROUP BY p.id HAVING SUM(sl.quantity_on_hand) <= p.reorder_point;
 
+-- Cable A - 10m, stock level 50
+-- Cable B - 20m, stock level 30
+-- Cable C - 25m, stock level 10
 CREATE TABLE stock_levels
 (
     id                UUID PRIMARY KEY        DEFAULT uuid_generate_v4(),
@@ -743,12 +739,12 @@ SELECT fn_create_updated_at_trigger('stock_levels');
 
 
 -- ============================================================================
--- §9. RESOURCES (Contractors + Employees) — Slim Core
+-- §9. PEOPLE (Contractors + Employees) — Slim Core
 -- ============================================================================
 -- Only universal fields. Industry-specific (skills, languages, certs…)
 -- are org-defined via §4 custom fields + collections.
 
-CREATE TABLE resources
+CREATE TABLE people
 (
     id                UUID PRIMARY KEY      DEFAULT uuid_generate_v4(),
     organization_id   UUID         NOT NULL REFERENCES organizations (id) ON DELETE CASCADE,
@@ -766,24 +762,22 @@ CREATE TABLE resources
     default_day_rate  NUMERIC(10, 2),
     default_hour_rate NUMERIC(10, 2),
     currency          VARCHAR(3)            DEFAULT 'USD',
-    custom_fields     JSONB        NOT NULL DEFAULT '{}',
     is_active         BOOLEAN      NOT NULL DEFAULT TRUE,
     created_at        TIMESTAMP    NOT NULL DEFAULT NOW(),
     updated_at        TIMESTAMP    NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX idx_resources_org ON resources (organization_id);
-CREATE INDEX idx_resources_type ON resources (organization_id, type);
-CREATE INDEX idx_resources_location ON resources (organization_id, location_country, location_state, location_city);
-CREATE INDEX idx_resources_custom ON resources USING GIN (custom_fields);
+CREATE INDEX idx_resources_org ON people (organization_id);
+CREATE INDEX idx_resources_type ON people (organization_id, type);
+CREATE INDEX idx_resources_location ON people (organization_id, location_country, location_state, location_city);
 
 -- Availability calendar blocks
 -- Example: Jesse unavailable Dec 20-Jan 5 (vacation); booked Jan 10-17 (Moby Tour)
-CREATE TABLE resource_availability
+CREATE TABLE people_availability
 (
     id              UUID PRIMARY KEY     DEFAULT uuid_generate_v4(),
     organization_id UUID        NOT NULL REFERENCES organizations (id) ON DELETE CASCADE,
-    resource_id     UUID        NOT NULL REFERENCES resources (id) ON DELETE CASCADE,
+    resource_id     UUID        NOT NULL REFERENCES people (id) ON DELETE CASCADE,
     date_start      DATE        NOT NULL,
     date_end        DATE        NOT NULL,
     status          VARCHAR(30) NOT NULL DEFAULT 'available'
@@ -794,9 +788,9 @@ CREATE TABLE resource_availability
     CHECK (date_end >= date_start)
 );
 
-CREATE INDEX idx_resource_avail_resource ON resource_availability (resource_id);
-CREATE INDEX idx_resource_avail_dates ON resource_availability (date_start, date_end);
-CREATE INDEX idx_resource_avail_org ON resource_availability (organization_id);
+CREATE INDEX idx_resource_avail_resource ON people_availability (resource_id);
+CREATE INDEX idx_resource_avail_dates ON people_availability (date_start, date_end);
+CREATE INDEX idx_resource_avail_org ON people_availability (organization_id);
 
 -- Payments TO resources (contractor invoices / payroll).
 -- Example: Jesse worked Moby Tour (7d × $650 = $4,550) — paid via bank transfer
@@ -808,11 +802,11 @@ CREATE INDEX idx_resource_avail_org ON resource_availability (organization_id);
 --   WHERE rp.organization_id = '<org>' AND rp.status = 'pending'
 --   GROUP BY r.id, r.first_name, r.last_name;
 
-CREATE TABLE resource_payouts
+CREATE TABLE people_payouts
 (
     id                     UUID PRIMARY KEY        DEFAULT uuid_generate_v4(),
     organization_id        UUID           NOT NULL REFERENCES organizations (id) ON DELETE CASCADE,
-    resource_id            UUID           NOT NULL REFERENCES resources (id) ON DELETE CASCADE,
+    resource_id            UUID           NOT NULL REFERENCES people (id) ON DELETE CASCADE,
     project_id             UUID, -- FK deferred (§20)
     description            VARCHAR(500),
     amount                 NUMERIC(12, 2) NOT NULL CHECK (amount > 0),
@@ -834,11 +828,11 @@ CREATE TABLE resource_payouts
     updated_at             TIMESTAMP      NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX idx_payouts_org ON resource_payouts (organization_id);
-CREATE INDEX idx_payouts_resource ON resource_payouts (resource_id);
-CREATE INDEX idx_payouts_project ON resource_payouts (project_id);
-CREATE INDEX idx_payouts_status ON resource_payouts (organization_id, status);
-CREATE INDEX idx_payouts_paid ON resource_payouts (organization_id, paid_at);
+CREATE INDEX idx_payouts_org ON people_payouts (organization_id);
+CREATE INDEX idx_payouts_resource ON people_payouts (resource_id);
+CREATE INDEX idx_payouts_project ON people_payouts (project_id);
+CREATE INDEX idx_payouts_status ON people_payouts (organization_id, status);
+CREATE INDEX idx_payouts_paid ON people_payouts (organization_id, paid_at);
 
 SELECT fn_create_updated_at_trigger('resources');
 SELECT fn_create_updated_at_trigger('resource_payouts');
@@ -862,16 +856,11 @@ CREATE TABLE projects
         CHECK (status IN ('pending', 'approved', 'in_progress', 'completed', 'cancelled')),
     priority               VARCHAR(20)           DEFAULT 'normal'
         CHECK (priority IN ('low', 'normal', 'high', 'urgent')),
-    venue_name             VARCHAR(255),
-    -- Example: {"address":"1111 S Figueroa","city":"LA","state":"CA","lat":34.043,"lng":-118.267}
-    location               JSONB,
-    -- Example: {"name":"Mike R","email":"mike@tour.com","phone":"+1555123","role":"Tour Manager"}
-    onsite_contact         JSONB,
+    jobsite_id             UUID         NOT NULL REFERENCES jobsites (id) ON DELETE RESTRICT,
     external_accounting_id VARCHAR(100),
     source                 VARCHAR(50)
         CHECK (source IS NULL OR source IN ('website_form', 'referral', 'repeat_client', 'manual', 'api')),
     inbound_request_id     UUID,                  -- FK deferred (§20)
-    custom_fields          JSONB        NOT NULL DEFAULT '{}',
     created_by             UUID         REFERENCES users (id) ON DELETE SET NULL,
     created_at             TIMESTAMP    NOT NULL DEFAULT NOW(),
     updated_at             TIMESTAMP    NOT NULL DEFAULT NOW()
@@ -879,9 +868,9 @@ CREATE TABLE projects
 
 CREATE INDEX idx_projects_org ON projects (organization_id);
 CREATE INDEX idx_projects_client ON projects (client_id);
+CREATE INDEX idx_projects_jobsite ON projects (jobsite_id);
 CREATE INDEX idx_projects_status ON projects (organization_id, status);
 CREATE INDEX idx_projects_number ON projects (organization_id, project_number);
-CREATE INDEX idx_projects_custom ON projects USING GIN (custom_fields);
 
 -- Multiple date ranges per project — solves "Charlie Puth problem"
 -- Example: 1 project, 3 ranges:
@@ -910,12 +899,12 @@ CREATE INDEX idx_project_dates_org ON project_date_ranges (organization_id);
 
 -- People assigned to project
 -- Example: Jesse as "Playback Engineer", bill $800/day, pay $650/day
-CREATE TABLE project_resources
+CREATE TABLE project_people
 (
     id              UUID PRIMARY KEY     DEFAULT uuid_generate_v4(),
     organization_id UUID        NOT NULL REFERENCES organizations (id) ON DELETE CASCADE,
     project_id      UUID        NOT NULL REFERENCES projects (id) ON DELETE CASCADE,
-    resource_id     UUID        NOT NULL REFERENCES resources (id) ON DELETE CASCADE,
+    resource_id     UUID        NOT NULL REFERENCES people (id) ON DELETE CASCADE,
     role            VARCHAR(100),
     bill_rate       NUMERIC(10, 2),
     pay_rate        NUMERIC(10, 2),
@@ -931,9 +920,9 @@ CREATE TABLE project_resources
     updated_at      TIMESTAMP   NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX idx_proj_resources_project ON project_resources (project_id);
-CREATE INDEX idx_proj_resources_resource ON project_resources (resource_id);
-CREATE INDEX idx_proj_resources_org ON project_resources (organization_id);
+CREATE INDEX idx_proj_resources_project ON project_people (project_id);
+CREATE INDEX idx_proj_resources_resource ON project_people (resource_id);
+CREATE INDEX idx_proj_resources_org ON project_people (organization_id);
 
 -- Equipment / consumables assigned to project
 -- Serialized: product_id + inventory_item_id → checked_out / returned
@@ -948,12 +937,14 @@ CREATE TABLE project_products
     inventory_item_id UUID           REFERENCES inventory_items (id) ON DELETE SET NULL,
     vendor_id         UUID           REFERENCES vendors (id) ON DELETE SET NULL,
     quantity          NUMERIC(10, 2) NOT NULL DEFAULT 1 CHECK (quantity > 0),
+    billing_type      VARCHAR(20)    NOT NULL DEFAULT 'rental'
+        CHECK (billing_type IN ('rental', 'sale', 'internal', 'sub_rental')),
     bill_rate         NUMERIC(10, 2),
     cost_rate         NUMERIC(10, 2),
     rate_unit         VARCHAR(20)             DEFAULT 'day'
         CHECK (rate_unit IN ('day', 'each', 'flat', 'week')),
     status            VARCHAR(30)    NOT NULL DEFAULT 'requested'
-        CHECK (status IN ('requested', 'reserved', 'checked_out', 'returned', 'lost', 'consumed')),
+        CHECK (status IN ('requested', 'reserved', 'checked_out', 'returned', 'lost', 'consumed', 'sold')),
     checked_out_at    TIMESTAMP,
     returned_at       TIMESTAMP,
     notes             TEXT,
@@ -1037,7 +1028,6 @@ CREATE TABLE quotes
     internal_notes         TEXT,
     terms                  TEXT,
     external_accounting_id VARCHAR(100),
-    custom_fields          JSONB          NOT NULL DEFAULT '{}',
     created_by             UUID           REFERENCES users (id) ON DELETE SET NULL,
     created_at             TIMESTAMP      NOT NULL DEFAULT NOW(),
     updated_at             TIMESTAMP      NOT NULL DEFAULT NOW()
@@ -1055,7 +1045,7 @@ CREATE TABLE quote_line_items
     organization_id  UUID           NOT NULL REFERENCES organizations (id) ON DELETE CASCADE,
     quote_id         UUID           NOT NULL REFERENCES quotes (id) ON DELETE CASCADE,
     product_id       UUID           REFERENCES products (id) ON DELETE SET NULL,
-    resource_id      UUID           REFERENCES resources (id) ON DELETE SET NULL,
+    people_id        UUID           REFERENCES people (id) ON DELETE SET NULL,
     category_id      UUID           REFERENCES categories (id) ON DELETE SET NULL,
     description      VARCHAR(500)   NOT NULL,
     date_start       DATE,
@@ -1113,7 +1103,6 @@ CREATE TABLE invoices
     notes                  TEXT,
     internal_notes         TEXT,
     terms                  TEXT,
-    custom_fields          JSONB          NOT NULL DEFAULT '{}',
     created_by             UUID           REFERENCES users (id) ON DELETE SET NULL,
     created_at             TIMESTAMP      NOT NULL DEFAULT NOW(),
     updated_at             TIMESTAMP      NOT NULL DEFAULT NOW()
@@ -1187,7 +1176,7 @@ CREATE TABLE contracts
     organization_id     UUID         NOT NULL REFERENCES organizations (id) ON DELETE CASCADE,
     project_id          UUID         REFERENCES projects (id) ON DELETE SET NULL,
     client_id           UUID         REFERENCES clients (id) ON DELETE SET NULL,
-    resource_id         UUID         REFERENCES resources (id) ON DELETE SET NULL,
+    people_id           UUID         REFERENCES people (id) ON DELETE SET NULL,
     vendor_id           UUID         REFERENCES vendors (id) ON DELETE SET NULL,
     contract_type       VARCHAR(50)  NOT NULL
         CHECK (contract_type IN ('service_agreement', 'rental_agreement', 'subcontractor', 'nda', 'other')),
@@ -1424,11 +1413,11 @@ ALTER TABLE inventory_transactions
     ADD CONSTRAINT fk_inv_tx_project
         FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE SET NULL;
 
-ALTER TABLE resource_availability
+ALTER TABLE people_availability
     ADD CONSTRAINT fk_resource_avail_project
         FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE SET NULL;
 
-ALTER TABLE resource_payouts
+ALTER TABLE people_payouts
     ADD CONSTRAINT fk_payouts_project
         FOREIGN KEY (project_id) REFERENCES projects (id) ON DELETE SET NULL;
 
@@ -1454,14 +1443,14 @@ $$
         FOR t IN
             SELECT UNNEST(ARRAY [
                 'tag_groups','tags','entity_tags',
-                'lookup_lists',
-                'custom_field_definitions','entity_collection_entries',
+                'custom_field_definitions','custom_field_groups','custom_field_group_members',
+                'entity_custom_field_groups','custom_field_values',
                 'categories',
-                'clients','contacts',
+                'clients','contacts','jobsites',
                 'vendors',
                 'products','inventory_items','stock_levels','inventory_transactions',
-                'resources','resource_availability','resource_payouts',
-                'projects','project_date_ranges','project_resources','project_products',
+                'people','people_availability','people_payouts',
+                'projects','project_date_ranges','project_people','project_products',
                 'inbound_requests',
                 'quotes','quote_line_items',
                 'invoices','invoice_line_items','payments',
