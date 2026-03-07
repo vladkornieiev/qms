@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -15,6 +16,9 @@ import java.util.UUID;
 public interface CustomFieldGroupRepository extends JpaRepository<CustomFieldGroup, UUID> {
 
     Optional<CustomFieldGroup> findByOrganizationIdAndName(UUID organizationId, String name);
+
+    @Query(value = "SELECT CAST(ecfg.custom_field_group_id AS VARCHAR), COUNT(*) FROM entity_custom_field_groups ecfg WHERE ecfg.custom_field_group_id IN :groupIds GROUP BY ecfg.custom_field_group_id", nativeQuery = true)
+    List<Object[]> countEntityAssignmentsByGroupIds(@Param("groupIds") List<UUID> groupIds);
 
     @Query("""
             SELECT cfg FROM CustomFieldGroup cfg

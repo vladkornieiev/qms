@@ -19,10 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.HttpClientErrorException;
 
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.openapitools.jackson.nullable.JsonNullable.undefined;
@@ -165,6 +162,24 @@ public class CustomFieldService {
         return groupRepository.findAll(orgId, query == null ? "" : query,
                 entityType == null ? "" : entityType,
                 PaginationUtils.getPageable(page, size, order, sortBy));
+    }
+
+    @Transactional(readOnly = true)
+    public Map<UUID, Long> getDefinitionReferenceCounts(List<UUID> fieldIds) {
+        if (fieldIds.isEmpty()) return Map.of();
+        return definitionRepository.countValuesByFieldIds(fieldIds).stream()
+                .collect(Collectors.toMap(
+                        row -> UUID.fromString((String) row[0]),
+                        row -> ((Number) row[1]).longValue()));
+    }
+
+    @Transactional(readOnly = true)
+    public Map<UUID, Long> getGroupReferenceCounts(List<UUID> groupIds) {
+        if (groupIds.isEmpty()) return Map.of();
+        return groupRepository.countEntityAssignmentsByGroupIds(groupIds).stream()
+                .collect(Collectors.toMap(
+                        row -> UUID.fromString((String) row[0]),
+                        row -> ((Number) row[1]).longValue()));
     }
 
     private void syncMembers(CustomFieldGroup group, List<UUID> desiredFieldIds, UUID orgId) {

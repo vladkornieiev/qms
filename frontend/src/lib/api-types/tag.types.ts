@@ -12,6 +12,7 @@ export interface TagGroup {
   color?: string;
   description?: string;
   tags?: TagSummary[];
+  referenceCount?: number;
   createdAt?: string;
 }
 
@@ -19,6 +20,7 @@ export interface Tag {
   id: string;
   name: string;
   color?: string;
+  referenceCount?: number;
   createdAt?: string;
 }
 

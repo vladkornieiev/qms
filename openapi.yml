@@ -2870,6 +2870,9 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/TagSummary"
+        referenceCount:
+          type: integer
+          format: int64
         createdAt:
           $ref: "#/components/schemas/Timestamp"
 
@@ -2894,6 +2897,9 @@ components:
           type: string
         color:
           type: string
+        referenceCount:
+          type: integer
+          format: int64
         createdAt:
           $ref: "#/components/schemas/Timestamp"
 
@@ -3014,6 +3020,9 @@ components:
             type: string
         displayOrder:
           type: integer
+        referenceCount:
+          type: integer
+          format: int64
         createdAt:
           $ref: "#/components/schemas/Timestamp"
         updatedAt:
@@ -3035,6 +3044,9 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/CustomFieldDefinitionResponse"
+        referenceCount:
+          type: integer
+          format: int64
         createdAt:
           $ref: "#/components/schemas/Timestamp"
         updatedAt:

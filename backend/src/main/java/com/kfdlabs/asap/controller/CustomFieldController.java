@@ -23,16 +23,16 @@ public class CustomFieldController implements CustomFieldsApi {
     @Override
     public ResponseEntity<PaginatedCustomFieldDefinitionResponse> listCustomFieldDefinitions(
             String query, Integer page, Integer size, String sortBy, String order) {
-        var defs = customFieldService.findAllDefinitions(query, page, size, sortBy, order);
-        return ResponseEntity.ok(customFieldMapper.toPaginatedDefinitionDTO(defs));
+        return ResponseEntity.ok(customFieldMapper.toPaginatedDefinitionDTO(
+                customFieldService.findAllDefinitions(query, page, size, sortBy, order)));
     }
 
     @PreAuthorize("hasAnyRole('ROLE_OWNER', 'ROLE_ADMIN', 'ROLE_PLATFORM_ADMIN')")
     @Override
     public ResponseEntity<CustomFieldDefinitionResponse> createCustomFieldDefinition(
             CreateCustomFieldDefinitionRequest request) {
-        var def = customFieldService.createDefinition(request);
-        return ResponseEntity.status(201).body(customFieldMapper.toDefinitionDTO(def));
+        return ResponseEntity.status(201).body(customFieldMapper.toDefinitionDTO(
+                customFieldService.createDefinition(request)));
     }
 
     @Override
@@ -59,33 +59,28 @@ public class CustomFieldController implements CustomFieldsApi {
     @Override
     public ResponseEntity<PaginatedCustomFieldGroupResponse> listCustomFieldGroups(
             String query, String entityType, Integer page, Integer size, String sortBy, String order) {
-        var groups = customFieldService.findAllGroups(query, entityType, page, size, sortBy, order);
-        return ResponseEntity.ok(customFieldMapper.toPaginatedGroupDTO(groups, customFieldService::getGroupMembers));
+        return ResponseEntity.ok(customFieldMapper.toPaginatedGroupDTO(
+                customFieldService.findAllGroups(query, entityType, page, size, sortBy, order)));
     }
 
     @PreAuthorize("hasAnyRole('ROLE_OWNER', 'ROLE_ADMIN', 'ROLE_PLATFORM_ADMIN')")
     @Override
     public ResponseEntity<CustomFieldGroupResponse> createCustomFieldGroup(
             CreateCustomFieldGroupRequest request) {
-        var group = customFieldService.createGroup(request);
-        var members = customFieldService.getGroupMembers(group.getId());
-        return ResponseEntity.status(201).body(customFieldMapper.toGroupDTO(group, members));
+        return ResponseEntity.status(201).body(customFieldMapper.toGroupDTO(
+                customFieldService.createGroup(request)));
     }
 
     @Override
     public ResponseEntity<CustomFieldGroupResponse> getCustomFieldGroup(UUID id) {
-        var group = customFieldService.getGroupById(id);
-        var members = customFieldService.getGroupMembers(id);
-        return ResponseEntity.ok(customFieldMapper.toGroupDTO(group, members));
+        return ResponseEntity.ok(customFieldMapper.toGroupDTO(customFieldService.getGroupById(id)));
     }
 
     @PreAuthorize("hasAnyRole('ROLE_OWNER', 'ROLE_ADMIN', 'ROLE_PLATFORM_ADMIN')")
     @Override
     public ResponseEntity<CustomFieldGroupResponse> updateCustomFieldGroup(
             UUID id, UpdateCustomFieldGroupRequest request) {
-        var group = customFieldService.updateGroup(id, request);
-        var members = customFieldService.getGroupMembers(id);
-        return ResponseEntity.ok(customFieldMapper.toGroupDTO(group, members));
+        return ResponseEntity.ok(customFieldMapper.toGroupDTO(customFieldService.updateGroup(id, request)));
     }
 
     @PreAuthorize("hasAnyRole('ROLE_OWNER', 'ROLE_ADMIN', 'ROLE_PLATFORM_ADMIN')")

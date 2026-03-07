@@ -21,31 +21,25 @@ public class TagController implements TagsApi {
     @Override
     public ResponseEntity<PaginatedTagGroupResponse> listTagGroups(
             String query, Integer page, Integer size, String sortBy, String order) {
-        var groups = tagService.findAllTagGroups(query, page, size, sortBy, order);
-        return ResponseEntity.ok(tagMapper.toPaginatedTagGroupDTO(groups, tagService::getTagGroupMembers));
+        return ResponseEntity.ok(tagMapper.toPaginatedTagGroupDTO(
+                tagService.findAllTagGroups(query, page, size, sortBy, order)));
     }
 
     @PreAuthorize("hasAnyRole('ROLE_OWNER', 'ROLE_ADMIN', 'ROLE_PLATFORM_ADMIN')")
     @Override
     public ResponseEntity<TagGroupResponse> createTagGroup(CreateTagGroupRequest request) {
-        var group = tagService.createTagGroup(request);
-        var members = tagService.getTagGroupMembers(group.getId());
-        return ResponseEntity.status(201).body(tagMapper.toTagGroupDTO(group, members));
+        return ResponseEntity.status(201).body(tagMapper.toTagGroupDTO(tagService.createTagGroup(request)));
     }
 
     @Override
     public ResponseEntity<TagGroupResponse> getTagGroup(UUID id) {
-        var group = tagService.getTagGroupById(id);
-        var members = tagService.getTagGroupMembers(id);
-        return ResponseEntity.ok(tagMapper.toTagGroupDTO(group, members));
+        return ResponseEntity.ok(tagMapper.toTagGroupDTO(tagService.getTagGroupById(id)));
     }
 
     @PreAuthorize("hasAnyRole('ROLE_OWNER', 'ROLE_ADMIN', 'ROLE_PLATFORM_ADMIN')")
     @Override
     public ResponseEntity<TagGroupResponse> updateTagGroup(UUID id, UpdateTagGroupRequest request) {
-        var group = tagService.updateTagGroup(id, request);
-        var members = tagService.getTagGroupMembers(id);
-        return ResponseEntity.ok(tagMapper.toTagGroupDTO(group, members));
+        return ResponseEntity.ok(tagMapper.toTagGroupDTO(tagService.updateTagGroup(id, request)));
     }
 
     @PreAuthorize("hasAnyRole('ROLE_OWNER', 'ROLE_ADMIN', 'ROLE_PLATFORM_ADMIN')")
@@ -58,15 +52,14 @@ public class TagController implements TagsApi {
     @Override
     public ResponseEntity<PaginatedTagResponse> listTags(
             String query, Integer page, Integer size, String sortBy, String order) {
-        var tags = tagService.findAllTags(query, page, size, sortBy, order);
-        return ResponseEntity.ok(tagMapper.toPaginatedTagDTO(tags));
+        return ResponseEntity.ok(tagMapper.toPaginatedTagDTO(
+                tagService.findAllTags(query, page, size, sortBy, order)));
     }
 
     @PreAuthorize("hasAnyRole('ROLE_OWNER', 'ROLE_ADMIN', 'ROLE_PLATFORM_ADMIN')")
     @Override
     public ResponseEntity<TagResponse> createTag(CreateTagRequest request) {
-        var tag = tagService.createTag(request);
-        return ResponseEntity.status(201).body(tagMapper.toTagDTO(tag));
+        return ResponseEntity.status(201).body(tagMapper.toTagDTO(tagService.createTag(request)));
     }
 
     @Override

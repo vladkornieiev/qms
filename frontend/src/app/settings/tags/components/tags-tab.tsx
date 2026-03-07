@@ -100,6 +100,7 @@ export function TagsTab({ onChanged, createOpen, onCreateOpenChange }: TagsTabPr
                     <TableRow>
                       <TableHead>Name</TableHead>
                       <TableHead className="w-[80px]">Color</TableHead>
+                      <TableHead className="w-[100px] text-center">References</TableHead>
                       <TableHead className="w-[100px]">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -123,6 +124,11 @@ export function TagsTab({ onChanged, createOpen, onCreateOpenChange }: TagsTabPr
                           ) : (
                             <span className="text-gray-400">-</span>
                           )}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <span className="text-sm text-gray-600">
+                            {tag.referenceCount ?? 0}
+                          </span>
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-1">

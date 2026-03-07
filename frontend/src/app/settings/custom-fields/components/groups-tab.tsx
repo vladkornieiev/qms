@@ -155,6 +155,7 @@ export function GroupsTab({ onChanged, createOpen, onCreateOpenChange }: GroupsT
                       <TableHead>Name</TableHead>
                       <TableHead>Entity Type</TableHead>
                       <TableHead>Fields</TableHead>
+                      <TableHead className="w-[100px] text-center">References</TableHead>
                       <TableHead className="w-[100px]">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -190,6 +191,11 @@ export function GroupsTab({ onChanged, createOpen, onCreateOpenChange }: GroupsT
                           ) : (
                             <span className="text-gray-400">No fields</span>
                           )}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <span className="text-sm text-gray-600">
+                            {group.referenceCount ?? 0}
+                          </span>
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-1">

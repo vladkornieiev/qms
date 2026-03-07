@@ -115,6 +115,7 @@ export function DefinitionsTab({ onChanged, createOpen, onCreateOpenChange }: De
                       <TableHead>Key</TableHead>
                       <TableHead>Type</TableHead>
                       <TableHead className="w-[80px] text-center">Required</TableHead>
+                      <TableHead className="w-[100px] text-center">References</TableHead>
                       <TableHead className="w-[100px]">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -140,6 +141,11 @@ export function DefinitionsTab({ onChanged, createOpen, onCreateOpenChange }: De
                           ) : (
                             <span className="text-gray-400">No</span>
                           )}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <span className="text-sm text-gray-600">
+                            {def.referenceCount ?? 0}
+                          </span>
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-1">

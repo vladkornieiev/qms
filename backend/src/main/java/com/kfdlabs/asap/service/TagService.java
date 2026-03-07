@@ -7,6 +7,7 @@ import com.kfdlabs.asap.dto.UpdateTagRequest;
 import com.kfdlabs.asap.entity.Tag;
 import com.kfdlabs.asap.entity.TagGroup;
 import com.kfdlabs.asap.entity.TagGroupMember;
+import com.kfdlabs.asap.repository.EntityTagRepository;
 import com.kfdlabs.asap.repository.TagGroupMemberRepository;
 import com.kfdlabs.asap.repository.TagGroupRepository;
 import com.kfdlabs.asap.repository.TagRepository;
@@ -19,10 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.HttpClientErrorException;
 
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.openapitools.jackson.nullable.JsonNullable.undefined;
@@ -35,6 +33,7 @@ public class TagService {
     private final TagGroupRepository tagGroupRepository;
     private final TagRepository tagRepository;
     private final TagGroupMemberRepository tagGroupMemberRepository;
+    private final EntityTagRepository entityTagRepository;
 
     // ---- Tag Groups ----
 
@@ -162,6 +161,24 @@ public class TagService {
         UUID orgId = SecurityUtils.getCurrentOrganizationId();
         return tagRepository.findAll(orgId, query == null ? "" : query,
                 PaginationUtils.getPageable(page, size, order, sortBy));
+    }
+
+    @Transactional(readOnly = true)
+    public Map<UUID, Long> getTagReferenceCounts(List<UUID> tagIds) {
+        if (tagIds.isEmpty()) return Map.of();
+        return entityTagRepository.countByTagIds(tagIds).stream()
+                .collect(Collectors.toMap(
+                        row -> UUID.fromString((String) row[0]),
+                        row -> ((Number) row[1]).longValue()));
+    }
+
+    @Transactional(readOnly = true)
+    public Map<UUID, Long> getTagGroupReferenceCounts(List<UUID> groupIds) {
+        if (groupIds.isEmpty()) return Map.of();
+        return entityTagRepository.countByTagGroupIds(groupIds).stream()
+                .collect(Collectors.toMap(
+                        row -> UUID.fromString((String) row[0]),
+                        row -> ((Number) row[1]).longValue()));
     }
 
     private void syncMembers(TagGroup group, List<UUID> desiredTagIds, UUID orgId) {

@@ -20,6 +20,7 @@ export interface CustomFieldDefinition {
   isRequired: boolean;
   options?: string[];
   displayOrder: number;
+  referenceCount?: number;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -30,6 +31,7 @@ export interface CustomFieldGroup {
   description?: string;
   entityType: string;
   fields?: CustomFieldDefinition[];
+  referenceCount?: number;
   createdAt?: string;
   updatedAt?: string;
 }
